@@ -3,22 +3,22 @@
 /* CSS Variables */
 :root {
     --sidebar-width: 260px;
-    --sidebar-bg: #1a1c1e;
-    --sidebar-text: #ffffffcc;
-    --sidebar-text-hover: #ffffff;
-    --sidebar-link-hover: #ffffff1a;
-    --sidebar-title: #ffffff99;
+    --color-bg: #ffffff;
+    --color-bg-alt: #f8f9fa;
+    --color-text: #010133;             /* Dark Blue instead of black */
+    --color-text-light: #6c757d;
+    --color-primary: #FDB515;          /* California Gold */
+    --color-primary-hover: #C4820E;    /* Darker Gold */
+    --color-border: #dee2e6;
+    --color-sidebar-bg: #003262;       /* Berkeley Blue */
+    --color-sidebar-text: #ffffffcc;
+    --color-sidebar-text-hover: #FDB515;  /* Gold on hover */
+    --color-sidebar-link-hover: #FDB51520;
+    --color-sidebar-title: #FDB51599;
     
-    --content-bg: #fcfcfc;
-    --content-text: #1a1a1a;
-    --content-heading: #1a1a1a;
-    --link-color: #2980b9;
-    --link-hover: #3091d1;
-    --border-color: #e1e4e5;
-    --code-bg: #f5f5f5;
-    --headerlink-color: #e8e8e8;
+    --color-content-heading: #010133;  /* Dark Blue for headings */
     
-    --font-body: 'Lato', 'proxima-nova', 'Helvetica Neue', Arial, sans-serif;
+    --font-body: 'Lato', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     --font-heading: 'Roboto Slab', 'ff-tisa-web-pro', Georgia, serif;
     --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
 }
