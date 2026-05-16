@@ -437,3 +437,20 @@ img {
     max-width: 100%;
     height: auto;
 }
+
+figure {
+    margin-bottom: 1.5rem;
+}
+
+figcaption {
+    color: var(--color-text-light);
+    font-size: 0.9rem;
+    margin-top: 0.5rem;
+}
+
+/* ===== BYLINE ===== */
+.page-byline {
+    color: var(--color-text-light);
+    font-size: 0.95rem;
+    margin-top: -0.5rem;
+}
