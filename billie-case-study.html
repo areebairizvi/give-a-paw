@@ -43,27 +43,118 @@
                 </section>
                 <section id="brief-summary">
                     <h2>Brief Summary of Animal Goals<a class="headerlink" href="#brief-summary" title="Permalink to this heading">¶</a></h2>
-                    <p>Placeholder text for Brief Summary of Animal Goals section.</p>
+                    <p>Due to cancer, Billie's left thoracic limb was fully amputated, meaning there is no remaining bone structure to support a partial prosthetic. We are therefore creating a full front-limb prosthetic. Billie and her owner's goals are long walks, hikes, and swimming.</p>
                 </section>
                 <section id="materials">
                     <h2>Materials<a class="headerlink" href="#materials" title="Permalink to this heading">¶</a></h2>
-                    <p>Placeholder text for Materials section.Why PETG/TPU chosen for each part.</p>
+                    <h3>Main Socket / Chest Plate: PETG</h3>
+                    <ul>
+                        <li>Strong but not brittle: handles weight and impact without cracking.</li>
+                        <li>Durable: good for repeated stress and outdoor use.</li>
+                        <li>Heat and moisture resistant: won't warp like PLA (recommended by the guest panel).</li>
+                    </ul>
+                    <h3>Leg: Aluminum Rod</h3>
+                    <p>We selected a <a href="https://www.menards.com/main/hardware/sheet-metal-rods/steelworks-1-x-36-aluminum-round-tube/11402/p-1444432409899-c-9215.htm">1" x 36" aluminum round tube</a>.</p>
+                    <figure>
+                        <img src="billie-leg-tube-spec.png" alt="Dimensioned drawing of the aluminum leg tube">
+                        <figcaption>Aluminum tube specification: 1.000" outer diameter, 0.065" wall thickness, 36" length.</figcaption>
+                    </figure>
+                    <ul>
+                        <li>The thinner diameter and wall thickness provide a lightweight leg that won't cause unnecessary strain, while staying durable and not flimsy.</li>
+                        <li>More sturdy and waterproof than 3D printing or using a PVC pipe.</li>
+                        <li>Easier to obtain than carbon fiber, and better for cutting to a custom length and drilling holes for screws.</li>
+                    </ul>
+                    <figure>
+                        <img src="billie-bending-analysis.png" alt="Cantilever beam bending analysis for the aluminum leg tube">
+                        <figcaption>Cantilever beam bending analysis — the calculated stress (66.9 MPa) is well below the yield strength (145 MPa), giving a static factor of safety of 2.17. Calculations assume an estimated length; the tube thickness may change with the final length.</figcaption>
+                    </figure>
+                    <h3>Lattice Paw: TPU</h3>
+                    <ul>
+                        <li>Flexible, stretchable, and durable; capable of bending and twisting without breaking, with good abrasion resistance. The lattice structure acts as a spring.</li>
+                    </ul>
                 </section>
                 <section id="3d-print-files">
                     <h2>3D-Print Files<a class="headerlink" href="#3d-print-files" title="Permalink to this heading">¶</a></h2>
-                    <p>Placeholder text for 3D-Print Files section. Foot design, interface, etc.</p>
+                    <p>The attachment for the socket was made in Onshape. Given that the socket material is PETG, we used a clearance of 0.5-0.7 mm (0.014") for a tube with a 1" external diameter and 0.065" wall thickness, and 8 mm screws (holes with a 7.8 mm diameter for self-tapping).</p>
+                    <figure>
+                        <img src="billie-socket-dimensions.png" alt="Dimensioned drawing of the socket attachment">
+                        <figcaption>Socket attachment dimensions, showing the tube clearance fit.</figcaption>
+                    </figure>
+                    <figure>
+                        <img src="billie-socket-cad.png" alt="CAD render of the socket attachment">
+                        <figcaption>CAD render of the socket attachment.</figcaption>
+                    </figure>
+                    <p>Print and scan files include the Billie 3D scan, a second Billie 3D scan, and the Billie nTop file.</p>
                 </section>
                 <section id="iteration-design">
                     <h2>Iteration in Design Process and Challenges Faced<a class="headerlink" href="#iteration-design" title="Permalink to this heading">¶</a></h2>
-                    <p>Placeholder text for Iteration in Design Process and Challenges Faced section. This section will document the iterative design improvements and obstacles encountered.</p>
+                    <h3>Design Iterations</h3>
+                    <p><strong>1. Socket.</strong> Initially the socket only covered the area where the leg part attaches to the body, but after talking to the expert judges we changed the design so the socket covers more of the body and attaches to the harness with 2 straps instead of 3, preventing slipping and improving stability.</p>
+                    <figure>
+                        <img src="billie-first-design.jpg" alt="First socket design fitted on Billie">
+                        <figcaption>First design.</figcaption>
+                    </figure>
+                    <figure>
+                        <img src="billie-revised-design.jpg" alt="Revised socket design fitted on Billie">
+                        <figcaption>Revised design.</figcaption>
+                    </figure>
+                    <p>After printing it, the socket didn't fit as well as expected, so we made more changes — moving the connection point of the leg and body further to the right and bringing the socket higher up her body to make it more secure.</p>
+                    <figure>
+                        <img src="billie-fitting.jpg" alt="Fitting session with the socket marked up">
+                        <figcaption>Fitting session used to mark up the next round of socket changes.</figcaption>
+                    </figure>
+                    <figure>
+                        <img src="billie-socket-scan-1.png" alt="3D scan render of Billie's socket">
+                        <figcaption>3D scan render of the socket.</figcaption>
+                    </figure>
+                    <figure>
+                        <img src="billie-socket-scan-2.png" alt="Another 3D scan render of Billie's socket">
+                        <figcaption>An additional view of the scanned socket.</figcaption>
+                    </figure>
+                    <p>Next steps after the following fitting are to determine whether the attachment point is too close to the midline (and whether the inside edge of the hole restricts the right shoulder joint), and whether the vertical attachment angle suits Billie. Her right leg is currently shifted toward the center to compensate for her weight; we expect the extra support to shift it away from the midline, but this may need adjustment. The aluminum pipe also needs to be cut to length after measuring the socket-to-paw attachment distance during a fitting, accounting for how length affects her ability to sit while wearing it.</p>
+                    <p><strong>2. Paw.</strong> After printing the paw, we made changes to make it smaller, lighter, and more compressive: the width went from 3" to 2.5", the height of the upper part from 2" to 1.5", and the lattice perimeter area from 0.5" to 0.25".</p>
+                    <ul>
+                        <li>Unlike linear patterns, which have weak points and compress more in certain directions, a gyroid has uniform stress, making it better at distributing load from multiple directions.</li>
+                        <li>Finite Element Analysis is unreliable for TPU because of its hyperelasticity and nonlinear behavior; best practice is physical iteration. Stiffness can be modulated with cell size and midsurface offset.</li>
+                        <li>The modified Onshape file was imported into nTop to add the lattice.</li>
+                    </ul>
+                    <figure>
+                        <img src="billie-paw-sketch.png" alt="Before and after dimensioned sketches of the paw">
+                        <figcaption>Paw dimensions before (left) and after (right) the size reduction.</figcaption>
+                    </figure>
+                    <figure>
+                        <img src="billie-paw-lattice.png" alt="nTop workflow and gyroid lattice paw render">
+                        <figcaption>The gyroid lattice applied to the paw in nTop.</figcaption>
+                    </figure>
+                    <h3>Challenges</h3>
+                    <ol>
+                        <li>Running Finite Element Analysis for the TPU paw was difficult because SolidWorks' FEA lacks a TPU material. We substituted polyurethane, but since FEA is unreliable for TPU anyway, we relied heavily on iterative testing.</li>
+                        <li>When we printed the paw, every part was compressive except the bottom — which is where we most need compressibility. To fix this, we edited the shell and infill settings of the 3D printer and modeled the lattice in nTop for a more even result.</li>
+                        <li>Billie's socket also didn't fit well, so we got another scan. However, the most complete scan didn't capture enough of her neck and upper torso to raise the socket as much as we wanted. We will either get another scan or merge the new scan (for accuracy) with the old one (for coverage). Ideally, the hole for Billie's right leg should be large enough to fit around her shoulder joint rather than over it.</li>
+                    </ol>
                 </section>
                 <section id="assembly">
                     <h2>Assembly of Full Design<a class="headerlink" href="#assembly" title="Permalink to this heading">¶</a></h2>
-                    <p>Placeholder text for Assembly of Full Design section.</p>
+                    <p>Because of order delays and our commitment to delivering a safe, fully functioning prosthetic limb to Billie, we did not have enough time to assemble a full design. However, we will continue to work on this project.</p>
+                    <figure>
+                        <img src="billie-socket-print.jpg" alt="Printed socket for Billie's prosthetic">
+                        <figcaption>A printed socket for Billie's prosthetic.</figcaption>
+                    </figure>
+                    <p>The in-progress assembly is available in <a href="https://cad.onshape.com/documents/f13c7874ca9d11d405329b87/w/7e7c1649eeb1dd01095a05f8/e/72262e476d97fd00ba8b317d">our Onshape document</a>.</p>
                 </section>
                 <section id="referenced-papers">
                     <h2>Referenced Papers/Sources<a class="headerlink" href="#referenced-papers" title="Permalink to this heading">¶</a></h2>
-                    <p>Placeholder text for Referenced Papers/Sources section.</p>
+                    <ul>
+                        <li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC8654758/">PMC8654758 — veterinary prosthetics research</a></li>
+                        <li><a href="https://www.veterinarypaper.com/pdf/2025/vol10issue12/PartD/10-12-6-800.pdf">Veterinary Paper — 3D-printed prosthetics study (2025)</a></li>
+                        <li><a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC12767463/">PMC12767463 — clinical application of 3D printing in canine prosthetics</a></li>
+                        <li><a href="https://www.sciencedirect.com/science/article/pii/S0034528823002059">ScienceDirect — prosthetic materials and design article</a></li>
+                    </ul>
+                    <p>Helpful videos:</p>
+                    <ul>
+                        <li><a href="https://www.youtube.com/shorts/0U36sqay6Eg">YouTube short — prosthetic reference</a></li>
+                        <li><a href="https://www.youtube.com/watch?v=wfWB3-hBHrI">YouTube — prosthetic reference</a></li>
+                    </ul>
                 </section>
             </article>
             <footer>

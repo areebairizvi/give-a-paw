@@ -40,30 +40,70 @@
             <article>
                 <section id="kiki-case-study">
                     <h1>Kiki Case Study<a class="headerlink" href="#kiki-case-study" title="Permalink to this heading">¶</a></h1>
+                    <p class="page-byline">By: Ramzi Hreish, Ian Poe, Harshini Jayaprakash, Phillip Ye, Kylie Pele, and Simran Keertipati</p>
                 </section>
                 <section id="brief-summary">
                     <h2>Brief Summary of Animal Goals<a class="headerlink" href="#brief-summary" title="Permalink to this heading">¶</a></h2>
-                    <p>Placeholder text for Brief Summary of Animal Goals section. </p>
+                    <p>Kiki had both front limbs amputated, with one slight residual limb and another that was completely amputated. The owner's request was to improve upon the current wheelchair design, which is clunky and inhibiting.</p>
+                    <figure>
+                        <img src="kiki-wheelchair-current.jpg" alt="Kiki standing in her current wheelchair">
+                        <figcaption>Kiki in her current wheelchair — the design the new build aims to improve on.</figcaption>
+                    </figure>
+                    <p>Kiki currently uses her longer (right) nub to walk and balance without a wheelchair, resulting in a slanted, non-ideal posture. The new wheelchair should enhance her ability to walk and run, especially on non-paved terrain. It must be comfortable but durable, prevent her from faceplanting, and support high speeds and high impact.</p>
                 </section>
                 <section id="materials">
                     <h2>Materials<a class="headerlink" href="#materials" title="Permalink to this heading">¶</a></h2>
-                    <p>Placeholder text for Materials section.Why PETG/TPU chosen for each part.</p>
+                    <ul>
+                        <li><strong>Frame: TPU</strong> — Flexible, so the frame can move with Kiki.</li>
+                        <li><strong>Fork: PETG</strong> (use CF Nylon with inlaid continuous fiber on the Markforged if possible) — Strong, durable, and impact resistant.</li>
+                        <li><strong>Wheels: TPU</strong> — High impact resistance, with variable rigidity and compressibility set by infill density:
+                            <ul>
+                                <li>Rim section: high infill density for a strong, rigid structure.</li>
+                                <li>Tire section: low infill density for squishiness to absorb impacts.</li>
+                            </ul>
+                        </li>
+                    </ul>
+                    <figure>
+                        <img src="kiki-fitting.jpg" alt="Kiki during an in-person fitting session with prototype overlay">
+                        <figcaption>An in-person fitting session, used to refine the wheelchair's dimensions.</figcaption>
+                    </figure>
                 </section>
                 <section id="3d-print-files">
                     <h2>3D-Print Files<a class="headerlink" href="#3d-print-files" title="Permalink to this heading">¶</a></h2>
-                    <p>Placeholder text for 3D-Print Files section. Foot design, interface, etc.</p>
+                    <p><strong>STL Files</strong> — The folder contains STL files of the parts in their current state. Use the CAD files for editing and the most recent version.</p>
                 </section>
                 <section id="iteration-design">
                     <h2>Iteration in Design Process and Challenges Faced<a class="headerlink" href="#iteration-design" title="Permalink to this heading">¶</a></h2>
-                    <p>Placeholder text for Iteration in Design Process and Challenges Faced section. </p>
+                    <ul>
+                        <li><strong>Dimensioning</strong> — Attempts to dimension the parts from physical images with manual measurements (measuring tapes) were slightly inconsistent with the dog's actual dimensions due to parallax, which impaired the fit and comfort of the initial design.</li>
+                        <li><strong>Shock absorber</strong> — A shock absorber was originally ideated to interface between the frame and the fork to reduce impulse, especially on hard surfaces at high speeds. This was later replaced by printing the wheel spokes with slightly more give (lowered infill and a different infill pattern) to reduce design complexity and the chance of failure.</li>
+                        <li><strong>Wheel size</strong> — Wheel sizing was difficult to calculate given Kiki's inability to stand up straight without support. An in-person fitting session provided quality insight on lowering the wheel diameter relative to her current wheelchair.</li>
+                        <li><strong>Padding offset</strong> — The initial frame design tried to account for a slight sizing offset due to planned padding (positive offset), but this made the design slightly oversized.</li>
+                        <li><strong>Rigidity</strong> — The nTop workflow created a slightly rigid and sharp design based on the lidar scan. After printing the initial prototype, this was adjusted for more smoothness by scattering bone placements in the workflow to round the inside of the frame.</li>
+                    </ul>
                 </section>
                 <section id="assembly">
                     <h2>Assembly of Full Design<a class="headerlink" href="#assembly" title="Permalink to this heading">¶</a></h2>
-                    <p>Placeholder text for Assembly of Full Design section. </p>
+                    <p><strong>CAD Files</strong></p>
+                    <ul>
+                        <li>A folder contains all CAD files for the project, including a top-level assembly.</li>
+                        <li>All CAD files are <code>.SLDPRT</code> files.</li>
+                        <li>Many, if not all, SolidWorks files are parametric, allowing dimensions to be changed easily to get the right fitment.</li>
+                    </ul>
+                    <figure>
+                        <img src="kiki-wheelchair-cad.png" alt="CAD render of Kiki's wheelchair frame and wheels">
+                        <figcaption>CAD render of the wheelchair assembly — frame and spoked wheels.</figcaption>
+                    </figure>
                 </section>
                 <section id="referenced-papers">
                     <h2>Referenced Papers/Sources<a class="headerlink" href="#referenced-papers" title="Permalink to this heading">¶</a></h2>
-                    <p>Placeholder text for Referenced Papers/Sources section. </p>
+                    <ul>
+                        <li>M. A. Bond, "The effect of a specialized reading program on the reading achievement of second-grade students," Ph.D. dissertation, Dept. Curriculum and Instruction, Univ. of Mississippi, Oxford, MS, USA, 1990. Available: ProQuest Dissertations &amp; Theses Global.</li>
+                        <li>T. B. (TrevorB1), "<a href="https://www.instructables.com/Small-Front-Leg-Dog-Wheelchair/">Small front leg dog wheelchair</a>," Instructables, 2014.</li>
+                        <li>C. Jackson, C. Anderson, T. Wagner, and M. McAlester, "<a href="https://digitalcommons.trinity.edu/engine_designreports/103">Final project report: Specialized dog wheelchair</a>," Engineering Senior Design Reports, Trinity Univ., San Antonio, TX, USA, Rep. 103, 2025.</li>
+                        <li>S. Yang et al., "<a href="https://pmc.ncbi.nlm.nih.gov/articles/PMC12767463/">Clinical application of 3D printing technology in the production of canine full limb prosthetics</a>," Veterinary Medicine International, vol. 2025, Art. no. 9052033, 2025, doi:10.1155/vmi/9052033.</li>
+                        <li>K. B. M. de Oliveira and L. da S. Gomes, "<a href="https://www.researchgate.net/publication/385265320_Ergonomic_Wheelchair_for_Paraplegic_Dogs_with_Resting_Mechanism">Ergonomic wheelchair for paraplegic dogs with resting mechanism</a>," Journal of Civil Engineering Research &amp; Technology, vol. 6, Art. no. JCERT-173, 2024, doi:10.47363/JCERT/2024(6)166.</li>
+                    </ul>
                 </section>
             </article>
             <footer>

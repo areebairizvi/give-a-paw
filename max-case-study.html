@@ -43,27 +43,83 @@
                 </section>
                 <section id="brief-summary">
                     <h2>Brief Summary of Animal Goals<a class="headerlink" href="#brief-summary" title="Permalink to this heading">¶</a></h2>
-                    <p>Placeholder text for Brief Summary of Animal Goals section testing. </p>
+                    <p>The design goals for Max's prosthetic are:</p>
+                    <ol>
+                        <li><strong>Load support</strong> — The prosthetic must support approximately 30% of Max's body weight during walking (85 N), with a factor of safety of about 3 (255 N).</li>
+                        <li><strong>Water resistance</strong> — Materials that don't rust or deteriorate from water, since Max enjoys outdoor walks and swimming.</li>
+                        <li><strong>Comfort and stability</strong> — The device must be comfortable and securely attached to the torso.</li>
+                        <li><strong>Mobility improvement</strong> — The prosthetic should help distribute weight and improve walking endurance.</li>
+                    </ol>
                 </section>
                 <section id="materials">
                     <h2>Materials<a class="headerlink" href="#materials" title="Permalink to this heading">¶</a></h2>
-                    <p>Placeholder text for Materials section. Why PETG/TPU chosen for each part.</p>
+                    <ul>
+                        <li><strong>TPU</strong> for harness and foot — Flexible, absorbs impact and shock, resistant to scratching and wear.</li>
+                        <li><strong>Air-mesh</strong> for harness — Comfort, chafing prevention, breathability, and water resistance.</li>
+                        <li><strong>Straps</strong> for harness — Secure the harness.</li>
+                        <li><strong>Slots</strong> for harness — Externally attached to connect harness and straps.</li>
+                        <li><strong>Contact cement</strong> — Adhesive for the air mesh and harness.</li>
+                        <li><strong>6061 Aluminum tube</strong> (0.05" thick) for the leg — Sturdy and lightweight.</li>
+                        <li><strong>ABS</strong> for the leg joint — Good strength-to-weight ratio, durable, with better UV protection.</li>
+                        <li><strong>Extension spring</strong> for the prosthetic joint — Spring suspension system for the limb.</li>
+                        <li><strong>Shoulder bolt</strong> for the prosthetic joint — Stainless steel, durable and water resistant.</li>
+                        <li><strong>Heat-set insert</strong> for the joint fixture — Stainless steel, durable and water resistant.</li>
+                        <li><strong>Bearing bushing</strong> for the prosthetic joint — MDS-Nylon, low-friction and water resistant.</li>
+                        <li><strong>Rubber padding</strong> for the bottom of the foot — Absorbs impact forces, reduces stress, and improves traction on different surfaces.</li>
+                    </ul>
                 </section>
                 <section id="3d-print-files">
                     <h2>3D-Print Files<a class="headerlink" href="#3d-print-files" title="Permalink to this heading">¶</a></h2>
-                    <p>Placeholder text for 3D-Print Files section. Foot design, interface, etc.</p>
+                    <p>All print files are available in the <a href="https://drive.google.com/drive/folders/1K_ihmBzWr5lr-hHDXYBmPq6knyZjLq5z?usp=sharing">shared Google Drive folder</a>.</p>
+                    <figure>
+                        <img src="max-foot.png" alt="CAD render of Max's prosthetic foot">
+                        <figcaption>Foot — with a triangular lattice base for compliance.</figcaption>
+                    </figure>
+                    <figure>
+                        <img src="max-joint-adapter.png" alt="CAD render of the joint adapter">
+                        <figcaption>Joint adapter.</figcaption>
+                    </figure>
+                    <figure>
+                        <img src="max-harness.png" alt="3D model of Max's harness">
+                        <figcaption>Harness.</figcaption>
+                    </figure>
+                    <figure>
+                        <img src="max-clip-adapter.png" alt="CAD render of the clip adapter">
+                        <figcaption>Clip adapter.</figcaption>
+                    </figure>
                 </section>
                 <section id="iteration-design">
                     <h2>Iteration in Design Process and Challenges Faced<a class="headerlink" href="#iteration-design" title="Permalink to this heading">¶</a></h2>
-                    <p>Placeholder text for Iteration in Design Process and Challenges Faced section. </p>
+                    <h3>Iterations</h3>
+                    <ul>
+                        <li><strong>Limb shape</strong> — When incorporating the spring design, we initially went for a more ergonomic, curve-shaped leg. This caused issues with simulating predictable loads and behavior, and was very dependent on the functionality of the spring. It was revised to a straight tube, making loads more predictable and allowing us to use two regular bolts rather than the shoulder bolt — so the prosthetic stays usable even if the spring design fails.</li>
+                        <li><strong>Strap adapter</strong> — Originally designed as two separate pieces that would be printed and friction-fitted together, which raised concerns about failure along the layer lines. Revised to a single straight flat piece fastened with a bolt to the harness.</li>
+                    </ul>
+                    <h3>Challenges Faced</h3>
+                    <ul>
+                        <li><strong>Limb shape</strong> — A full amputation with a minor "bump" remaining; the bump is a focal point for pressure concentration if improperly loaded. Asymmetry between left and right because of ectrodactyly means weight distribution, balance, and gait must be accounted for, as loading may shift toward one side. Proper harness fixation is important for secure suspension and comfort.</li>
+                        <li><strong>Joint motion</strong> — Cannot be too rigid, as that would increase impact force. Needs some shock absorption and slight flexibility on contact to distribute force across the limb; a spring suspension system was proposed to address this.</li>
+                        <li><strong>Weight distribution</strong> — The prosthetic must support 30% of the dog's weight for structural safety and functional symmetry, with no single area bearing significant stress. A factor of safety of 3 accounts for dynamic impact forces and uneven terrain.</li>
+                    </ul>
                 </section>
                 <section id="assembly">
                     <h2>Assembly of Full Design<a class="headerlink" href="#assembly" title="Permalink to this heading">¶</a></h2>
-                    <p>Placeholder text for Assembly of Full Design section. </p>
+                    <figure>
+                        <img src="max-assembly.png" alt="CAD render of Max's full assembled prosthetic">
+                        <figcaption>Full assembled prosthetic — joint, aluminum leg tube, and lattice foot.</figcaption>
+                    </figure>
+                    <figure>
+                        <img src="max-assembly-cutaway.png" alt="Cutaway CAD render showing the internal spring suspension">
+                        <figcaption>Cutaway view showing the internal extension spring suspension.</figcaption>
+                    </figure>
                 </section>
                 <section id="referenced-papers">
                     <h2>Referenced Papers/Sources<a class="headerlink" href="#referenced-papers" title="Permalink to this heading">¶</a></h2>
-                    <p>Placeholder text for Referenced Papers/Sources section. </p>
+                    <ul>
+                        <li><a href="https://digitalcommons.calpoly.edu/cgi/viewcontent.cgi?article=3605&amp;context=theses">Cal Poly Digital Commons — thesis on prosthetic design</a></li>
+                        <li><a href="https://www.sportsvet.com/muscle-actions-of-the-legs-during-locomotion-of-the-dog/">Muscle Actions of the Legs During Locomotion of the Dog — SportsVet</a></li>
+                        <li><a href="https://onlinelibrary.wiley.com/doi/chapter-epub/10.1002/9781394251452.ch15">Wiley Online Library — canine locomotion reference (Ch. 15)</a></li>
+                    </ul>
                 </section>
             </article>
             <footer>
