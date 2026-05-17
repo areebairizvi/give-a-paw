@@ -44,74 +44,116 @@
     </aside>
 
     <div class="page">
-        <div class="content">
+        <div class="content home">
             <article>
-                <section id="give-a-paw">
-                    <h1>Give a Paw<a class="headerlink" href="#give-a-paw" title="Permalink to this heading">¶</a></h1>
-                         <p>
-                             Give a Paw is a UC Berkeley program committed to designing and manufacturing no-cost prosthetics for animals in the Bay Area. 
-                             In the personalized healthcare field, there are not enough trained professionals to deliver personalized care to all the patients in need.
-                         </p>
-                    <blockquote>
-                        <p>"Only 1 in 10 people in need has access to assistive products, including prostheses and orthoses, because of their high cost and because of lack of awareness, availability, and trained personnel."</p>
-                        <footer>— World Health Organization</footer>
-                    </blockquote>
-                   
-                    <hr>
-                    <p>The Give a Paw Program is committed address these obstacles of high cost, lack of awareness, and most importantly, trained personnel. 
-                        At the University of California, Berkeley, Bioprinting@Berkeley puts on a 2 unit Canine Prosthetics DeCal. The course covers the fundamentals of additive manufacturing and design considerations for prosthetics, and includes a hands-on project for student teams to make prosthetics for shelter animals in the Bay Area.
-                       <hr>
-                        
-                        Below we have documentation our Spring 2026 animal patients.
-
-                        Special thanks to Max, Billie, Yana, Ollie, and Kiki for participating in our program!
-                    </p>
+                <section class="hero" id="hero">
+                    <!--
+                      To use a real rotating 3D model instead of the static render:
+                      1. Add to <head>:
+                         <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
+                      2. Replace the <img> in .hero-model with:
+                         <model-viewer src="prosthetic.glb" auto-rotate camera-controls
+                           disable-zoom interaction-prompt="none" style="width:100%;height:100%;"></model-viewer>
+                    -->
+                    <div class="hero-model">
+                        <img src="yana-harness-lattice.png" alt="3D model of an animal prosthetic">
+                    </div>
+                    <div class="hero-inner">
+                        <h1>Give a Paw</h1>
+                        <p class="hero-tagline">No-cost, custom 3D-printed prosthetics for shelter animals in the Bay Area.</p>
+                        <a href="#patients" class="hero-cta">Meet our 2026 patients</a>
+                    </div>
                 </section>
 
-                <section id="case-studies">
-                    <h2>Case Studies<a class="headerlink" href="#case-studies" title="Permalink to this heading">¶</a></h2>
-                    
-                    <ul class="simple">
-                        <li><a href="full-limb.html">Full Limb</a>
-                            <ul>
-                                <li><a href="max-case-study.html">Max Case Study</a></li>
-                                <li><a href="billie-case-study.html">Billie Case Study</a></li>
-                                <li><a href="yana-case-study.html">Yana Case Study</a></li>
-                                <li><a href="ollie-case-study.html">Ollie Case Study</a></li>
-                            </ul>
-                        </li>
-                        <li><a href="wheel-chair.html">Wheel Chair</a>
-                            <ul>
-                                <li><a href="kiki-case-study.html">Kiki Case Study</a></li>
-                            </ul>
-                        </li>
-                    </ul>
+                <section class="patients" id="patients">
+                    <div class="section-inner">
+                        <h2>Our 2026 Animal Patients</h2>
+                        <p class="section-sub">Five animals, five custom builds. Select any patient to read their full case study.</p>
+                    </div>
+                    <div class="conveyor">
+                        <div class="conveyor-track">
+                            <a class="patient-card" href="max-case-study.html">
+                                <img src="max-photo.jpg" alt="Max">
+                                <span class="patient-name">Max</span>
+                            </a>
+                            <a class="patient-card" href="billie-case-study.html">
+                                <img src="billie-photo.jpg" alt="Billie">
+                                <span class="patient-name">Billie</span>
+                            </a>
+                            <a class="patient-card" href="yana-case-study.html">
+                                <img src="yana-photo.jpg" alt="Yana">
+                                <span class="patient-name">Yana</span>
+                            </a>
+                            <a class="patient-card" href="ollie-case-study.html">
+                                <img src="ollie-photo.jpg" alt="Ollie">
+                                <span class="patient-name">Ollie</span>
+                            </a>
+                            <a class="patient-card" href="kiki-case-study.html">
+                                <img src="kiki-photo.jpg" alt="Kiki">
+                                <span class="patient-name">Kiki</span>
+                            </a>
+                            <a class="patient-card" href="max-case-study.html" aria-hidden="true" tabindex="-1">
+                                <img src="max-photo.jpg" alt="">
+                                <span class="patient-name">Max</span>
+                            </a>
+                            <a class="patient-card" href="billie-case-study.html" aria-hidden="true" tabindex="-1">
+                                <img src="billie-photo.jpg" alt="">
+                                <span class="patient-name">Billie</span>
+                            </a>
+                            <a class="patient-card" href="yana-case-study.html" aria-hidden="true" tabindex="-1">
+                                <img src="yana-photo.jpg" alt="">
+                                <span class="patient-name">Yana</span>
+                            </a>
+                            <a class="patient-card" href="ollie-case-study.html" aria-hidden="true" tabindex="-1">
+                                <img src="ollie-photo.jpg" alt="">
+                                <span class="patient-name">Ollie</span>
+                            </a>
+                            <a class="patient-card" href="kiki-case-study.html" aria-hidden="true" tabindex="-1">
+                                <img src="kiki-photo.jpg" alt="">
+                                <span class="patient-name">Kiki</span>
+                            </a>
+                        </div>
+                    </div>
                 </section>
 
-                <section id="socket-creation">
-                    <h2>Socket Creation<a class="headerlink" href="#socket-creation" title="Permalink to this heading">¶</a></h2>
-                    
-                    <ul class="simple">
-                        <li><a href="preparing-ntop-input.html">Preparing nTop Input</a></li>
-                        <li><a href="ntop-socket-creation.html">nTop Socket Creation</a></li>
-                    </ul>
+                <section class="process" id="process">
+                    <div class="section-inner">
+                        <h2>How We Build Each Prosthetic</h2>
+                        <p class="section-sub">Every device follows the same three-stage workflow. Explore the how-to guides for each stage.</p>
+                        <div class="process-grid">
+                            <a class="process-card" href="3d-scanning.html">
+                                <span class="process-step">01</span>
+                                <h3>3D Scanning</h3>
+                                <p>We capture each animal's anatomy with a 3D scanner, producing an accurate digital model to design around.</p>
+                                <span class="process-link">Learn more &rarr;</span>
+                            </a>
+                            <a class="process-card" href="preparing-ntop-input.html">
+                                <span class="process-step">02</span>
+                                <h3>Socket Creation</h3>
+                                <p>Using nTop, we turn the scan into a comfortable, lightweight socket that attaches the prosthetic securely.</p>
+                                <span class="process-link">Learn more &rarr;</span>
+                            </a>
+                            <a class="process-card" href="3d-printing.html">
+                                <span class="process-step">03</span>
+                                <h3>3D Printing</h3>
+                                <p>Parts are printed in durable, flexible materials such as TPU and PETG, then assembled into the final device.</p>
+                                <span class="process-link">Learn more &rarr;</span>
+                            </a>
+                        </div>
+                    </div>
                 </section>
 
-                <section id="manufacturing-considerations">
-                    <h2>Manufacturing Considerations<a class="headerlink" href="#manufacturing-considerations" title="Permalink to this heading">¶</a></h2>
-                    
-                    <ul class="simple">
-                        <li><a href="materials.html">Materials</a></li>
-                        <li><a href="3d-printing.html">3D Printing</a></li>
-                    </ul>
-                </section>
-
-                <section id="3d-scanning">
-                    <h2>3D-scanning<a class="headerlink" href="#3d-scanning" title="Permalink to this heading">¶</a></h2>
-                    
-                    <ul class="simple">
-                        <li><a href="3d-scanning.html">3D-scanning</a></li>
-                    </ul>
+                <section class="about" id="about">
+                    <div class="section-inner">
+                        <h2>About the Program</h2>
+                        <p>Give a Paw is a UC Berkeley program committed to designing and manufacturing no-cost prosthetics for animals in the Bay Area. In the personalized healthcare field, there are not enough trained professionals to deliver personalized care to all the patients in need.</p>
+                        <blockquote>
+                            <p>"Only 1 in 10 people in need has access to assistive products, including prostheses and orthoses, because of their high cost and because of lack of awareness, availability, and trained personnel."</p>
+                            <footer>&mdash; World Health Organization</footer>
+                        </blockquote>
+                        <p>The Give a Paw Program is committed to addressing these obstacles of high cost, lack of awareness, and most importantly, trained personnel. At the University of California, Berkeley, Bioprinting@Berkeley runs a 2-unit Canine Prosthetics DeCal. The course covers the fundamentals of additive manufacturing and design considerations for prosthetics, and includes a hands-on project for student teams to make prosthetics for shelter animals in the Bay Area.</p>
+                        <p>Special thanks to Max, Billie, Yana, Ollie, and Kiki for participating in our program!</p>
+                    </div>
                 </section>
             </article>
 
