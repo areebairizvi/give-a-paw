@@ -53,7 +53,7 @@ body {
 /* ===== DARK SIDEBAR ===== */
 .sidebar {
     width: var(--sidebar-width);
-    background: var(--sidebar-bg);
+    background: var(--color-sidebar-bg);
     position: fixed;
     top: 0;
     left: 0;
@@ -96,7 +96,7 @@ body {
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    color: var(--sidebar-title);
+    color: var(--color-sidebar-title);
     margin-top: 1.5rem;
 }
 
@@ -117,7 +117,7 @@ body {
 .sidebar-nav a {
     display: block;
     padding: 0.5rem 1.5rem;
-    color: var(--sidebar-text);
+    color: var(--color-sidebar-text);
     text-decoration: none;
     font-size: 0.95rem;
     transition: all 0.2s ease;
@@ -125,15 +125,15 @@ body {
 }
 
 .sidebar-nav a:hover {
-    background: var(--sidebar-link-hover);
-    color: var(--sidebar-text-hover);
+    background: var(--color-sidebar-link-hover);
+    color: var(--color-sidebar-text-hover);
     border-left-color: var(--link-color);
 }
 
 .sidebar-nav li.active > a {
-    color: var(--sidebar-text-hover);
+    color: var(--color-sidebar-text-hover);
     font-weight: 600;
-    background: var(--sidebar-link-hover);
+    background: var(--color-sidebar-link-hover);
     border-left-color: var(--link-color);
 }
 
@@ -339,7 +339,7 @@ footer {
     top: 1rem;
     left: 1rem;
     z-index: 1000;
-    background: var(--sidebar-bg);
+    background: var(--color-sidebar-bg);
     border: none;
     width: 44px;
     height: 44px;
@@ -349,6 +349,7 @@ footer {
     align-items: center;
     justify-content: center;
     gap: 4px;
+    box-shadow: 0 2px 8px rgba(1, 1, 51, 0.3);
 }
 
 .mobile-toggle span {
@@ -685,10 +686,21 @@ blockquote footer {
     border: 1px solid var(--color-border);
     border-top: 3px solid var(--color-primary);
     border-radius: 8px;
-    padding: 1.75rem;
+    overflow: hidden;
     text-decoration: none;
     color: var(--content-text);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.process-img {
+    width: 100%;
+    height: 160px;
+    object-fit: cover;
+    display: block;
+}
+
+.process-body {
+    padding: 1.75rem;
 }
 
 .process-card:hover,
