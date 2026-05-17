@@ -442,6 +442,10 @@ figure {
     margin-bottom: 1.5rem;
 }
 
+figure.bio-photo {
+    max-width: 360px;
+}
+
 figcaption {
     color: var(--color-text-light);
     font-size: 0.9rem;
