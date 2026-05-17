@@ -585,27 +585,14 @@ blockquote footer {
 }
 
 .conveyor {
-    overflow: hidden;
     padding: 1rem 0;
-    -webkit-mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
-    mask-image: linear-gradient(90deg, transparent, #000 7%, #000 93%, transparent);
 }
 
 .conveyor-track {
     display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
     gap: 1.5rem;
-    width: max-content;
-    animation: conveyor-scroll 40s linear infinite;
-}
-
-.conveyor:hover .conveyor-track,
-.conveyor:focus-within .conveyor-track {
-    animation-play-state: paused;
-}
-
-@keyframes conveyor-scroll {
-    from { transform: translateX(0); }
-    to   { transform: translateX(calc(-50% - 0.75rem)); }
 }
 
 .patient-card {
@@ -760,11 +747,5 @@ blockquote footer {
     }
     .hero::after {
         background: rgba(0, 50, 98, 0.82);
-    }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    .conveyor-track {
-        animation: none;
     }
 }
