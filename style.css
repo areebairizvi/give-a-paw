@@ -61,6 +61,12 @@ body {
     overflow-y: auto;
     overflow-x: hidden;
     z-index: 100;
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+}
+
+.sidebar.active {
+    transform: translateX(0);
 }
 
 .sidebar-brand {
@@ -133,7 +139,8 @@ body {
 
 /* ===== MAIN CONTENT ===== */
 .page {
-    margin-left: var(--sidebar-width);
+    margin-left: 0;
+    min-width: 0;
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -327,7 +334,7 @@ footer {
 
 /* ===== MOBILE MENU ===== */
 .mobile-toggle {
-    display: none;
+    display: flex;
     position: fixed;
     top: 1rem;
     left: 1rem;
@@ -365,25 +372,8 @@ footer {
 
 /* ===== RESPONSIVE ===== */
 @media (max-width: 968px) {
-    .sidebar {
-        transform: translateX(-100%);
-        transition: transform 0.3s ease;
-    }
-
-    .sidebar.active {
-        transform: translateX(0);
-    }
-
-    .page {
-        margin-left: 0;
-    }
-
     .content {
         padding: 5rem 1.5rem 2rem;
-    }
-
-    .mobile-toggle {
-        display: flex;
     }
 
     h1 {
@@ -618,6 +608,7 @@ blockquote footer {
 }
 
 .patient-card {
+    position: relative;
     flex: 0 0 200px;
     text-decoration: none;
     color: var(--content-text);
@@ -625,14 +616,16 @@ blockquote footer {
     border-radius: 8px;
     overflow: hidden;
     background: #fff;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 }
 
 .patient-card:hover,
 .patient-card:focus-visible {
-    transform: translateY(-4px);
-    box-shadow: 0 8px 20px rgba(1, 1, 51, 0.15);
+    transform: scale(1.08);
+    box-shadow: 0 12px 26px rgba(1, 1, 51, 0.22);
+    border-color: var(--color-primary);
     text-decoration: none;
+    z-index: 2;
 }
 
 .patient-card img {
@@ -642,12 +635,36 @@ blockquote footer {
     display: block;
 }
 
-.patient-name {
-    display: block;
-    text-align: center;
-    font-weight: 700;
-    padding: 0.75rem;
+.patient-caption {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 3rem;
     font-family: var(--font-heading);
+    font-weight: 700;
+}
+
+.patient-name,
+.patient-cta {
+    position: absolute;
+    transition: opacity 0.2s ease;
+}
+
+.patient-cta {
+    opacity: 0;
+    color: var(--link-color);
+    font-size: 0.9rem;
+}
+
+.patient-card:hover .patient-name,
+.patient-card:focus-visible .patient-name {
+    opacity: 0;
+}
+
+.patient-card:hover .patient-cta,
+.patient-card:focus-visible .patient-cta {
+    opacity: 1;
 }
 
 /* ---- Process 3-column ---- */

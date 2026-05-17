@@ -9,24 +9,20 @@ if (mobileToggle) {
     });
 }
 
-// Close sidebar when clicking outside on mobile
+// Close sidebar when clicking outside it
 document.addEventListener('click', (e) => {
-    if (window.innerWidth <= 968) {
-        if (!e.target.closest('.sidebar') && !e.target.closest('.mobile-toggle')) {
-            sidebar.classList.remove('active');
-            mobileToggle.classList.remove('active');
-        }
+    if (!e.target.closest('.sidebar') && !e.target.closest('.mobile-toggle')) {
+        sidebar.classList.remove('active');
+        mobileToggle.classList.remove('active');
     }
 });
 
-// Close sidebar when clicking a link on mobile
+// Close sidebar when clicking a navigation link
 const sidebarLinks = document.querySelectorAll('.sidebar a');
 sidebarLinks.forEach(link => {
     link.addEventListener('click', () => {
-        if (window.innerWidth <= 968) {
-            sidebar.classList.remove('active');
-            mobileToggle.classList.remove('active');
-        }
+        sidebar.classList.remove('active');
+        mobileToggle.classList.remove('active');
     });
 });
 
