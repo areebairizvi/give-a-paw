@@ -849,3 +849,106 @@ blockquote footer {
         transition: none;
     }
 }
+
+/* ===== TEAM LIST (case studies) ===== */
+.team-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.team-list li {
+    padding: 0.6rem 0;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.team-list li:last-child {
+    border-bottom: none;
+}
+
+.team-name {
+    display: block;
+    font-family: var(--font-heading);
+    font-weight: 700;
+}
+
+.team-role {
+    display: block;
+    color: var(--color-text-light);
+    font-size: 0.95rem;
+}
+
+/* ===== PEOPLE GRID (Meet the Team) ===== */
+.people-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+}
+
+.person-card {
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+}
+
+.person-card img {
+    width: 100%;
+    height: 240px;
+    object-fit: cover;
+    display: block;
+}
+
+.person-body {
+    padding: 1rem 1.25rem 1.25rem;
+}
+
+.person-name {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 0.15rem;
+}
+
+.person-role {
+    color: #002676;
+    font-weight: 700;
+    font-size: 0.9rem;
+    margin-bottom: 0.6rem;
+}
+
+.person-bio {
+    font-size: 0.95rem;
+    margin-bottom: 0;
+}
+
+/* ===== DOWNLOADS ===== */
+.download-group {
+    margin-bottom: 1.75rem;
+}
+
+.download-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+}
+
+.download-btn {
+    display: inline-block;
+    background: var(--color-primary);
+    color: #003262;
+    font-weight: 700;
+    padding: 0.6rem 1.2rem;
+    border-radius: 4px;
+    text-decoration: none;
+    transition: background 0.2s ease, color 0.2s ease;
+}
+
+.download-btn:hover,
+.download-btn:focus-visible {
+    background: var(--color-primary-hover);
+    color: #fff;
+    text-decoration: none;
+}
