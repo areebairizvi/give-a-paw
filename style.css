@@ -604,14 +604,13 @@ blockquote footer {
     border-radius: 8px;
     overflow: hidden;
     background: #fff;
-    transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
 }
 
 .patient-card:hover,
 .patient-card:focus-visible {
     transform: scale(1.08);
     box-shadow: 0 12px 26px rgba(1, 1, 51, 0.22);
-    border-color: var(--color-primary);
     text-decoration: none;
     z-index: 2;
 }
