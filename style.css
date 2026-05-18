@@ -25,7 +25,7 @@
     --link-hover: #C4820E;
     
     --font-body: 'Lato', 'proxima-nova', 'Helvetica Neue', Arial, sans-serif;
-    --font-heading: 'Roboto Slab', 'ff-tisa-web-pro', Georgia, serif;
+    --font-heading: 'Inter', 'Helvetica Neue', Arial, sans-serif;
     --font-mono: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
 }
 
@@ -641,7 +641,7 @@ blockquote footer {
 
 .patient-cta {
     opacity: 0;
-    color: var(--link-color);
+    color: #002676;
     font-size: 0.9rem;
 }
 
@@ -715,11 +715,11 @@ blockquote footer {
 
 .process-link {
     font-weight: 700;
-    color: var(--link-color);
+    color: #002676;
 }
 
 .process-card:hover .process-link {
-    color: var(--link-hover);
+    color: #002676;
 }
 
 /* ---- About ---- */
@@ -729,6 +729,11 @@ blockquote footer {
 
 .about .section-inner {
     max-width: 760px;
+}
+
+.about .section-inner > p:first-of-type {
+    font-size: 1.125rem;
+    font-weight: 700;
 }
 
 /* ---- Homepage responsive ---- */
