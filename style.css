@@ -920,7 +920,20 @@ blockquote footer {
 
 .person-bio {
     font-size: 0.95rem;
-    margin-bottom: 0;
+    margin-bottom: 0.6rem;
+}
+
+.person-linkedin {
+    display: inline-block;
+    color: #002676;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-decoration: none;
+}
+
+.person-linkedin:hover,
+.person-linkedin:focus-visible {
+    text-decoration: underline;
 }
 
 /* ===== DOWNLOADS ===== */
