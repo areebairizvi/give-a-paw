@@ -108,16 +108,24 @@
                 <section id="files">
                     <h2>Files<a class="headerlink" href="#files" title="Permalink to this heading">¶</a></h2>
                     <figure class="model-viewer-figure">
+                        <div class="model-toggle" role="tablist" aria-label="3D model variant">
+                            <button type="button" class="model-toggle-btn active" data-model="billie-socket.glb">Socket only</button>
+                            <button type="button" class="model-toggle-btn" data-model="billie-socket-on-billie.glb">Socket on Billie</button>
+                            <button type="button" class="model-toggle-btn" data-model="billie-solid.glb">Billie</button>
+                        </div>
                         <model-viewer src="billie-socket.glb"
-                                      alt="Interactive 3D model of Billie's prosthetic socket"
+                                      alt="Interactive 3D model of Billie's prosthetic"
                                       camera-controls
                                       auto-rotate
                                       auto-rotate-delay="2000"
                                       touch-action="pan-y"
                                       shadow-intensity="1"
-                                      exposure="1"
+                                      shadow-softness="0.7"
+                                      exposure="0.85"
+                                      tone-mapping="commerce"
+                                      environment-image="neutral"
                                       ar></model-viewer>
-                        <figcaption>Interactive 3D model of Billie's socket &mdash; drag to rotate, scroll to zoom.</figcaption>
+                        <figcaption>Interactive 3D model &mdash; drag to rotate, scroll to zoom.</figcaption>
                     </figure>
                     <details class="download-category">
                         <summary>3D Scan Files</summary>

@@ -90,3 +90,19 @@ document.querySelectorAll('.carousel').forEach(carousel => {
     if (next) next.addEventListener('click', () => goTo(current + 1));
     goTo(0);
 });
+
+// 3D model variant toggle
+document.querySelectorAll('.model-toggle').forEach(toggle => {
+    const figure = toggle.closest('.model-viewer-figure');
+    const viewer = figure && figure.querySelector('model-viewer');
+    if (!viewer) return;
+    const buttons = [...toggle.querySelectorAll('.model-toggle-btn')];
+    buttons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const src = btn.getAttribute('data-model');
+            if (!src || src === viewer.getAttribute('src')) return;
+            viewer.setAttribute('src', src);
+            buttons.forEach(b => b.classList.toggle('active', b === btn));
+        });
+    });
+});
