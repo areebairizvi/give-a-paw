@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <script type="module" src="https://unpkg.com/@google/model-viewer@4.1.0/dist/model-viewer.min.js"></script>
 </head>
 <body>
     <aside class="sidebar">
@@ -93,6 +94,28 @@
                 </section>
                 <section id="files">
                     <h2>Files<a class="headerlink" href="#files" title="Permalink to this heading">¶</a></h2>
+                    <figure class="model-viewer-figure">
+                        <div class="model-toggle" role="tablist" aria-label="Prosthetic component">
+                            <button type="button" class="model-toggle-btn active" data-model="yana-full-prosthetic.glb">Full Prosthetic</button>
+                            <button type="button" class="model-toggle-btn" data-model="yana-solid-animal.glb">Solid Animal</button>
+                            <button type="button" class="model-toggle-btn" data-model="yana-attachment-surface.glb">Attachment Surface</button>
+                            <button type="button" class="model-toggle-btn" data-model="yana-mechanical-interface.glb">Mechanical Interface</button>
+                            <button type="button" class="model-toggle-btn" data-model="yana-solid-interface.glb">Solid Interface</button>
+                        </div>
+                        <model-viewer src="yana-full-prosthetic.glb"
+                                      alt="Interactive 3D model of Yana's prosthetic component"
+                                      camera-controls
+                                      auto-rotate
+                                      auto-rotate-delay="2000"
+                                      touch-action="pan-y"
+                                      shadow-intensity="1"
+                                      shadow-softness="0.7"
+                                      exposure="0.85"
+                                      tone-mapping="neutral"
+                                      environment-image="model-env.png"
+                                      ar></model-viewer>
+                        <figcaption>Interactive 3D model &mdash; tap a tab to swap component, drag to rotate, scroll to zoom.</figcaption>
+                    </figure>
                     <details class="download-category">
                         <summary>3D Scan Files</summary>
                         <ul class="download-files">

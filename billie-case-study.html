@@ -108,13 +108,15 @@
                 <section id="files">
                     <h2>Files<a class="headerlink" href="#files" title="Permalink to this heading">¶</a></h2>
                     <figure class="model-viewer-figure">
-                        <div class="model-toggle" role="tablist" aria-label="3D model variant">
-                            <button type="button" class="model-toggle-btn active" data-model="billie-socket.glb">Socket only</button>
-                            <button type="button" class="model-toggle-btn" data-model="billie-socket-on-billie.glb">Socket on Billie</button>
-                            <button type="button" class="model-toggle-btn" data-model="billie-solid.glb">Billie</button>
+                        <div class="model-toggle" role="tablist" aria-label="Prosthetic component">
+                            <button type="button" class="model-toggle-btn active" data-model="billie-full-prosthetic.glb">Full Prosthetic</button>
+                            <button type="button" class="model-toggle-btn" data-model="billie-solid-animal.glb">Solid Animal</button>
+                            <button type="button" class="model-toggle-btn" data-model="billie-attachment-surface.glb">Attachment Surface</button>
+                            <button type="button" class="model-toggle-btn" data-model="billie-mechanical-interface.glb">Mechanical Interface</button>
+                            <button type="button" class="model-toggle-btn" data-model="billie-solid-interface.glb">Solid Interface</button>
                         </div>
-                        <model-viewer src="billie-socket.glb"
-                                      alt="Interactive 3D model of Billie's prosthetic"
+                        <model-viewer src="billie-full-prosthetic.glb"
+                                      alt="Interactive 3D model of Billie's prosthetic component"
                                       camera-controls
                                       auto-rotate
                                       auto-rotate-delay="2000"
@@ -125,7 +127,7 @@
                                       tone-mapping="neutral"
                                       environment-image="model-env.png"
                                       ar></model-viewer>
-                        <figcaption>Interactive 3D model &mdash; drag to rotate, scroll to zoom.</figcaption>
+                        <figcaption>Interactive 3D model &mdash; tap a tab to swap component, drag to rotate, scroll to zoom.</figcaption>
                     </figure>
                     <details class="download-category">
                         <summary>3D Scan Files</summary>
