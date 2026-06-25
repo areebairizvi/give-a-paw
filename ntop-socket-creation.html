@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <script type="module" src="https://unpkg.com/@google/model-viewer@4.1.0/dist/model-viewer.min.js"></script>
 </head>
 <body>
     <aside class="sidebar">
@@ -53,7 +54,29 @@
                 
                 <section id="latticing">
                     <h2>Latticing<a class="headerlink" href="#latticing" title="Permalink to this heading">¶</a></h2>
-                    <p>Placeholder text for section.</p>
+                    <p>Our custom nTop block converts the solid socket shell into a lattice. The <strong>point count</strong> controls how densely the lattice is sampled across the surface: a low count yields a sparse, open structure that flexes more freely; a high count yields a finer, denser mesh that is stiffer and distributes load over more contact area. Drag the slider to see how the same socket changes as the point count steps from 50 up to 500.</p>
+                    <figure class="model-viewer-figure">
+                        <div class="point-slider">
+                            <label for="point-count" class="point-slider-label">Point count: <span id="point-count-value">50</span></label>
+                            <input type="range" id="point-count" min="50" max="500" step="50" value="50">
+                            <div class="point-slider-ticks" aria-hidden="true">
+                                <span>50</span><span>100</span><span>150</span><span>200</span><span>250</span><span>300</span><span>350</span><span>400</span><span>450</span><span>500</span>
+                            </div>
+                        </div>
+                        <model-viewer id="lattice-viewer" src="ntop-lattice-01.glb"
+                                      alt="Interactive 3D model of the lattice socket at the selected point count"
+                                      camera-controls
+                                      auto-rotate
+                                      auto-rotate-delay="2000"
+                                      touch-action="pan-y"
+                                      shadow-intensity="1"
+                                      shadow-softness="0.7"
+                                      exposure="0.7"
+                                      tone-mapping="neutral"
+                                      environment-image="neutral"
+                                      ar></model-viewer>
+                        <figcaption>Interactive 3D lattice - drag the slider to change point count, drag the model to rotate, scroll to zoom.</figcaption>
+                    </figure>
                 </section>
                 
                 <section id="mechanical-interface">

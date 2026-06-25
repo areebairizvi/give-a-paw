@@ -107,6 +107,39 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
     });
 });
 
+// Point-count slider on nTop socket creation page: maps slider value to a
+// lattice GLB. Until all 10 variants are provided, values 50-250 show the
+// first file and 300-500 show the last; entries can be filled in as more
+// GLBs arrive.
+(() => {
+    const slider = document.getElementById('point-count');
+    const viewer = document.getElementById('lattice-viewer');
+    const readout = document.getElementById('point-count-value');
+    if (!slider || !viewer || !readout) return;
+    const latticeModels = {
+        50:  'ntop-lattice-01.glb',
+        100: 'ntop-lattice-01.glb',
+        150: 'ntop-lattice-01.glb',
+        200: 'ntop-lattice-01.glb',
+        250: 'ntop-lattice-01.glb',
+        300: 'ntop-lattice-10.glb',
+        350: 'ntop-lattice-10.glb',
+        400: 'ntop-lattice-10.glb',
+        450: 'ntop-lattice-10.glb',
+        500: 'ntop-lattice-10.glb',
+    };
+    const apply = () => {
+        const v = parseInt(slider.value, 10);
+        readout.textContent = v;
+        const src = latticeModels[v];
+        if (src && viewer.getAttribute('src') !== src) {
+            viewer.setAttribute('src', src);
+        }
+    };
+    slider.addEventListener('input', apply);
+    apply();
+})();
+
 // Force matte material on all model-viewer instances so lighting is purely
 // diffuse (avoids one-side-blown-out highlights on white meshes).
 document.querySelectorAll('model-viewer').forEach(mv => {
