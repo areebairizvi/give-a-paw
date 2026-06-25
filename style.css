@@ -1023,3 +1023,22 @@ blockquote footer {
     color: #fff;
     text-decoration: none;
 }
+
+/* ===== INTERACTIVE 3D MODEL ===== */
+.model-viewer-figure {
+    margin-bottom: 2rem;
+}
+
+.model-viewer-figure model-viewer {
+    width: 100%;
+    height: 480px;
+    background: #f4f6f8;
+    border-radius: 8px;
+    --poster-color: #f4f6f8;
+}
+
+@media (max-width: 768px) {
+    .model-viewer-figure model-viewer {
+        height: 360px;
+    }
+}
