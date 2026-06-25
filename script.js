@@ -106,3 +106,20 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
         });
     });
 });
+
+// Force matte material on all model-viewer instances so lighting is purely
+// diffuse (avoids one-side-blown-out highlights on white meshes).
+document.querySelectorAll('model-viewer').forEach(mv => {
+    const applyMatte = () => {
+        if (!mv.model) return;
+        mv.model.materials.forEach(material => {
+            try {
+                const pbr = material.pbrMetallicRoughness;
+                pbr.setRoughnessFactor(1.0);
+                pbr.setMetallicFactor(0.0);
+                pbr.setBaseColorFactor([0.9, 0.9, 0.9, 1.0]);
+            } catch (e) {}
+        });
+    };
+    mv.addEventListener('load', applyMatte);
+});
