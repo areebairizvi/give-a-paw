@@ -50,11 +50,35 @@
                 <section id="ntop-socket-creation">
                     <h1>nTop Socket Creation<a class="headerlink" href="#ntop-socket-creation" title="Permalink to this heading">¶</a></h1>
                     <p>Placeholder text for nTop Socket Creation.</p>
+                    <figure class="model-viewer-figure">
+                        <div class="model-toggle" role="tablist" aria-label="Socket component">
+                            <button type="button" class="model-toggle-btn active" data-model="ntop-solid-animal.glb">Solid Animal</button>
+                            <button type="button" class="model-toggle-btn" data-model="ntop-attachment-surface.glb">Attachment Surface</button>
+                            <button type="button" class="model-toggle-btn" data-model="ntop-mechanical-interface.glb">Mechanical Interface</button>
+                            <button type="button" class="model-toggle-btn" data-model="ntop-solid-interface.glb">Solid Interface</button>
+                        </div>
+                        <model-viewer id="overview-viewer" src="ntop-lattice-01.glb"
+                                      alt="Interactive 3D model of the selected socket component"
+                                      camera-controls
+                                      auto-rotate
+                                      auto-rotate-delay="2000"
+                                      touch-action="pan-y"
+                                      shadow-intensity="1"
+                                      shadow-softness="0.7"
+                                      exposure="0.85"
+                                      tone-mapping="neutral"
+                                      environment-image="model-env.png"
+                                      ar></model-viewer>
+                        <figcaption>Interactive 3D model &mdash; tap a tab to swap component, drag to rotate, scroll to zoom.</figcaption>
+                    </figure>
                 </section>
-                
+
                 <section id="latticing">
                     <h2>Latticing<a class="headerlink" href="#latticing" title="Permalink to this heading">¶</a></h2>
-                    <p>Our custom nTop block converts the solid socket shell into a lattice. The <strong>point count</strong> controls how densely the lattice is sampled across the surface: a low count yields a sparse, open structure that flexes more freely; a high count yields a finer, denser mesh that is stiffer and distributes load over more contact area. Drag the slider to see how the same socket changes as the point count steps from 50 up to 500.</p>
+                    <p>Our custom nTop block converts the solid socket shell into a lattice. Three parameters drive how the lattice looks and behaves: point count, boundary lattice thickness, and surface lattice thickness. Each slider below isolates one parameter.</p>
+
+                    <h3>Point Count</h3>
+                    <p>The <strong>point count</strong> controls how densely the lattice is sampled across the surface: a low count yields a sparse, open structure that flexes more freely; a high count yields a finer, denser mesh that is stiffer and distributes load over more contact area. Drag the slider to see how the same socket changes as the point count steps from 50 up to 500.</p>
                     <figure class="model-viewer-figure">
                         <div class="point-slider">
                             <label for="point-count" class="point-slider-label">Point count: <span id="point-count-value">50</span></label>
@@ -75,7 +99,57 @@
                                       tone-mapping="neutral"
                                       environment-image="model-env.png"
                                       ar></model-viewer>
-                        <figcaption>Interactive 3D lattice - drag the slider to change point count, drag the model to rotate, scroll to zoom.</figcaption>
+                        <figcaption>Interactive 3D lattice &mdash; drag the slider to change point count, drag the model to rotate, scroll to zoom.</figcaption>
+                    </figure>
+
+                    <h3>Boundary Lattice Thickness</h3>
+                    <p>The <strong>boundary lattice thickness</strong> controls how thick the strands are along the outer edge of the lattice. Thicker boundaries give a more rigid rim and a defined silhouette; thinner boundaries blend into the surface lattice and flex more.</p>
+                    <figure class="model-viewer-figure">
+                        <div class="point-slider">
+                            <label for="boundary-thickness" class="point-slider-label">Boundary thickness: <span id="boundary-thickness-value">0</span> mm</label>
+                            <input type="range" id="boundary-thickness" min="0" max="18" step="2" value="0">
+                            <div class="point-slider-ticks" aria-hidden="true">
+                                <span>0</span><span>2</span><span>4</span><span>6</span><span>8</span><span>10</span><span>12</span><span>14</span><span>16</span><span>18</span>
+                            </div>
+                        </div>
+                        <model-viewer id="boundary-viewer" src="ntop-lattice-01.glb"
+                                      alt="Interactive 3D model of the lattice socket at the selected boundary thickness"
+                                      camera-controls
+                                      auto-rotate
+                                      auto-rotate-delay="2000"
+                                      touch-action="pan-y"
+                                      shadow-intensity="1"
+                                      shadow-softness="0.7"
+                                      exposure="0.85"
+                                      tone-mapping="neutral"
+                                      environment-image="model-env.png"
+                                      ar></model-viewer>
+                        <figcaption>Interactive 3D lattice &mdash; drag the slider to change boundary thickness.</figcaption>
+                    </figure>
+
+                    <h3>Surface Lattice Thickness</h3>
+                    <p>The <strong>surface lattice thickness</strong> controls how thick each strand of the lattice itself is. Thicker strands give a heavier, stiffer socket with smaller open cells; thinner strands give a lighter, more compliant socket with more open structure.</p>
+                    <figure class="model-viewer-figure">
+                        <div class="point-slider">
+                            <label for="surface-thickness" class="point-slider-label">Surface thickness: <span id="surface-thickness-value">2</span> mm</label>
+                            <input type="range" id="surface-thickness" min="2" max="20" step="2" value="2">
+                            <div class="point-slider-ticks" aria-hidden="true">
+                                <span>2</span><span>4</span><span>6</span><span>8</span><span>10</span><span>12</span><span>14</span><span>16</span><span>18</span><span>20</span>
+                            </div>
+                        </div>
+                        <model-viewer id="surface-viewer" src="ntop-lattice-01.glb"
+                                      alt="Interactive 3D model of the lattice socket at the selected surface thickness"
+                                      camera-controls
+                                      auto-rotate
+                                      auto-rotate-delay="2000"
+                                      touch-action="pan-y"
+                                      shadow-intensity="1"
+                                      shadow-softness="0.7"
+                                      exposure="0.85"
+                                      tone-mapping="neutral"
+                                      environment-image="model-env.png"
+                                      ar></model-viewer>
+                        <figcaption>Interactive 3D lattice &mdash; drag the slider to change surface thickness.</figcaption>
                     </figure>
                 </section>
                 

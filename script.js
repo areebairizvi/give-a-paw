@@ -107,37 +107,80 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
     });
 });
 
-// Point-count slider on nTop socket creation page: maps slider value to a
-// lattice GLB. Until all 10 variants are provided, values 50-250 show the
-// first file and 300-500 show the last; entries can be filled in as more
-// GLBs arrive.
+// Lattice-parameter sliders on the nTop socket creation page. Each slider
+// maps its value to a per-step GLB; viewer.src is updated on input. Missing
+// files are tolerated (the model-viewer just shows an error for that step
+// until the GLB is added). Mappings can be filled in as more GLBs arrive.
 (() => {
-    const slider = document.getElementById('point-count');
-    const viewer = document.getElementById('lattice-viewer');
-    const readout = document.getElementById('point-count-value');
-    if (!slider || !viewer || !readout) return;
-    const latticeModels = {
-        50:  'ntop-lattice-01.glb',
-        100: 'ntop-lattice-01.glb',
-        150: 'ntop-lattice-01.glb',
-        200: 'ntop-lattice-01.glb',
-        250: 'ntop-lattice-01.glb',
-        300: 'ntop-lattice-10.glb',
-        350: 'ntop-lattice-10.glb',
-        400: 'ntop-lattice-10.glb',
-        450: 'ntop-lattice-10.glb',
-        500: 'ntop-lattice-10.glb',
-    };
-    const apply = () => {
-        const v = parseInt(slider.value, 10);
-        readout.textContent = v;
-        const src = latticeModels[v];
-        if (src && viewer.getAttribute('src') !== src) {
-            viewer.setAttribute('src', src);
-        }
-    };
-    slider.addEventListener('input', apply);
-    apply();
+    const sliderConfigs = [
+        {
+            sliderId: 'point-count',
+            viewerId: 'lattice-viewer',
+            readoutId: 'point-count-value',
+            models: {
+                50:  'ntop-lattice-01.glb',
+                100: 'ntop-lattice-01.glb',
+                150: 'ntop-lattice-01.glb',
+                200: 'ntop-lattice-01.glb',
+                250: 'ntop-lattice-01.glb',
+                300: 'ntop-lattice-10.glb',
+                350: 'ntop-lattice-10.glb',
+                400: 'ntop-lattice-10.glb',
+                450: 'ntop-lattice-10.glb',
+                500: 'ntop-lattice-10.glb',
+            },
+        },
+        {
+            sliderId: 'boundary-thickness',
+            viewerId: 'boundary-viewer',
+            readoutId: 'boundary-thickness-value',
+            models: {
+                0:  'ntop-boundary-00.glb',
+                2:  'ntop-boundary-02.glb',
+                4:  'ntop-boundary-04.glb',
+                6:  'ntop-boundary-06.glb',
+                8:  'ntop-boundary-08.glb',
+                10: 'ntop-boundary-10.glb',
+                12: 'ntop-boundary-12.glb',
+                14: 'ntop-boundary-14.glb',
+                16: 'ntop-boundary-16.glb',
+                18: 'ntop-boundary-18.glb',
+            },
+        },
+        {
+            sliderId: 'surface-thickness',
+            viewerId: 'surface-viewer',
+            readoutId: 'surface-thickness-value',
+            models: {
+                2:  'ntop-surface-02.glb',
+                4:  'ntop-surface-04.glb',
+                6:  'ntop-surface-06.glb',
+                8:  'ntop-surface-08.glb',
+                10: 'ntop-surface-10.glb',
+                12: 'ntop-surface-12.glb',
+                14: 'ntop-surface-14.glb',
+                16: 'ntop-surface-16.glb',
+                18: 'ntop-surface-18.glb',
+                20: 'ntop-surface-20.glb',
+            },
+        },
+    ];
+    sliderConfigs.forEach(({ sliderId, viewerId, readoutId, models }) => {
+        const slider = document.getElementById(sliderId);
+        const viewer = document.getElementById(viewerId);
+        const readout = document.getElementById(readoutId);
+        if (!slider || !viewer || !readout) return;
+        const apply = () => {
+            const v = parseInt(slider.value, 10);
+            readout.textContent = v;
+            const src = models[v];
+            if (src && viewer.getAttribute('src') !== src) {
+                viewer.setAttribute('src', src);
+            }
+        };
+        slider.addEventListener('input', apply);
+        apply();
+    });
 })();
 
 // Force matte material on all model-viewer instances so lighting is purely
