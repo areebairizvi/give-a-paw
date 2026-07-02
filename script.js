@@ -114,20 +114,32 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
 (() => {
     const sliderConfigs = [
         {
+            // Slider value is an index into `values` (the point counts are not
+            // uniformly spaced: 5-50 by 5, then 100-500 by 50).
             sliderId: 'point-count',
             viewerId: 'lattice-viewer',
             readoutId: 'point-count-value',
+            values: [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500],
             models: {
-                50:  'ntop-lattice-01.glb',
-                100: 'ntop-lattice-01.glb',
-                150: 'ntop-lattice-01.glb',
-                200: 'ntop-lattice-01.glb',
-                250: 'ntop-lattice-01.glb',
-                300: 'ntop-lattice-10.glb',
-                350: 'ntop-lattice-10.glb',
-                400: 'ntop-lattice-10.glb',
-                450: 'ntop-lattice-10.glb',
-                500: 'ntop-lattice-10.glb',
+                5:   'ntop-pointcount-005.glb',
+                10:  'ntop-pointcount-010.glb',
+                15:  'ntop-pointcount-015.glb',
+                20:  'ntop-pointcount-020.glb',
+                25:  'ntop-pointcount-025.glb',
+                30:  'ntop-pointcount-030.glb',
+                35:  'ntop-pointcount-035.glb',
+                40:  'ntop-pointcount-040.glb',
+                45:  'ntop-pointcount-045.glb',
+                50:  'ntop-pointcount-050.glb',
+                100: 'ntop-pointcount-100.glb',
+                150: 'ntop-pointcount-150.glb',
+                200: 'ntop-pointcount-200.glb',
+                250: 'ntop-pointcount-250.glb',
+                300: 'ntop-pointcount-300.glb',
+                350: 'ntop-pointcount-350.glb',
+                400: 'ntop-pointcount-400.glb',
+                450: 'ntop-pointcount-450.glb',
+                500: 'ntop-pointcount-500.glb',
             },
         },
         {
@@ -165,13 +177,16 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
             },
         },
     ];
-    sliderConfigs.forEach(({ sliderId, viewerId, readoutId, models }) => {
+    sliderConfigs.forEach(({ sliderId, viewerId, readoutId, models, values }) => {
         const slider = document.getElementById(sliderId);
         const viewer = document.getElementById(viewerId);
         const readout = document.getElementById(readoutId);
         if (!slider || !viewer || !readout) return;
         const apply = () => {
-            const v = parseInt(slider.value, 10);
+            const raw = parseInt(slider.value, 10);
+            // With a `values` array the slider value is an index; otherwise
+            // the slider value is used directly.
+            const v = values ? values[raw] : raw;
             readout.textContent = v;
             const src = models[v];
             if (src && viewer.getAttribute('src') !== src) {
