@@ -146,18 +146,10 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
             sliderId: 'boundary-thickness',
             viewerId: 'boundary-viewer',
             readoutId: 'boundary-thickness-value',
-            models: {
-                0:  'ntop-boundary-00.glb',
-                2:  'ntop-boundary-02.glb',
-                4:  'ntop-boundary-04.glb',
-                6:  'ntop-boundary-06.glb',
-                8:  'ntop-boundary-08.glb',
-                10: 'ntop-boundary-10.glb',
-                12: 'ntop-boundary-12.glb',
-                14: 'ntop-boundary-14.glb',
-                16: 'ntop-boundary-16.glb',
-                18: 'ntop-boundary-18.glb',
-            },
+            models: Object.fromEntries(
+                Array.from({ length: 21 }, (_, mm) =>
+                    [mm, 'ntop-boundary-' + String(mm).padStart(2, '0') + '.glb'])
+            ),
         },
         {
             sliderId: 'surface-thickness',
