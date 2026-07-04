@@ -169,11 +169,13 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
             },
         },
     ];
+    const referencedUrls = new Set();
     sliderConfigs.forEach(({ sliderId, viewerId, readoutId, models, values }) => {
         const slider = document.getElementById(sliderId);
         const viewer = document.getElementById(viewerId);
         const readout = document.getElementById(readoutId);
         if (!slider || !viewer || !readout) return;
+        Object.values(models).forEach(url => referencedUrls.add(url));
         const apply = () => {
             const raw = parseInt(slider.value, 10);
             // With a `values` array the slider value is an index; otherwise
@@ -187,6 +189,49 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
         };
         slider.addEventListener('input', apply);
         apply();
+    });
+
+    // Preload every model referenced on this page so slider scrubbing and
+    // tab swaps are smooth from the first interaction. All viewers are made
+    // eager (no waiting to scroll into view), then a hidden viewer walks
+    // through each GLB once, warming model-viewer's parsed-model cache.
+    // Files that don't exist yet are skipped via a HEAD check.
+    document.querySelectorAll('.model-toggle-btn[data-model]').forEach(btn => {
+        referencedUrls.add(btn.getAttribute('data-model'));
+    });
+    document.querySelectorAll('model-viewer[src]').forEach(mv => {
+        mv.setAttribute('loading', 'eager');
+        referencedUrls.add(mv.getAttribute('src'));
+    });
+    if (referencedUrls.size < 2) return;
+    customElements.whenDefined('model-viewer').then(async () => {
+        const checks = await Promise.allSettled([...referencedUrls].map(url =>
+            fetch(url, { method: 'HEAD' }).then(r => ({ url, ok: r.ok }))
+        ));
+        const urls = checks
+            .filter(c => c.status === 'fulfilled' && c.value.ok)
+            .map(c => c.value.url);
+        if (urls.length === 0) return;
+        const MV = customElements.get('model-viewer');
+        MV.modelCacheSize = Math.max(MV.modelCacheSize || 0, urls.length + 5);
+        const preloader = document.createElement('model-viewer');
+        preloader.setAttribute('loading', 'eager');
+        preloader.setAttribute('aria-hidden', 'true');
+        preloader.style.cssText =
+            'position:fixed;left:-9999px;top:0;width:2px;height:2px;pointer-events:none;';
+        document.body.appendChild(preloader);
+        // The `load` event never fires for offscreen viewers (it waits for
+        // reveal), so poll the `loaded` property instead.
+        for (const url of urls) {
+            preloader.setAttribute('src', url);
+            const t0 = Date.now();
+            // let the element register the src change before polling
+            await new Promise(r => setTimeout(r, 150));
+            while (!preloader.loaded && Date.now() - t0 < 20000) {
+                await new Promise(r => setTimeout(r, 100));
+            }
+        }
+        preloader.remove();
     });
 })();
 
