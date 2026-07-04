@@ -331,6 +331,113 @@ document.querySelectorAll('model-viewer').forEach(mv => {
     const restartBtn = document.getElementById('quiz-restart');
     const tabs = [...document.querySelectorAll('.quiz-tab')];
 
+    // Marker position editor: open anatomy-quiz.html?dev=1 to drag markers
+    // around and copy the updated coordinate block back into QUIZZES above.
+    if (new URLSearchParams(window.location.search).has('dev')) {
+        const frame = imageEl.parentElement;
+        const panel = app.querySelector('.quiz-panel');
+        app.classList.add('dev');
+        panel.hidden = true;
+        marker.hidden = true;
+
+        const devPanel = document.createElement('div');
+        devPanel.className = 'quiz-dev-panel';
+        devPanel.innerHTML =
+            '<p class="quiz-dev-help">Marker editor: drag any marker to reposition it. ' +
+            'When everything looks right, copy the code below and paste it over the ' +
+            'matching <code>items:</code> block in <code>script.js</code>.</p>' +
+            '<textarea class="quiz-dev-output" readonly spellcheck="false"></textarea>' +
+            '<button type="button" class="quiz-dev-copy">Copy code</button>' +
+            '<span class="quiz-dev-copied" hidden>Copied!</span>';
+        app.after(devPanel);
+        const output = devPanel.querySelector('.quiz-dev-output');
+        const copyBtn = devPanel.querySelector('.quiz-dev-copy');
+        const copiedNote = devPanel.querySelector('.quiz-dev-copied');
+
+        let devKey = 'bones';
+
+        const serialize = () => {
+            const cfg = QUIZZES[devKey];
+            const lines = cfg.items.map(it =>
+                "                { name: '" + it.name.replace(/'/g, "\\'") +
+                "', x: " + it.x.toFixed(1) + ", y: " + it.y.toFixed(1) + " },");
+            output.value =
+                "            // '" + devKey + "' items\n" +
+                '            items: [\n' + lines.join('\n') + '\n            ],';
+        };
+
+        const renderDev = () => {
+            const cfg = QUIZZES[devKey];
+            if (imageEl.getAttribute('src') !== cfg.image) {
+                imageEl.setAttribute('src', cfg.image);
+            }
+            frame.querySelectorAll('.dev-marker').forEach(el => el.remove());
+            cfg.items.forEach(item => {
+                const dot = document.createElement('span');
+                dot.className = 'quiz-marker dev-marker';
+                dot.style.left = item.x + '%';
+                dot.style.top = item.y + '%';
+                dot.title = item.name;
+                const label = document.createElement('span');
+                label.className = 'dev-marker-label';
+                label.textContent = item.name;
+                dot.appendChild(label);
+                dot.addEventListener('pointerdown', e => {
+                    e.preventDefault();
+                    dot.setPointerCapture(e.pointerId);
+                    const move = ev => {
+                        const rect = frame.getBoundingClientRect();
+                        item.x = Math.min(99.5, Math.max(0.5,
+                            (ev.clientX - rect.left) / rect.width * 100));
+                        item.y = Math.min(99.5, Math.max(0.5,
+                            (ev.clientY - rect.top) / rect.height * 100));
+                        item.x = Math.round(item.x * 10) / 10;
+                        item.y = Math.round(item.y * 10) / 10;
+                        dot.style.left = item.x + '%';
+                        dot.style.top = item.y + '%';
+                        label.textContent = item.name + ' (' +
+                            item.x.toFixed(1) + ', ' + item.y.toFixed(1) + ')';
+                        serialize();
+                    };
+                    const up = () => {
+                        dot.removeEventListener('pointermove', move);
+                        dot.removeEventListener('pointerup', up);
+                        label.textContent = item.name;
+                    };
+                    dot.addEventListener('pointermove', move);
+                    dot.addEventListener('pointerup', up);
+                });
+                frame.appendChild(dot);
+            });
+            serialize();
+        };
+
+        copyBtn.addEventListener('click', () => {
+            const show = () => {
+                copiedNote.hidden = false;
+                setTimeout(() => { copiedNote.hidden = true; }, 1500);
+            };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(output.value).then(show);
+            } else {
+                output.select();
+                document.execCommand('copy');
+                show();
+            }
+        });
+
+        tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                tabs.forEach(t => t.classList.toggle('active', t === tab));
+                devKey = QUIZZES[tab.dataset.quiz] ? tab.dataset.quiz : 'bones';
+                renderDev();
+            });
+        });
+
+        renderDev();
+        return;
+    }
+
     let currentKey = 'bones', pool = [], noun = 'bone';
     let order = [], idx = 0, score = 0, answered = false;
 
