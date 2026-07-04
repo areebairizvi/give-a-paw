@@ -343,9 +343,12 @@ document.querySelectorAll('model-viewer').forEach(mv => {
         const devPanel = document.createElement('div');
         devPanel.className = 'quiz-dev-panel';
         devPanel.innerHTML =
-            '<p class="quiz-dev-help">Marker editor: drag any marker to reposition it. ' +
-            'When everything looks right, copy the code below and paste it over the ' +
-            'matching <code>items:</code> block in <code>script.js</code>.</p>' +
+            '<p class="quiz-dev-help">Marker editor: drag a marker to move it. ' +
+            'Click one to select it, then drag the square corner handle to stretch ' +
+            'it into an ellipse and the gold stem handle to rotate it. Double-click ' +
+            'a marker to reset it to the default dot. When everything looks right, ' +
+            'copy the code below and paste it over the matching <code>items:</code> ' +
+            'block in <code>script.js</code>.</p>' +
             '<textarea class="quiz-dev-output" readonly spellcheck="false"></textarea>' +
             '<button type="button" class="quiz-dev-copy">Copy code</button>' +
             '<span class="quiz-dev-copied" hidden>Copied!</span>';
@@ -358,9 +361,15 @@ document.querySelectorAll('model-viewer').forEach(mv => {
 
         const serialize = () => {
             const cfg = QUIZZES[devKey];
-            const lines = cfg.items.map(it =>
-                "                { name: '" + it.name.replace(/'/g, "\\'") +
-                "', x: " + it.x.toFixed(1) + ", y: " + it.y.toFixed(1) + " },");
+            const lines = cfg.items.map(it => {
+                let s = "                { name: '" + it.name.replace(/'/g, "\\'") +
+                    "', x: " + it.x.toFixed(1) + ", y: " + it.y.toFixed(1);
+                if (it.w && it.h) {
+                    s += ', w: ' + it.w.toFixed(1) + ', h: ' + it.h.toFixed(1);
+                }
+                if (it.rot) s += ', rot: ' + it.rot;
+                return s + ' },';
+            });
             output.value =
                 "            // '" + devKey + "' items\n" +
                 '            items: [\n' + lines.join('\n') + '\n            ],';
@@ -375,38 +384,100 @@ document.querySelectorAll('model-viewer').forEach(mv => {
             cfg.items.forEach(item => {
                 const dot = document.createElement('span');
                 dot.className = 'quiz-marker dev-marker';
-                dot.style.left = item.x + '%';
-                dot.style.top = item.y + '%';
                 dot.title = item.name;
                 const label = document.createElement('span');
                 label.className = 'dev-marker-label';
                 label.textContent = item.name;
-                dot.appendChild(label);
-                dot.addEventListener('pointerdown', e => {
-                    e.preventDefault();
-                    dot.setPointerCapture(e.pointerId);
-                    const move = ev => {
-                        const rect = frame.getBoundingClientRect();
-                        item.x = Math.min(99.5, Math.max(0.5,
-                            (ev.clientX - rect.left) / rect.width * 100));
-                        item.y = Math.min(99.5, Math.max(0.5,
-                            (ev.clientY - rect.top) / rect.height * 100));
-                        item.x = Math.round(item.x * 10) / 10;
-                        item.y = Math.round(item.y * 10) / 10;
-                        dot.style.left = item.x + '%';
-                        dot.style.top = item.y + '%';
-                        label.textContent = item.name + ' (' +
-                            item.x.toFixed(1) + ', ' + item.y.toFixed(1) + ')';
-                        serialize();
-                    };
-                    const up = () => {
-                        dot.removeEventListener('pointermove', move);
-                        dot.removeEventListener('pointerup', up);
-                        label.textContent = item.name;
-                    };
-                    dot.addEventListener('pointermove', move);
-                    dot.addEventListener('pointerup', up);
+                const resizeHandle = document.createElement('span');
+                resizeHandle.className = 'dev-handle dev-resize';
+                resizeHandle.title = 'Drag to resize';
+                const rotateHandle = document.createElement('span');
+                rotateHandle.className = 'dev-handle dev-rotate';
+                rotateHandle.title = 'Drag to rotate';
+                dot.append(label, resizeHandle, rotateHandle);
+
+                const round1 = n => Math.round(n * 10) / 10;
+                const clampPct = n => Math.min(99.5, Math.max(0.5, n));
+                const applyShape = () => {
+                    dot.style.left = item.x + '%';
+                    dot.style.top = item.y + '%';
+                    dot.style.width = item.w ? item.w + '%' : '';
+                    dot.style.height = item.h ? item.h + '%' : '';
+                    dot.style.setProperty('--marker-rot', (item.rot || 0) + 'deg');
+                };
+                const select = () => {
+                    frame.querySelectorAll('.dev-marker.selected')
+                        .forEach(el => el.classList.remove('selected'));
+                    dot.classList.add('selected');
+                };
+                const center = rect => [
+                    rect.left + item.x / 100 * rect.width,
+                    rect.top + item.y / 100 * rect.height,
+                ];
+                // One drag-loop wiring for all three behaviors: `move` gets
+                // the pointer event plus the frame rect, `done` restores the
+                // label after the drag.
+                const drag = (el, move) => {
+                    el.addEventListener('pointerdown', e => {
+                        if (el === dot && e.target !== dot && e.target !== label) return;
+                        e.preventDefault();
+                        e.stopPropagation();
+                        select();
+                        el.setPointerCapture(e.pointerId);
+                        const onMove = ev => {
+                            move(ev, frame.getBoundingClientRect());
+                            applyShape();
+                            serialize();
+                        };
+                        const onUp = () => {
+                            el.removeEventListener('pointermove', onMove);
+                            el.removeEventListener('pointerup', onUp);
+                            label.textContent = item.name;
+                        };
+                        el.addEventListener('pointermove', onMove);
+                        el.addEventListener('pointerup', onUp);
+                    });
+                };
+
+                drag(dot, (ev, rect) => {
+                    item.x = round1(clampPct((ev.clientX - rect.left) / rect.width * 100));
+                    item.y = round1(clampPct((ev.clientY - rect.top) / rect.height * 100));
+                    label.textContent = item.name + ' (' +
+                        item.x.toFixed(1) + ', ' + item.y.toFixed(1) + ')';
                 });
+
+                // Pointer offset from the center is rotated back into the
+                // marker's own frame so resizing tracks the cursor even on
+                // rotated highlights.
+                drag(resizeHandle, (ev, rect) => {
+                    const [cx, cy] = center(rect);
+                    const rad = -(item.rot || 0) * Math.PI / 180;
+                    const dx = ev.clientX - cx, dy = ev.clientY - cy;
+                    const lx = dx * Math.cos(rad) - dy * Math.sin(rad);
+                    const ly = dx * Math.sin(rad) + dy * Math.cos(rad);
+                    item.w = round1(Math.min(90, Math.max(1, Math.abs(lx) * 2 / rect.width * 100)));
+                    item.h = round1(Math.min(90, Math.max(1, Math.abs(ly) * 2 / rect.height * 100)));
+                    label.textContent = item.name + ' (' +
+                        item.w.toFixed(1) + ' x ' + item.h.toFixed(1) + ')';
+                });
+
+                drag(rotateHandle, (ev, rect) => {
+                    const [cx, cy] = center(rect);
+                    const ang = Math.atan2(ev.clientY - cy, ev.clientX - cx) * 180 / Math.PI + 90;
+                    item.rot = Math.round(((ang % 360) + 540) % 360 - 180);
+                    if (item.rot === -180) item.rot = 180;
+                    label.textContent = item.name + ' (' + item.rot + ' deg)';
+                });
+
+                dot.addEventListener('dblclick', () => {
+                    delete item.w;
+                    delete item.h;
+                    delete item.rot;
+                    applyShape();
+                    serialize();
+                });
+
+                applyShape();
                 frame.appendChild(dot);
             });
             serialize();
@@ -477,6 +548,9 @@ document.querySelectorAll('model-viewer').forEach(mv => {
         numEl.textContent = String(idx + 1);
         marker.style.left = q.x + '%';
         marker.style.top = q.y + '%';
+        marker.style.width = q.w ? q.w + '%' : '';
+        marker.style.height = q.h ? q.h + '%' : '';
+        marker.style.setProperty('--marker-rot', (q.rot || 0) + 'deg');
         promptEl.textContent = 'Which ' + noun + ' is marked?';
 
         // Build 4 options: the answer plus 3 random distractors from the pool.

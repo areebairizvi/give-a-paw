@@ -1201,21 +1201,22 @@ blockquote footer {
 }
 
 .quiz-marker {
+    --marker-rot: 0deg;
     position: absolute;
     width: 26px;
     height: 26px;
     border: 3px solid #FDB515;
     border-radius: 50%;
     background: rgba(253, 181, 21, 0.25);
-    transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%) rotate(var(--marker-rot));
     pointer-events: none;
     box-shadow: 0 0 0 2px #fff, 0 2px 6px rgba(0, 0, 0, 0.3);
     animation: quiz-pulse 1.4s ease-in-out infinite;
 }
 
 @keyframes quiz-pulse {
-    0%, 100% { transform: translate(-50%, -50%) scale(1); }
-    50% { transform: translate(-50%, -50%) scale(1.18); }
+    0%, 100% { transform: translate(-50%, -50%) rotate(var(--marker-rot)) scale(1); }
+    50% { transform: translate(-50%, -50%) rotate(var(--marker-rot)) scale(1.18); }
 }
 
 /* ===== QUIZ MARKER DEV MODE (?dev=1) ===== */
@@ -1243,7 +1244,7 @@ blockquote footer {
     position: absolute;
     left: 100%;
     top: 50%;
-    transform: translateY(-50%);
+    transform: translateY(-50%) rotate(calc(var(--marker-rot, 0deg) * -1));
     margin-left: 5px;
     font: 600 10px/1.3 var(--font-heading);
     color: #002676;
@@ -1252,6 +1253,58 @@ blockquote footer {
     border-radius: 3px;
     white-space: nowrap;
     pointer-events: none;
+}
+
+.quiz-marker.dev-marker.selected {
+    border-color: #002676;
+    background: rgba(0, 38, 118, 0.18);
+}
+
+.dev-handle {
+    position: absolute;
+    display: none;
+    pointer-events: auto;
+    touch-action: none;
+}
+
+.dev-marker.selected .dev-handle {
+    display: block;
+}
+
+.dev-resize {
+    right: -7px;
+    bottom: -7px;
+    width: 13px;
+    height: 13px;
+    background: #002676;
+    border: 2px solid #fff;
+    border-radius: 3px;
+    cursor: nwse-resize;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.dev-rotate {
+    left: 50%;
+    top: -26px;
+    transform: translateX(-50%);
+    width: 15px;
+    height: 15px;
+    background: #FDB515;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    cursor: grab;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+.dev-rotate::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 100%;
+    width: 2px;
+    height: 12px;
+    background: #FDB515;
+    transform: translateX(-50%);
 }
 
 .quiz-dev-panel {
