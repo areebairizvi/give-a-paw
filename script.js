@@ -251,3 +251,148 @@ document.querySelectorAll('model-viewer').forEach(mv => {
     };
     mv.addEventListener('load', applyMatte);
 });
+
+// Canine anatomy quiz (bone quiz + joint quiz)
+(() => {
+    const app = document.getElementById('anatomy-quiz-app');
+    if (!app) return;
+
+    // Marker positions are percentages of the skeleton image (left, top).
+    const BONES = [
+        { name: 'Cranium (skull)', x: 20.5, y: 27.5 },
+        { name: 'Mandible', x: 18.5, y: 35.0 },
+        { name: 'Atlas', x: 28.5, y: 33.0 },
+        { name: 'Scapula', x: 39.0, y: 38.0 },
+        { name: 'Humerus', x: 41.0, y: 46.5 },
+        { name: 'Radius', x: 40.5, y: 66.0 },
+        { name: 'Carpal bones', x: 36.0, y: 81.0 },
+        { name: 'Ribs', x: 52.0, y: 44.0 },
+        { name: 'Sternum', x: 44.5, y: 59.0 },
+        { name: 'Pelvis', x: 72.0, y: 42.0 },
+        { name: 'Femur', x: 71.0, y: 52.0 },
+        { name: 'Patella', x: 69.0, y: 57.5 },
+        { name: 'Tibia', x: 76.0, y: 62.0 },
+        { name: 'Calcaneus', x: 80.0, y: 73.0 },
+        { name: 'Caudal vertebrae (tail)', x: 88.0, y: 18.0 },
+    ];
+    const JOINTS = [
+        { name: 'Temporomandibular joint', x: 25.5, y: 32.0 },
+        { name: 'Shoulder joint', x: 40.0, y: 44.0 },
+        { name: 'Elbow joint', x: 40.5, y: 58.0 },
+        { name: 'Carpus (wrist)', x: 36.5, y: 78.0 },
+        { name: 'Hip joint', x: 73.0, y: 45.5 },
+        { name: 'Stifle (knee)', x: 70.0, y: 58.5 },
+        { name: 'Hock (tarsus)', x: 80.0, y: 71.0 },
+    ];
+
+    const marker = document.getElementById('quiz-marker');
+    const promptEl = document.getElementById('quiz-prompt');
+    const optionsEl = document.getElementById('quiz-options');
+    const feedbackEl = document.getElementById('quiz-feedback');
+    const nextBtn = document.getElementById('quiz-next');
+    const numEl = document.getElementById('quiz-num');
+    const totalEl = document.getElementById('quiz-total');
+    const scoreEl = document.getElementById('quiz-score');
+    const resultEl = document.getElementById('quiz-result');
+    const resultScoreEl = document.getElementById('quiz-result-score');
+    const restartBtn = document.getElementById('quiz-restart');
+    const tabs = [...document.querySelectorAll('.quiz-tab')];
+
+    let pool = BONES, noun = 'bone';
+    let order = [], idx = 0, score = 0, answered = false;
+
+    const shuffle = (arr) => {
+        const a = arr.slice();
+        for (let i = a.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+    };
+
+    function start(quiz) {
+        pool = quiz === 'joints' ? JOINTS : BONES;
+        noun = quiz === 'joints' ? 'joint' : 'bone';
+        order = shuffle(pool);
+        idx = 0;
+        score = 0;
+        scoreEl.textContent = '0';
+        totalEl.textContent = String(order.length);
+        resultEl.hidden = true;
+        marker.hidden = false;
+        showQuestion();
+    }
+
+    function showQuestion() {
+        answered = false;
+        feedbackEl.textContent = '';
+        feedbackEl.className = 'quiz-feedback';
+        nextBtn.hidden = true;
+        const q = order[idx];
+        numEl.textContent = String(idx + 1);
+        marker.style.left = q.x + '%';
+        marker.style.top = q.y + '%';
+        promptEl.textContent = 'Which ' + noun + ' is marked?';
+
+        // Build 4 options: the answer plus 3 random distractors from the pool.
+        const distractors = shuffle(pool.filter(o => o.name !== q.name)).slice(0, 3);
+        const choices = shuffle([q, ...distractors]).map(o => o.name);
+
+        optionsEl.innerHTML = '';
+        choices.forEach(name => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'quiz-option';
+            btn.textContent = name;
+            btn.addEventListener('click', () => choose(btn, name, q.name));
+            optionsEl.appendChild(btn);
+        });
+    }
+
+    function choose(btn, picked, correct) {
+        if (answered) return;
+        answered = true;
+        const buttons = [...optionsEl.querySelectorAll('.quiz-option')];
+        buttons.forEach(b => {
+            b.disabled = true;
+            if (b.textContent === correct) b.classList.add('correct');
+        });
+        if (picked === correct) {
+            score++;
+            scoreEl.textContent = String(score);
+            feedbackEl.textContent = 'Correct!';
+            feedbackEl.className = 'quiz-feedback correct';
+        } else {
+            btn.classList.add('wrong');
+            feedbackEl.textContent = 'Not quite — it is the ' + correct + '.';
+            feedbackEl.className = 'quiz-feedback wrong';
+        }
+        nextBtn.hidden = false;
+    }
+
+    function next() {
+        idx++;
+        if (idx >= order.length) {
+            marker.hidden = true;
+            promptEl.textContent = '';
+            optionsEl.innerHTML = '';
+            feedbackEl.textContent = '';
+            nextBtn.hidden = true;
+            resultScoreEl.textContent = 'You scored ' + score + ' / ' + order.length + '.';
+            resultEl.hidden = false;
+        } else {
+            showQuestion();
+        }
+    }
+
+    nextBtn.addEventListener('click', next);
+    restartBtn.addEventListener('click', () => start(noun === 'joint' ? 'joints' : 'bones'));
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.toggle('active', t === tab));
+            start(tab.dataset.quiz);
+        });
+    });
+
+    start('bones');
+})();
