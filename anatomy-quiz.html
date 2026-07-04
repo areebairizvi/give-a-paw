@@ -49,14 +49,18 @@
                     <p>Test your knowledge of the dog skeleton. A point is marked on the skeleton &mdash; pick the correct bone or joint. Understanding canine anatomy is the foundation of every prosthetic we design.</p>
 
                     <div class="quiz-tabs" role="tablist" aria-label="Quiz type">
-                        <button type="button" class="quiz-tab active" data-quiz="bones">Bone Quiz</button>
-                        <button type="button" class="quiz-tab" data-quiz="joints">Joint Quiz</button>
+                        <button type="button" class="quiz-tab active" data-quiz="bones">Full Skeleton - Bones</button>
+                        <button type="button" class="quiz-tab" data-quiz="joints">Full Skeleton - Joints</button>
+                        <button type="button" class="quiz-tab" data-quiz="thoracic-bones">Thoracic Limb - Bones</button>
+                        <button type="button" class="quiz-tab" data-quiz="thoracic-joints">Thoracic Limb - Joints</button>
                     </div>
 
                     <div class="anatomy-quiz" id="anatomy-quiz-app">
                         <div class="quiz-figure">
-                            <img src="anatomy-dog-skeleton.svg" alt="Lateral view of a dog skeleton">
-                            <span class="quiz-marker" id="quiz-marker" hidden></span>
+                            <div class="quiz-figure-frame">
+                                <img id="quiz-image" src="anatomy-dog-skeleton.svg" alt="Lateral view of a dog skeleton">
+                                <span class="quiz-marker" id="quiz-marker" hidden></span>
+                            </div>
                         </div>
                         <div class="quiz-panel">
                             <div class="quiz-status">

@@ -252,39 +252,72 @@ document.querySelectorAll('model-viewer').forEach(mv => {
     mv.addEventListener('load', applyMatte);
 });
 
-// Canine anatomy quiz (bone quiz + joint quiz)
+// Canine anatomy quiz (full skeleton + thoracic limb; bones and joints)
 (() => {
     const app = document.getElementById('anatomy-quiz-app');
     if (!app) return;
 
-    // Marker positions are percentages of the skeleton image (left, top).
-    const BONES = [
-        { name: 'Cranium (skull)', x: 20.5, y: 27.5 },
-        { name: 'Mandible', x: 18.5, y: 35.0 },
-        { name: 'Atlas', x: 28.5, y: 33.0 },
-        { name: 'Scapula', x: 39.0, y: 38.0 },
-        { name: 'Humerus', x: 41.0, y: 46.5 },
-        { name: 'Radius', x: 40.5, y: 66.0 },
-        { name: 'Carpal bones', x: 36.0, y: 81.0 },
-        { name: 'Ribs', x: 52.0, y: 44.0 },
-        { name: 'Sternum', x: 44.5, y: 59.0 },
-        { name: 'Pelvis', x: 72.0, y: 42.0 },
-        { name: 'Femur', x: 71.0, y: 52.0 },
-        { name: 'Patella', x: 69.0, y: 57.5 },
-        { name: 'Tibia', x: 76.0, y: 62.0 },
-        { name: 'Calcaneus', x: 80.0, y: 73.0 },
-        { name: 'Caudal vertebrae (tail)', x: 88.0, y: 18.0 },
-    ];
-    const JOINTS = [
-        { name: 'Temporomandibular joint', x: 25.5, y: 32.0 },
-        { name: 'Shoulder joint', x: 40.0, y: 44.0 },
-        { name: 'Elbow joint', x: 40.5, y: 58.0 },
-        { name: 'Carpus (wrist)', x: 36.5, y: 78.0 },
-        { name: 'Hip joint', x: 73.0, y: 45.5 },
-        { name: 'Stifle (knee)', x: 70.0, y: 58.5 },
-        { name: 'Hock (tarsus)', x: 80.0, y: 71.0 },
-    ];
+    // Each quiz has its own base image; marker positions are percentages
+    // (left, top) of that image. Coordinates were verified by overlay.
+    const QUIZZES = {
+        'bones': {
+            image: 'anatomy-dog-skeleton.svg', noun: 'bone',
+            items: [
+                { name: 'Cranium (skull)', x: 20.5, y: 27.5 },
+                { name: 'Mandible', x: 18.5, y: 35.0 },
+                { name: 'Atlas', x: 28.5, y: 33.0 },
+                { name: 'Scapula', x: 39.0, y: 38.0 },
+                { name: 'Humerus', x: 41.0, y: 46.5 },
+                { name: 'Radius', x: 40.5, y: 66.0 },
+                { name: 'Carpal bones', x: 36.0, y: 81.0 },
+                { name: 'Ribs', x: 52.0, y: 44.0 },
+                { name: 'Sternum', x: 44.5, y: 59.0 },
+                { name: 'Pelvis', x: 72.0, y: 42.0 },
+                { name: 'Femur', x: 71.0, y: 52.0 },
+                { name: 'Patella', x: 69.0, y: 57.5 },
+                { name: 'Tibia', x: 76.0, y: 62.0 },
+                { name: 'Calcaneus', x: 80.0, y: 73.0 },
+                { name: 'Caudal vertebrae (tail)', x: 88.0, y: 18.0 },
+            ],
+        },
+        'joints': {
+            image: 'anatomy-dog-skeleton.svg', noun: 'joint',
+            items: [
+                { name: 'Temporomandibular joint', x: 25.5, y: 32.0 },
+                { name: 'Shoulder joint', x: 40.0, y: 44.0 },
+                { name: 'Elbow joint', x: 40.5, y: 58.0 },
+                { name: 'Carpus (wrist)', x: 36.5, y: 78.0 },
+                { name: 'Hip joint', x: 73.0, y: 45.5 },
+                { name: 'Stifle (knee)', x: 70.0, y: 58.5 },
+                { name: 'Hock (tarsus)', x: 80.0, y: 71.0 },
+            ],
+        },
+        'thoracic-bones': {
+            image: 'anatomy-thoracic-limb.png', noun: 'bone',
+            items: [
+                { name: 'Scapula', x: 46.0, y: 19.0 },
+                { name: 'Humerus', x: 47.0, y: 40.0 },
+                { name: 'Radius', x: 40.0, y: 56.0 },
+                { name: 'Ulna', x: 46.0, y: 54.0 },
+                { name: 'Carpal bones', x: 43.0, y: 71.0 },
+                { name: 'Metacarpal bones', x: 38.0, y: 79.0 },
+                { name: 'Phalanges', x: 32.0, y: 86.0 },
+            ],
+        },
+        'thoracic-joints': {
+            image: 'anatomy-thoracic-limb.png', noun: 'joint',
+            items: [
+                { name: 'Shoulder joint', x: 41.0, y: 24.0 },
+                { name: 'Elbow joint', x: 49.0, y: 46.0 },
+                { name: 'Carpus (wrist)', x: 43.0, y: 70.0 },
+                { name: 'Metacarpophalangeal joint', x: 35.5, y: 81.5 },
+                { name: 'Proximal interphalangeal joint', x: 31.5, y: 85.0 },
+                { name: 'Distal interphalangeal joint', x: 29.0, y: 87.5 },
+            ],
+        },
+    };
 
+    const imageEl = document.getElementById('quiz-image');
     const marker = document.getElementById('quiz-marker');
     const promptEl = document.getElementById('quiz-prompt');
     const optionsEl = document.getElementById('quiz-options');
@@ -298,7 +331,7 @@ document.querySelectorAll('model-viewer').forEach(mv => {
     const restartBtn = document.getElementById('quiz-restart');
     const tabs = [...document.querySelectorAll('.quiz-tab')];
 
-    let pool = BONES, noun = 'bone';
+    let currentKey = 'bones', pool = [], noun = 'bone';
     let order = [], idx = 0, score = 0, answered = false;
 
     const shuffle = (arr) => {
@@ -311,8 +344,13 @@ document.querySelectorAll('model-viewer').forEach(mv => {
     };
 
     function start(quiz) {
-        pool = quiz === 'joints' ? JOINTS : BONES;
-        noun = quiz === 'joints' ? 'joint' : 'bone';
+        const cfg = QUIZZES[quiz] || QUIZZES['bones'];
+        currentKey = QUIZZES[quiz] ? quiz : 'bones';
+        pool = cfg.items;
+        noun = cfg.noun;
+        if (imageEl.getAttribute('src') !== cfg.image) {
+            imageEl.setAttribute('src', cfg.image);
+        }
         order = shuffle(pool);
         idx = 0;
         score = 0;
@@ -386,7 +424,7 @@ document.querySelectorAll('model-viewer').forEach(mv => {
     }
 
     nextBtn.addEventListener('click', next);
-    restartBtn.addEventListener('click', () => start(noun === 'joint' ? 'joints' : 'bones'));
+    restartBtn.addEventListener('click', () => start(currentKey));
     tabs.forEach(tab => {
         tab.addEventListener('click', () => {
             tabs.forEach(t => t.classList.toggle('active', t === tab));

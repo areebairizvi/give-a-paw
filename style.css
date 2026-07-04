@@ -1144,6 +1144,7 @@ blockquote footer {
 /* ===== ANATOMY QUIZ ===== */
 .quiz-tabs {
     display: flex;
+    flex-wrap: wrap;
     gap: 0.5rem;
     margin-bottom: 1.25rem;
 }
@@ -1180,15 +1181,23 @@ blockquote footer {
 }
 
 .quiz-figure {
-    position: relative;
+    text-align: center;
     background: #fcfcfc;
     border-radius: 6px;
 }
 
-.quiz-figure img {
-    width: 100%;
-    height: auto;
+.quiz-figure-frame {
+    position: relative;
+    display: inline-block;
+    line-height: 0;
+}
+
+.quiz-figure-frame img {
     display: block;
+    max-width: 100%;
+    max-height: 68vh;
+    width: auto;
+    height: auto;
 }
 
 .quiz-marker {
