@@ -1113,6 +1113,138 @@ blockquote footer {
     color: #8a6100;
 }
 
+/* ===== INTERACTIVE NTOP BLOCK ===== */
+.ntop-block {
+    max-width: 620px;
+    background: #1f1f22;
+    border: 1px solid #3c3c42;
+    border-radius: 8px;
+    overflow: hidden;
+    font-family: var(--font-heading);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+}
+
+.ntop-block-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.6rem 0.9rem;
+    background: #29292e;
+    border-bottom: 1px solid #3c3c42;
+    color: #57c99b;
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+
+.ntop-block-arrow {
+    color: #57c99b;
+    font-size: 0.8rem;
+}
+
+.ntop-block-row {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    width: 100%;
+    padding: 0.55rem 0.9rem;
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #2c2c30;
+    border-left: 3px solid transparent;
+    color: #d8d8dc;
+    font-family: var(--font-heading);
+    font-size: 0.9rem;
+    text-align: left;
+    cursor: pointer;
+    transition: background 0.12s ease, border-color 0.12s ease;
+}
+
+.ntop-block-row:last-child {
+    border-bottom: none;
+}
+
+.ntop-block-row:hover {
+    background: #2a2d31;
+}
+
+.ntop-block-row.active {
+    background: #33363c;
+    border-left-color: #e8833a;
+}
+
+.ntop-row-badge {
+    flex: 0 0 2.4em;
+    color: #8b8b93;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: lowercase;
+}
+
+.ntop-row-label {
+    font-weight: 600;
+}
+
+.ntop-row-value {
+    margin-left: auto;
+    padding: 0.15rem 0.6rem;
+    background: #151517;
+    border-radius: 3px;
+    color: #f0f0f2;
+    font-size: 0.85rem;
+    min-width: 3.2em;
+    text-align: right;
+}
+
+.ntop-row-value-mesh {
+    background: transparent;
+    color: #e8833a;
+    font-weight: 600;
+    text-align: left;
+}
+
+.ntop-row-unit {
+    flex: 0 0 2em;
+    color: #8b8b93;
+    font-size: 0.8rem;
+}
+
+.ntop-block-demo {
+    margin-top: 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 1.1rem 1.25rem;
+    background: #fff;
+}
+
+.ntop-demo-title {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 1.1rem;
+    color: #002676;
+    margin-bottom: 0.4rem;
+}
+
+.ntop-demo-desc {
+    margin-bottom: 1rem;
+}
+
+.ntop-demo-missing {
+    margin-top: 0.6rem;
+    padding: 0.6rem 0.9rem;
+    background: #fdf1f0;
+    border-left: 4px solid #c0392b;
+    border-radius: 0 4px 4px 0;
+    color: #8c2b20;
+    font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+    .ntop-row-badge {
+        display: none;
+    }
+}
+
 /* ===== POINT-COUNT SLIDER ===== */
 .point-slider {
     display: flex;

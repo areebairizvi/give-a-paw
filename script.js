@@ -107,89 +107,223 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
     });
 });
 
-// Lattice-parameter sliders on the nTop socket creation page. Each slider
-// maps its value to a per-step GLB; viewer.src is updated on input. Missing
-// files are tolerated (the model-viewer just shows an error for that step
-// until the GLB is added). Mappings can be filled in as more GLBs arrive.
+// Interactive Socket Lattice block on the nTop socket creation page.
+// Clicking an input row opens a demo below the block: a 3D viewer plus the
+// slider(s) that vary that input. Model filenames are generated per value;
+// steps whose GLB has not been uploaded yet show a note instead of a model.
 (() => {
-    const sliderConfigs = [
-        {
-            // Slider value is an index into `values` (the point counts are not
-            // uniformly spaced: 5-50 by 5, then 100-500 by 50).
-            sliderId: 'point-count',
-            viewerId: 'lattice-viewer',
-            readoutId: 'point-count-value',
-            values: [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500],
-            models: {
-                5:   'ntop-pointcount-005.glb',
-                10:  'ntop-pointcount-010.glb',
-                15:  'ntop-pointcount-015.glb',
-                20:  'ntop-pointcount-020.glb',
-                25:  'ntop-pointcount-025.glb',
-                30:  'ntop-pointcount-030.glb',
-                35:  'ntop-pointcount-035.glb',
-                40:  'ntop-pointcount-040.glb',
-                45:  'ntop-pointcount-045.glb',
-                50:  'ntop-pointcount-050.glb',
-                100: 'ntop-pointcount-100.glb',
-                150: 'ntop-pointcount-150.glb',
-                200: 'ntop-pointcount-200.glb',
-                250: 'ntop-pointcount-250.glb',
-                300: 'ntop-pointcount-300.glb',
-                350: 'ntop-pointcount-350.glb',
-                400: 'ntop-pointcount-400.glb',
-                450: 'ntop-pointcount-450.glb',
-                500: 'ntop-pointcount-500.glb',
-            },
-        },
-        {
-            sliderId: 'boundary-thickness',
-            viewerId: 'boundary-viewer',
-            readoutId: 'boundary-thickness-value',
-            models: Object.fromEntries(
-                Array.from({ length: 21 }, (_, mm) =>
-                    [mm, 'ntop-boundary-' + String(mm).padStart(2, '0') + '.glb'])
-            ),
-        },
-        {
-            sliderId: 'surface-thickness',
-            viewerId: 'surface-viewer',
-            readoutId: 'surface-thickness-value',
-            models: {
-                2:  'ntop-surface-02.glb',
-                4:  'ntop-surface-04.glb',
-                6:  'ntop-surface-06.glb',
-                8:  'ntop-surface-08.glb',
-                10: 'ntop-surface-10.glb',
-                12: 'ntop-surface-12.glb',
-                14: 'ntop-surface-14.glb',
-                16: 'ntop-surface-16.glb',
-                18: 'ntop-surface-18.glb',
-                20: 'ntop-surface-20.glb',
-            },
-        },
-    ];
+    const block = document.getElementById('socket-lattice-block');
+    const demo = document.getElementById('ntop-block-demo');
     const referencedUrls = new Set();
-    sliderConfigs.forEach(({ sliderId, viewerId, readoutId, models, values }) => {
-        const slider = document.getElementById(sliderId);
-        const viewer = document.getElementById(viewerId);
-        const readout = document.getElementById(readoutId);
-        if (!slider || !viewer || !readout) return;
-        Object.values(models).forEach(url => referencedUrls.add(url));
-        const apply = () => {
-            const raw = parseInt(slider.value, 10);
-            // With a `values` array the slider value is an index; otherwise
-            // the slider value is used directly.
-            const v = values ? values[raw] : raw;
-            readout.textContent = v;
-            const src = models[v];
-            if (src && viewer.getAttribute('src') !== src) {
-                viewer.setAttribute('src', src);
-            }
+
+    const pad2 = n => String(n).padStart(2, '0');
+    const POINT_COUNTS = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50,
+        100, 150, 200, 250, 300, 350, 400, 450, 500];
+    const MESH_MODELS = [
+        { label: 'Solid Animal', file: 'billie-solid-animal.glb' },
+        { label: 'Socket Attachment Surface', file: 'billie-attachment-surface.glb' },
+        { label: 'Prosthetic Socket', file: 'billie-full-prosthetic.glb' },
+    ];
+
+    const VARS = {
+        'solid-animal': {
+            title: 'Solid Animal',
+            type: 'mesh',
+            defaultFile: 'billie-solid-animal.glb',
+            desc: 'The cleaned, watertight mesh of the animal\'s residual limb. The lattice socket is grown around this shape. Use the tabs to compare the block\'s mesh inputs with the socket it produces.',
+        },
+        'attachment-surface': {
+            title: 'Socket Attachment Surface',
+            type: 'mesh',
+            defaultFile: 'billie-attachment-surface.glb',
+            desc: 'The region of the limb the socket grips, exported as a separate surface. It defines where the lattice sits on the limb. Use the tabs to compare the block\'s mesh inputs with the socket it produces.',
+        },
+        'thickest-point': {
+            title: 'Thickest Lattice Point',
+            type: 'grid',
+            desc: 'Sets the location where the socket wall is at its thickest. The X value stays 0; the Y and Z sliders move the point across the limb in 5 mm steps.',
+            axes: [
+                { key: 'Y', min: -30, max: 30, step: 5, def: 0, unit: 'mm' },
+                { key: 'Z', min: -30, max: 30, step: 5, def: 0, unit: 'mm' },
+            ],
+            file: (y, z) => 'ntop-thickpoint-y' + y + '-z' + z + '.glb',
+            rowValue: (y, z) => '0, ' + y + ', ' + z,
+        },
+        'max-thickness': {
+            title: 'Max Socket Thickness',
+            type: 'slider',
+            min: 0, max: 20, step: 2, def: 10, unit: 'mm',
+            file: v => 'ntop-maxthick-' + pad2(v) + '.glb',
+            desc: 'Sets the upper limit on the socket wall thickness.',
+        },
+        'min-thickness': {
+            title: 'Min Socket Thickness',
+            type: 'slider',
+            min: 0, max: 20, step: 2, def: 10, unit: 'mm',
+            file: v => 'ntop-minthick-' + pad2(v) + '.glb',
+            desc: 'Sets the lower limit on the socket wall thickness.',
+        },
+        'boundary-thickness': {
+            title: 'Boundary Lattice Thickness',
+            type: 'slider',
+            min: 0, max: 20, step: 1, def: 10, unit: 'mm',
+            file: v => 'ntop-boundary-' + pad2(v) + '.glb',
+            desc: 'Controls how thick the strands are along the outer edge of the lattice. Thicker boundaries give a more rigid rim and a defined silhouette; thinner boundaries blend into the surface lattice and flex more.',
+        },
+        'point-count': {
+            title: 'Lattice Point Count',
+            type: 'slider',
+            values: POINT_COUNTS, def: 100, unit: '',
+            file: v => 'ntop-pointcount-' + String(v).padStart(3, '0') + '.glb',
+            desc: 'Controls how densely the lattice is sampled across the surface: a low count yields a sparse, open structure that flexes more freely; a high count yields a finer, denser mesh that is stiffer and distributes load over more contact area.',
+        },
+    };
+
+    if (block && demo) {
+        // Models with complete sets are preloaded for smooth scrubbing.
+        POINT_COUNTS.forEach(v => referencedUrls.add(VARS['point-count'].file(v)));
+        for (let mm = 0; mm <= 20; mm++) referencedUrls.add(VARS['boundary-thickness'].file(mm));
+        MESH_MODELS.forEach(m => referencedUrls.add(m.file));
+
+        const rows = [...block.querySelectorAll('.ntop-block-row')];
+
+        const makeViewer = src => {
+            const mv = document.createElement('model-viewer');
+            mv.setAttribute('src', src);
+            mv.setAttribute('alt', 'Interactive 3D model for the selected block input');
+            mv.setAttribute('loading', 'eager');
+            mv.setAttribute('camera-controls', '');
+            mv.setAttribute('touch-action', 'pan-y');
+            mv.setAttribute('shadow-intensity', '1');
+            mv.setAttribute('shadow-softness', '0.7');
+            mv.setAttribute('exposure', '0.85');
+            mv.setAttribute('tone-mapping', 'neutral');
+            mv.setAttribute('environment-image', 'model-env.png');
+            mv.setAttribute('ar', '');
+            return mv;
         };
-        slider.addEventListener('input', apply);
-        apply();
-    });
+
+        const makeSlider = (labelText, min, max, step, value, unit, ticks) => {
+            const wrap = document.createElement('div');
+            wrap.className = 'point-slider';
+            const label = document.createElement('label');
+            label.className = 'point-slider-label';
+            label.textContent = labelText + ': ';
+            const readout = document.createElement('span');
+            readout.textContent = value;
+            label.appendChild(readout);
+            if (unit) label.appendChild(document.createTextNode(' ' + unit));
+            const input = document.createElement('input');
+            input.type = 'range';
+            input.min = min;
+            input.max = max;
+            input.step = step;
+            input.value = value;
+            const tickRow = document.createElement('div');
+            tickRow.className = 'point-slider-ticks';
+            tickRow.setAttribute('aria-hidden', 'true');
+            ticks.forEach(t => {
+                const s = document.createElement('span');
+                s.textContent = t;
+                tickRow.appendChild(s);
+            });
+            wrap.append(label, input, tickRow);
+            return { wrap, input, readout };
+        };
+
+        const renderDemo = key => {
+            const cfg = VARS[key];
+            const row = rows.find(r => r.dataset.var === key);
+            rows.forEach(r => r.classList.toggle('active', r === row));
+            demo.hidden = false;
+            demo.innerHTML = '';
+
+            const title = document.createElement('p');
+            title.className = 'ntop-demo-title';
+            title.textContent = cfg.title;
+            const desc = document.createElement('p');
+            desc.className = 'ntop-demo-desc';
+            desc.textContent = cfg.desc;
+            demo.append(title, desc);
+
+            const figure = document.createElement('figure');
+            figure.className = 'model-viewer-figure';
+            const missing = document.createElement('p');
+            missing.className = 'ntop-demo-missing';
+            missing.textContent = 'The model for this value has not been uploaded yet.';
+            missing.hidden = true;
+
+            let viewer;
+            const setSrc = src => {
+                missing.hidden = true;
+                if (viewer.getAttribute('src') !== src) viewer.setAttribute('src', src);
+            };
+
+            if (cfg.type === 'mesh') {
+                const toggle = document.createElement('div');
+                toggle.className = 'model-toggle';
+                viewer = makeViewer(cfg.defaultFile);
+                MESH_MODELS.forEach(m => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'model-toggle-btn' +
+                        (m.file === cfg.defaultFile ? ' active' : '');
+                    btn.textContent = m.label;
+                    btn.addEventListener('click', () => {
+                        setSrc(m.file);
+                        toggle.querySelectorAll('.model-toggle-btn').forEach(b =>
+                            b.classList.toggle('active', b === btn));
+                    });
+                    toggle.appendChild(btn);
+                });
+                figure.append(toggle, viewer);
+            } else if (cfg.type === 'grid') {
+                const state = {};
+                viewer = makeViewer(cfg.file(...cfg.axes.map(a => a.def)));
+                const rowValueEl = row.querySelector('[data-value]');
+                const sliders = cfg.axes.map(axis => {
+                    state[axis.key] = axis.def;
+                    const ticks = [];
+                    for (let t = axis.min; t <= axis.max; t += axis.step) ticks.push(t);
+                    const s = makeSlider(axis.key, axis.min, axis.max, axis.step,
+                        axis.def, axis.unit, ticks);
+                    s.input.addEventListener('input', () => {
+                        state[axis.key] = parseInt(s.input.value, 10);
+                        s.readout.textContent = state[axis.key];
+                        rowValueEl.textContent = cfg.rowValue(state.Y, state.Z);
+                        setSrc(cfg.file(state.Y, state.Z));
+                    });
+                    return s;
+                });
+                figure.append(...sliders.map(s => s.wrap), viewer);
+            } else {
+                const values = cfg.values ||
+                    Array.from({ length: (cfg.max - cfg.min) / cfg.step + 1 },
+                        (_, i) => cfg.min + i * cfg.step);
+                const defIdx = Math.max(0, values.indexOf(cfg.def));
+                viewer = makeViewer(cfg.file(values[defIdx]));
+                const rowValueEl = row.querySelector('[data-value]');
+                const s = makeSlider(cfg.title, 0, values.length - 1, 1,
+                    defIdx, cfg.unit, values);
+                s.readout.textContent = values[defIdx];
+                s.input.addEventListener('input', () => {
+                    const v = values[parseInt(s.input.value, 10)];
+                    s.readout.textContent = v;
+                    rowValueEl.textContent = v;
+                    setSrc(cfg.file(v));
+                });
+                figure.append(s.wrap, viewer);
+            }
+
+            viewer.addEventListener('error', () => { missing.hidden = false; });
+            const caption = document.createElement('figcaption');
+            caption.textContent = 'Interactive 3D model - drag to rotate, scroll to zoom.';
+            figure.append(missing, caption);
+            demo.appendChild(figure);
+        };
+
+        rows.forEach(r => r.addEventListener('click', () => renderDemo(r.dataset.var)));
+    }
 
     // Preload every model referenced on this page so slider scrubbing and
     // tab swaps are smooth from the first interaction. All viewers are made
