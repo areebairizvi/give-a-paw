@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>nTop Socket Creation - Give a Paw</title>
-    <link rel="stylesheet" href="style.css?v=2">
+    <link rel="stylesheet" href="style.css?v=5">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
@@ -50,7 +50,7 @@
             <article>
                 <section id="ntop-socket-creation">
                     <h1>nTop Socket Creation<a class="headerlink" href="#ntop-socket-creation" title="Permalink to this heading">¶</a></h1>
-                    <p>Placeholder text for nTop Socket Creation.</p>
+                    <p>Our custom nTop workflow turns a cleaned 3D scan into a printable lattice socket. This page documents each block in the workflow: what it does, the inputs you can change, and an interactive demo of how each input reshapes the final socket. Use the tabs below to explore the components the workflow produces.</p>
                     <figure class="model-viewer-figure">
                         <div class="model-toggle" role="tablist" aria-label="Socket component">
                             <button type="button" class="model-toggle-btn active" data-model="ntop-full-prosthetic.glb">Full Prosthetic</button>
@@ -75,7 +75,16 @@
 
                 <section id="latticing">
                     <h2>Latticing<a class="headerlink" href="#latticing" title="Permalink to this heading">¶</a></h2>
-                    <p>Our custom nTop block converts the solid socket shell into a lattice. Three parameters drive how the lattice looks and behaves: point count, boundary lattice thickness, and surface lattice thickness. Each slider below isolates one parameter.</p>
+                    <p>The Socket Lattice block converts the solid socket shell into a flexible lattice that can bend with the animal's residual limb while staying strong enough to carry load.</p>
+                    <p class="param-list-title">Input parameters:</p>
+                    <ul class="param-list">
+                        <li><strong>Point Count:</strong> Sets how densely the lattice is sampled across the socket surface.</li>
+                        <li><strong>Boundary Lattice Thickness:</strong> Sets how thick the strands are along the outer edge of the lattice.</li>
+                        <li><strong>Surface Lattice Thickness:</strong> Sets how thick each strand of the lattice itself is.</li>
+                    </ul>
+                    <div class="lesson-callout">
+                        <p><strong>Tip:</strong> Each demo below changes a single input while the other two stay at their defaults, so the difference you see comes from that one parameter alone. Drag the model to rotate it and scroll to zoom while you compare.</p>
+                    </div>
 
                     <h3>Point Count</h3>
                     <p>The <strong>point count</strong> controls how densely the lattice is sampled across the surface: a low count yields a sparse, open structure that flexes more freely; a high count yields a finer, denser mesh that is stiffer and distributes load over more contact area. Drag the slider to see how the same socket changes as the point count steps from 5 up to 500.</p>
@@ -149,9 +158,9 @@
                 
                 <section id="mechanical-interface">
                     <h2>Mechanical Interface<a class="headerlink" href="#mechanical-interface" title="Permalink to this heading">¶</a></h2>
-                    <p>Placeholder text for section.</p>
+                    <p>The Mechanical Interface block joins the lattice socket to the rigid leg components. Placeholder text for section.</p>
                 </section>
-                
+
                 <section id="bone-floating-attachment">
                     <h2>Bone Floating and Attachment<a class="headerlink" href="#bone-floating-attachment" title="Permalink to this heading">¶</a></h2>
                     <p>Placeholder text for section.</p>

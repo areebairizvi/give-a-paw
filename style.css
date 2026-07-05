@@ -1074,6 +1074,45 @@ blockquote footer {
     }
 }
 
+/* ===== LESSON FORMAT (nTop-style block documentation) ===== */
+.param-list-title {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+}
+
+.param-list {
+    margin: 0 0 1.25rem 1.25rem;
+    padding: 0;
+}
+
+.param-list li {
+    margin-bottom: 0.45rem;
+    line-height: 1.55;
+}
+
+.param-list li strong {
+    color: #002676;
+}
+
+.lesson-callout {
+    border-left: 4px solid var(--color-primary);
+    background: #fdf7e8;
+    border-radius: 0 6px 6px 0;
+    padding: 0.85rem 1.1rem;
+    margin: 0 0 1.5rem 0;
+}
+
+.lesson-callout p {
+    margin: 0;
+    font-size: 0.95rem;
+    line-height: 1.55;
+}
+
+.lesson-callout strong {
+    color: #8a6100;
+}
+
 /* ===== POINT-COUNT SLIDER ===== */
 .point-slider {
     display: flex;
