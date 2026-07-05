@@ -429,7 +429,7 @@ document.querySelectorAll('model-viewer').forEach(mv => {
         'thoracic-bones': {
             image: 'anatomy-thoracic-limb.png', noun: 'bone',
             items: [
-                { name: 'Scapula', x: 46.0, y: 19.0 },
+                { name: 'Scapula', x: 46.0, y: 19.0, points: [[52, 6], [60, 14], [59, 24], [52, 32], [44, 34], [38, 29], [41, 17], [46, 9]] },
                 { name: 'Humerus', x: 47.0, y: 40.0 },
                 { name: 'Radius', x: 40.0, y: 56.0 },
                 { name: 'Ulna', x: 46.0, y: 54.0 },
@@ -453,6 +453,7 @@ document.querySelectorAll('model-viewer').forEach(mv => {
 
     const imageEl = document.getElementById('quiz-image');
     const marker = document.getElementById('quiz-marker');
+    const highlight = document.getElementById('quiz-highlight');
     const promptEl = document.getElementById('quiz-prompt');
     const optionsEl = document.getElementById('quiz-options');
     const feedbackEl = document.getElementById('quiz-feedback');
@@ -477,12 +478,19 @@ document.querySelectorAll('model-viewer').forEach(mv => {
         const devPanel = document.createElement('div');
         devPanel.className = 'quiz-dev-panel';
         devPanel.innerHTML =
-            '<p class="quiz-dev-help">Marker editor: drag a marker to move it. ' +
-            'Click one to select it, then drag the square corner handle to stretch ' +
-            'it into an ellipse and the gold stem handle to rotate it. Double-click ' +
-            'a marker to reset it to the default dot. When everything looks right, ' +
-            'copy the code below and paste it over the matching <code>items:</code> ' +
-            'block in <code>script.js</code>.</p>' +
+            '<p class="quiz-dev-help">Drag a marker to move it; drag the square ' +
+            'handle to stretch it into an ellipse and the gold stem to rotate. ' +
+            'Double-click a marker to reset it. <strong>Polygon trace:</strong> click ' +
+            'a marker to select it, press <em>Trace polygon</em>, then click around ' +
+            'the bone to drop control points (drag any point to fine-tune). Copy the ' +
+            'code below over the matching <code>items:</code> block in ' +
+            '<code>script.js</code>.</p>' +
+            '<div class="quiz-dev-actions">' +
+              '<button type="button" class="quiz-dev-trace">Trace polygon on selected</button>' +
+              '<button type="button" class="quiz-dev-undo">Delete last point</button>' +
+              '<button type="button" class="quiz-dev-clearpoly">Clear polygon</button>' +
+            '</div>' +
+            '<p class="quiz-dev-hint quiz-dev-tracestatus"></p>' +
             '<textarea class="quiz-dev-output" readonly spellcheck="false"></textarea>' +
             '<button type="button" class="quiz-dev-copy">Copy code</button>' +
             '<span class="quiz-dev-copied" hidden>Copied!</span>';
@@ -490,18 +498,78 @@ document.querySelectorAll('model-viewer').forEach(mv => {
         const output = devPanel.querySelector('.quiz-dev-output');
         const copyBtn = devPanel.querySelector('.quiz-dev-copy');
         const copiedNote = devPanel.querySelector('.quiz-dev-copied');
+        const traceBtn = devPanel.querySelector('.quiz-dev-trace');
+        const undoBtn = devPanel.querySelector('.quiz-dev-undo');
+        const clearPolyBtn = devPanel.querySelector('.quiz-dev-clearpoly');
+        const traceStatus = devPanel.querySelector('.quiz-dev-tracestatus');
+        const devPolys = document.getElementById('quiz-dev-polys');
+        const devVerts = document.getElementById('quiz-dev-verts');
+        const SVGNS = 'http://www.w3.org/2000/svg';
+        const roundP = n => Math.round(n * 10) / 10;
+        const clampP = n => Math.min(99.5, Math.max(0.5, n));
 
         let devKey = 'bones';
+        let selectedItem = null;
+        let tracing = false;
+
+        // Draw every item's polygon, plus draggable vertex handles for the
+        // currently-selected item.
+        function renderPolys() {
+            const cfg = QUIZZES[devKey];
+            devPolys.innerHTML = '';
+            devVerts.innerHTML = '';
+            cfg.items.forEach(item => {
+                if (!item.points || item.points.length < 2) return;
+                const poly = document.createElementNS(SVGNS, 'polygon');
+                poly.setAttribute('points', item.points.map(p => p.join(',')).join(' '));
+                if (item === selectedItem) poly.classList.add('selected');
+                devPolys.appendChild(poly);
+            });
+            if (selectedItem && selectedItem.points) {
+                selectedItem.points.forEach((p, i) => {
+                    const c = document.createElementNS(SVGNS, 'circle');
+                    c.setAttribute('cx', p[0]);
+                    c.setAttribute('cy', p[1]);
+                    c.setAttribute('r', '1.5');
+                    c.addEventListener('pointerdown', ev => {
+                        ev.preventDefault();
+                        ev.stopPropagation();
+                        c.setPointerCapture(ev.pointerId);
+                        const rect = frame.getBoundingClientRect();
+                        const onMove = e => {
+                            selectedItem.points[i] = [
+                                roundP(clampP((e.clientX - rect.left) / rect.width * 100)),
+                                roundP(clampP((e.clientY - rect.top) / rect.height * 100)),
+                            ];
+                            renderPolys();
+                            serialize();
+                        };
+                        const onUp = () => {
+                            c.removeEventListener('pointermove', onMove);
+                            c.removeEventListener('pointerup', onUp);
+                        };
+                        c.addEventListener('pointermove', onMove);
+                        c.addEventListener('pointerup', onUp);
+                    });
+                    devVerts.appendChild(c);
+                });
+            }
+        }
 
         const serialize = () => {
             const cfg = QUIZZES[devKey];
             const lines = cfg.items.map(it => {
                 let s = "                { name: '" + it.name.replace(/'/g, "\\'") +
                     "', x: " + it.x.toFixed(1) + ", y: " + it.y.toFixed(1);
-                if (it.w && it.h) {
-                    s += ', w: ' + it.w.toFixed(1) + ', h: ' + it.h.toFixed(1);
+                if (it.points && it.points.length >= 3) {
+                    s += ', points: [' +
+                        it.points.map(p => '[' + p[0] + ', ' + p[1] + ']').join(', ') + ']';
+                } else {
+                    if (it.w && it.h) {
+                        s += ', w: ' + it.w.toFixed(1) + ', h: ' + it.h.toFixed(1);
+                    }
+                    if (it.rot) s += ', rot: ' + it.rot;
                 }
-                if (it.rot) s += ', rot: ' + it.rot;
                 return s + ' },';
             });
             output.value =
@@ -543,6 +611,8 @@ document.querySelectorAll('model-viewer').forEach(mv => {
                     frame.querySelectorAll('.dev-marker.selected')
                         .forEach(el => el.classList.remove('selected'));
                     dot.classList.add('selected');
+                    selectedItem = item;
+                    renderPolys();
                 };
                 const center = rect => [
                     rect.left + item.x / 100 * rect.width,
@@ -614,8 +684,58 @@ document.querySelectorAll('model-viewer').forEach(mv => {
                 applyShape();
                 frame.appendChild(dot);
             });
+            renderPolys();
             serialize();
         };
+
+        // Click on the image while tracing adds a control point to the
+        // selected item's polygon.
+        frame.addEventListener('click', e => {
+            if (!tracing || !selectedItem) return;
+            if (e.target.closest('#quiz-dev-verts')) return;
+            if (e.target.closest('.dev-marker')) return;
+            const rect = frame.getBoundingClientRect();
+            const x = roundP(clampP((e.clientX - rect.left) / rect.width * 100));
+            const y = roundP(clampP((e.clientY - rect.top) / rect.height * 100));
+            if (!selectedItem.points) selectedItem.points = [];
+            selectedItem.points.push([x, y]);
+            renderPolys();
+            serialize();
+        });
+
+        traceBtn.addEventListener('click', () => {
+            if (!selectedItem) {
+                traceStatus.textContent = 'Click a marker to select it first.';
+                return;
+            }
+            tracing = !tracing;
+            frame.classList.toggle('quiz-tracing', tracing);
+            traceBtn.textContent = tracing ? 'Finish tracing' : 'Trace polygon on selected';
+            traceStatus.textContent = tracing
+                ? 'Tracing "' + selectedItem.name + '" - click around the bone; drag points to adjust.'
+                : '';
+            if (tracing && !selectedItem.points) selectedItem.points = [];
+            renderPolys();
+        });
+
+        undoBtn.addEventListener('click', () => {
+            if (selectedItem && selectedItem.points && selectedItem.points.length) {
+                selectedItem.points.pop();
+                renderPolys();
+                serialize();
+            }
+        });
+
+        clearPolyBtn.addEventListener('click', () => {
+            if (!selectedItem) return;
+            delete selectedItem.points;
+            tracing = false;
+            frame.classList.remove('quiz-tracing');
+            traceBtn.textContent = 'Trace polygon on selected';
+            traceStatus.textContent = '';
+            renderPolys();
+            serialize();
+        });
 
         copyBtn.addEventListener('click', () => {
             const show = () => {
@@ -635,6 +755,11 @@ document.querySelectorAll('model-viewer').forEach(mv => {
             tab.addEventListener('click', () => {
                 tabs.forEach(t => t.classList.toggle('active', t === tab));
                 devKey = QUIZZES[tab.dataset.quiz] ? tab.dataset.quiz : 'bones';
+                selectedItem = null;
+                tracing = false;
+                frame.classList.remove('quiz-tracing');
+                traceBtn.textContent = 'Trace polygon on selected';
+                traceStatus.textContent = '';
                 renderDev();
             });
         });
@@ -673,6 +798,23 @@ document.querySelectorAll('model-viewer').forEach(mv => {
         showQuestion();
     }
 
+    // A question is highlighted either by a traced polygon (item.points) or,
+    // failing that, the ellipse/dot marker (x, y, w, h, rot).
+    function renderShape(q) {
+        if (q.points && q.points.length >= 3) {
+            highlight.setAttribute('points', q.points.map(p => p.join(',')).join(' '));
+            marker.hidden = true;
+        } else {
+            highlight.setAttribute('points', '');
+            marker.hidden = false;
+            marker.style.left = q.x + '%';
+            marker.style.top = q.y + '%';
+            marker.style.width = q.w ? q.w + '%' : '';
+            marker.style.height = q.h ? q.h + '%' : '';
+            marker.style.setProperty('--marker-rot', (q.rot || 0) + 'deg');
+        }
+    }
+
     function showQuestion() {
         answered = false;
         feedbackEl.textContent = '';
@@ -680,11 +822,7 @@ document.querySelectorAll('model-viewer').forEach(mv => {
         nextBtn.hidden = true;
         const q = order[idx];
         numEl.textContent = String(idx + 1);
-        marker.style.left = q.x + '%';
-        marker.style.top = q.y + '%';
-        marker.style.width = q.w ? q.w + '%' : '';
-        marker.style.height = q.h ? q.h + '%' : '';
-        marker.style.setProperty('--marker-rot', (q.rot || 0) + 'deg');
+        renderShape(q);
         promptEl.textContent = 'Which ' + noun + ' is marked?';
 
         // Build 4 options: the answer plus 3 random distractors from the pool.
@@ -727,6 +865,7 @@ document.querySelectorAll('model-viewer').forEach(mv => {
         idx++;
         if (idx >= order.length) {
             marker.hidden = true;
+            highlight.setAttribute('points', '');
             promptEl.textContent = '';
             optionsEl.innerHTML = '';
             feedbackEl.textContent = '';
