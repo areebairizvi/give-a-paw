@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Layout A: Split View - Give a Paw</title>
+    <link rel="stylesheet" href="style.css?v=6">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <script type="module" src="https://unpkg.com/@google/model-viewer@4.1.0/dist/model-viewer.min.js"></script>
+    <style>
+        .content { max-width: 1200px; }
+        .layout-banner {
+            padding: 0.6rem 1rem;
+            background: #eef2f7;
+            border: 1px solid var(--color-border);
+            border-radius: 6px;
+            font-size: 0.9rem;
+        }
+        .split-layout {
+            display: grid;
+            grid-template-columns: 340px minmax(0, 1fr);
+            gap: 1.25rem;
+            align-items: start;
+        }
+        .split-right {
+            position: sticky;
+            top: 1rem;
+            border: 1px solid var(--color-border);
+            border-radius: 8px;
+            padding: 1rem 1.25rem;
+            background: #fff;
+        }
+        .split-right model-viewer {
+            width: 100%;
+            height: 52vh;
+            background: #2a2e36;
+            border-radius: 8px;
+            --poster-color: #2a2e36;
+        }
+        .split-left .ntop-demo-desc { margin-top: 1rem; font-size: 0.92rem; }
+        @media (max-width: 900px) {
+            .split-layout { grid-template-columns: 1fr; }
+            .split-right { position: static; }
+        }
+        /* Compact block */
+        .ntop-block.compact .ntop-block-title { padding: 0.4rem 0.75rem; font-size: 0.85rem; }
+        .ntop-block.compact .ntop-block-row { padding: 0.3rem 0.75rem; font-size: 0.82rem; gap: 0.45rem; }
+        .ntop-block.compact .ntop-row-badge { flex: 0 0 2em; font-size: 0.6rem; }
+        .ntop-block.compact .ntop-row-value { padding: 0.05rem 0.45rem; font-size: 0.78rem; min-width: 2.8em; }
+        .ntop-block.compact .ntop-row-unit { flex: 0 0 1.6em; font-size: 0.72rem; }
+        /* Mesh expansion inside the block */
+        .ntop-mesh-options {
+            padding: 0.35rem 0.75rem 0.5rem 2.6rem;
+            background: #17171a;
+            border-bottom: 1px solid #2c2c30;
+            display: flex;
+            flex-direction: column;
+            gap: 0.3rem;
+        }
+        .ntop-mesh-option {
+            text-align: left;
+            background: transparent;
+            border: 1px solid #3c3c42;
+            color: #d8d8dc;
+            border-radius: 3px;
+            padding: 0.25rem 0.6rem;
+            font-family: var(--font-heading);
+            font-size: 0.78rem;
+            cursor: pointer;
+        }
+        .ntop-mesh-option:hover:not(:disabled) { background: #2a2d31; }
+        .ntop-mesh-option.selected { border-color: #e8833a; color: #e8833a; font-weight: 600; }
+        .ntop-mesh-option:disabled { color: #66666e; cursor: default; }
+        .split-controls { margin-bottom: 0.75rem; }
+        .split-controls .point-slider { margin-bottom: 0.6rem; }
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <a href="index.html" class="sidebar-logo-link">
+                <img src="logo.jpg" alt="Give a Paw Logo" class="sidebar-logo">
+            </a>
+        </div>
+        <nav class="sidebar-nav">
+            <p class="sidebar-nav-title">Program</p>
+            <ul>
+                <li><a href="meet-the-team.html">Meet the Team</a></li>
+                <li><a href="downloads.html">Downloads</a></li>
+                <li><a href="anatomy-quiz.html">Anatomy Quiz</a></li>
+            </ul>
+            <p class="sidebar-nav-title">Case Studies</p>
+            <ul>
+                <li><a href="full-limb.html">Full Limb</a></li>
+                <li><a href="wheel-chair.html">Wheel Chair</a></li>
+            </ul>
+            <p class="sidebar-nav-title">Socket Creation</p>
+            <ul>
+                <li><a href="preparing-ntop-input.html">Preparing nTop Input</a></li>
+                <li class="active"><a href="ntop-socket-creation.html">nTop Socket Creation</a></li>
+            </ul>
+            <p class="sidebar-nav-title">Manufacturing Considerations</p>
+            <ul>
+                <li><a href="materials.html">Materials</a></li>
+                <li><a href="3d-printing.html">3D Printing</a></li>
+            </ul>
+            <p class="sidebar-nav-title">3D Scanning</p>
+        </nav>
+    </aside>
+    <div class="page">
+        <div class="content">
+            <article>
+                <section id="layout-a">
+                    <h1>Layout A: Split View<a class="headerlink" href="#layout-a" title="Permalink to this heading">¶</a></h1>
+                    <p class="layout-banner">Sample layout A of 3. The block sits on the left and the demo stays pinned on the right, so nothing scrolls out of view. Compare:
+                        <a href="ntop-layout-a.html"><strong>A: Split</strong></a> &middot;
+                        <a href="ntop-layout-b.html">B: Workspace</a> &middot;
+                        <a href="ntop-layout-c.html">C: Ribbon</a> &middot;
+                        <a href="ntop-socket-creation.html">current live page</a></p>
+                    <div class="split-layout">
+                        <div class="split-left">
+                            <div class="ntop-block compact" id="sl-block">
+                                <div class="ntop-block-title">
+                                    <span class="ntop-block-arrow" aria-hidden="true">&#9662;</span>
+                                    <span class="ntop-block-name">CB - Socket Lattice</span>
+                                </div>
+                                <button type="button" class="ntop-block-row" data-mesh="solid-animal">
+                                    <span class="ntop-row-badge" aria-hidden="true">mesh</span>
+                                    <span class="ntop-row-label">Solid Animal:</span>
+                                    <span class="ntop-row-value ntop-row-value-mesh" data-value>Billie</span>
+                                    <span class="ntop-row-unit"></span>
+                                </button>
+                                <div class="ntop-mesh-options" data-options="solid-animal" hidden></div>
+                                <button type="button" class="ntop-block-row" data-mesh="attachment-surface">
+                                    <span class="ntop-row-badge" aria-hidden="true">mesh</span>
+                                    <span class="ntop-row-label">Socket Attachment Surface:</span>
+                                    <span class="ntop-row-value ntop-row-value-mesh" data-value>Billie</span>
+                                    <span class="ntop-row-unit"></span>
+                                </button>
+                                <div class="ntop-mesh-options" data-options="attachment-surface" hidden></div>
+                                <button type="button" class="ntop-block-row" data-var="thickest-point">
+                                    <span class="ntop-row-badge" aria-hidden="true">xyz</span>
+                                    <span class="ntop-row-label">Thickest Lattice Point:</span>
+                                    <span class="ntop-row-value" data-value>0, 0, 0</span>
+                                    <span class="ntop-row-unit">mm</span>
+                                </button>
+                                <button type="button" class="ntop-block-row" data-var="max-thickness">
+                                    <span class="ntop-row-badge" aria-hidden="true">0.1</span>
+                                    <span class="ntop-row-label">Max Socket Thickness:</span>
+                                    <span class="ntop-row-value" data-value>10</span>
+                                    <span class="ntop-row-unit">mm</span>
+                                </button>
+                                <button type="button" class="ntop-block-row" data-var="min-thickness">
+                                    <span class="ntop-row-badge" aria-hidden="true">0.1</span>
+                                    <span class="ntop-row-label">Min Socket Thickness:</span>
+                                    <span class="ntop-row-value" data-value>10</span>
+                                    <span class="ntop-row-unit">mm</span>
+                                </button>
+                                <button type="button" class="ntop-block-row" data-var="boundary-thickness">
+                                    <span class="ntop-row-badge" aria-hidden="true">0.1</span>
+                                    <span class="ntop-row-label">Boundary Lattice Thickness:</span>
+                                    <span class="ntop-row-value" data-value>10</span>
+                                    <span class="ntop-row-unit">mm</span>
+                                </button>
+                                <button type="button" class="ntop-block-row" data-var="point-count">
+                                    <span class="ntop-row-badge" aria-hidden="true">123</span>
+                                    <span class="ntop-row-label">Lattice Point Count:</span>
+                                    <span class="ntop-row-value" data-value>100</span>
+                                    <span class="ntop-row-unit"></span>
+                                </button>
+                            </div>
+                            <p class="ntop-demo-desc" id="sl-desc"></p>
+                        </div>
+                        <div class="split-right">
+                            <p class="ntop-demo-title" id="sl-title"></p>
+                            <div class="split-controls" id="sl-controls"></div>
+                            <model-viewer id="sl-viewer"
+                                          alt="Interactive 3D model for the selected block input"
+                                          loading="eager"
+                                          camera-controls
+                                          touch-action="pan-y"
+                                          shadow-intensity="1"
+                                          shadow-softness="0.7"
+                                          exposure="0.85"
+                                          tone-mapping="neutral"
+                                          environment-image="model-env.png"
+                                          ar></model-viewer>
+                            <p class="ntop-demo-missing" id="sl-missing" hidden>The model for this value has not been uploaded yet.</p>
+                        </div>
+                    </div>
+                </section>
+            </article>
+            <footer>
+                <div class="footer-credits">
+                    <p>© 2026 Give a Paw</p>
+                    <p>Animal Prosthetics Documentation</p>
+                </div>
+            </footer>
+        </div>
+    </div>
+    <button class="mobile-toggle" id="mobile-toggle">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+    <script src="script.js?v=6"></script>
+    <script>
+    (() => {
+        const pad2 = n => String(n).padStart(2, '0');
+        const POINT_COUNTS = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50,
+            100, 150, 200, 250, 300, 350, 400, 450, 500];
+        const VARS = {
+            'thickest-point': {
+                title: 'Thickest Lattice Point', type: 'grid',
+                desc: 'Sets the location where the socket wall is at its thickest. The X value stays 0; the Y and Z sliders move the point across the limb in 5 mm steps.',
+                axes: [
+                    { key: 'Y', min: -30, max: 30, step: 5, def: 0, unit: 'mm' },
+                    { key: 'Z', min: -30, max: 30, step: 5, def: 0, unit: 'mm' },
+                ],
+                file: (y, z) => 'ntop-thickpoint-y' + y + '-z' + z + '.glb',
+                rowValue: (y, z) => '0, ' + y + ', ' + z,
+            },
+            'max-thickness': {
+                title: 'Max Socket Thickness', type: 'slider',
+                min: 0, max: 20, step: 2, def: 10, unit: 'mm',
+                file: v => 'ntop-maxthick-' + pad2(v) + '.glb',
+                desc: 'Sets the upper limit on the socket wall thickness.',
+            },
+            'min-thickness': {
+                title: 'Min Socket Thickness', type: 'slider',
+                min: 0, max: 20, step: 2, def: 10, unit: 'mm',
+                file: v => 'ntop-minthick-' + pad2(v) + '.glb',
+                desc: 'Sets the lower limit on the socket wall thickness.',
+            },
+            'boundary-thickness': {
+                title: 'Boundary Lattice Thickness', type: 'slider',
+                min: 0, max: 20, step: 1, def: 10, unit: 'mm',
+                file: v => 'ntop-boundary-' + pad2(v) + '.glb',
+                desc: 'Controls how thick the strands are along the outer edge of the lattice. Thicker boundaries give a more rigid rim; thinner boundaries flex more.',
+            },
+            'point-count': {
+                title: 'Lattice Point Count', type: 'slider',
+                values: POINT_COUNTS, def: 100, unit: '',
+                file: v => 'ntop-pointcount-' + String(v).padStart(3, '0') + '.glb',
+                desc: 'Controls how densely the lattice is sampled across the surface: a low count yields a sparse, open structure that flexes more freely; a high count yields a finer, denser, stiffer mesh.',
+            },
+        };
+        const MESH_VARS = {
+            'solid-animal': {
+                title: 'Solid Animal',
+                desc: 'The cleaned, watertight mesh of the animal\'s residual limb. The lattice socket is grown around this shape. Pick an animal below.',
+                options: [
+                    { label: 'Billie', file: 'billie-solid-animal.glb' },
+                    { label: 'Max', file: null },
+                    { label: 'Yana', file: null },
+                ],
+            },
+            'attachment-surface': {
+                title: 'Socket Attachment Surface',
+                desc: 'The region of the limb the socket grips. It defines where the lattice sits on the limb. Pick an animal below.',
+                options: [
+                    { label: 'Billie', file: 'billie-attachment-surface.glb' },
+                    { label: 'Max', file: null },
+                    { label: 'Yana', file: null },
+                ],
+            },
+        };
+
+        const block = document.getElementById('sl-block');
+        const viewer = document.getElementById('sl-viewer');
+        const titleEl = document.getElementById('sl-title');
+        const descEl = document.getElementById('sl-desc');
+        const controls = document.getElementById('sl-controls');
+        const missing = document.getElementById('sl-missing');
+        const rows = [...block.querySelectorAll('.ntop-block-row')];
+
+        viewer.addEventListener('load', () => {
+            if (!viewer.model) return;
+            viewer.model.materials.forEach(m => {
+                try {
+                    const p = m.pbrMetallicRoughness;
+                    p.setRoughnessFactor(1.0);
+                    p.setMetallicFactor(0.0);
+                    p.setBaseColorFactor([0.9, 0.9, 0.9, 1.0]);
+                } catch (e) {}
+            });
+        });
+        viewer.addEventListener('error', () => { missing.hidden = false; });
+        const setSrc = src => {
+            missing.hidden = true;
+            if (viewer.getAttribute('src') !== src) viewer.setAttribute('src', src);
+        };
+
+        const makeSlider = (labelText, min, max, step, value, unit, ticks) => {
+            const wrap = document.createElement('div');
+            wrap.className = 'point-slider';
+            const label = document.createElement('label');
+            label.className = 'point-slider-label';
+            label.textContent = labelText + ': ';
+            const readout = document.createElement('span');
+            readout.textContent = value;
+            label.appendChild(readout);
+            if (unit) label.appendChild(document.createTextNode(' ' + unit));
+            const input = document.createElement('input');
+            input.type = 'range';
+            input.min = min;
+            input.max = max;
+            input.step = step;
+            input.value = value;
+            const tickRow = document.createElement('div');
+            tickRow.className = 'point-slider-ticks';
+            tickRow.setAttribute('aria-hidden', 'true');
+            ticks.forEach(t => {
+                const s = document.createElement('span');
+                s.textContent = t;
+                tickRow.appendChild(s);
+            });
+            wrap.append(label, input, tickRow);
+            return { wrap, input, readout };
+        };
+
+        const activate = row => rows.forEach(r => r.classList.toggle('active', r === row));
+        const closeMeshPanels = () => block.querySelectorAll('.ntop-mesh-options')
+            .forEach(p => { p.hidden = true; });
+
+        // Variable rows: sliders in the right panel
+        const renderVar = key => {
+            const cfg = VARS[key];
+            const row = rows.find(r => r.dataset.var === key);
+            closeMeshPanels();
+            activate(row);
+            titleEl.textContent = cfg.title;
+            descEl.textContent = cfg.desc;
+            controls.innerHTML = '';
+            const rowValueEl = row.querySelector('[data-value]');
+            if (cfg.type === 'grid') {
+                const state = {};
+                cfg.axes.forEach(axis => {
+                    state[axis.key] = axis.def;
+                    const ticks = [];
+                    for (let t = axis.min; t <= axis.max; t += axis.step) ticks.push(t);
+                    const s = makeSlider(axis.key, axis.min, axis.max, axis.step,
+                        axis.def, axis.unit, ticks);
+                    s.input.addEventListener('input', () => {
+                        state[axis.key] = parseInt(s.input.value, 10);
+                        s.readout.textContent = state[axis.key];
+                        rowValueEl.textContent = cfg.rowValue(state.Y, state.Z);
+                        setSrc(cfg.file(state.Y, state.Z));
+                    });
+                    controls.appendChild(s.wrap);
+                });
+                setSrc(cfg.file(...cfg.axes.map(a => a.def)));
+            } else {
+                const values = cfg.values ||
+                    Array.from({ length: (cfg.max - cfg.min) / cfg.step + 1 },
+                        (_, i) => cfg.min + i * cfg.step);
+                const defIdx = Math.max(0, values.indexOf(cfg.def));
+                const s = makeSlider(cfg.title, 0, values.length - 1, 1,
+                    defIdx, cfg.unit, values);
+                s.readout.textContent = values[defIdx];
+                s.input.addEventListener('input', () => {
+                    const v = values[parseInt(s.input.value, 10)];
+                    s.readout.textContent = v;
+                    rowValueEl.textContent = v;
+                    setSrc(cfg.file(v));
+                });
+                controls.appendChild(s.wrap);
+                setSrc(cfg.file(values[defIdx]));
+            }
+        };
+
+        // Mesh rows: expand an option list inside the block
+        Object.keys(MESH_VARS).forEach(key => {
+            const cfg = MESH_VARS[key];
+            const row = rows.find(r => r.dataset.mesh === key);
+            const panel = block.querySelector('[data-options="' + key + '"]');
+            const rowValueEl = row.querySelector('[data-value]');
+            cfg.options.forEach((opt, i) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'ntop-mesh-option' + (i === 0 ? ' selected' : '');
+                btn.textContent = opt.label + (opt.file ? '' : ' (coming soon)');
+                btn.disabled = !opt.file;
+                btn.addEventListener('click', () => {
+                    panel.querySelectorAll('.ntop-mesh-option').forEach(b =>
+                        b.classList.toggle('selected', b === btn));
+                    rowValueEl.textContent = opt.label;
+                    setSrc(opt.file);
+                });
+                panel.appendChild(btn);
+            });
+            row.addEventListener('click', () => {
+                const wasHidden = panel.hidden;
+                closeMeshPanels();
+                panel.hidden = !wasHidden;
+                activate(row);
+                titleEl.textContent = cfg.title;
+                descEl.textContent = cfg.desc;
+                controls.innerHTML = '';
+                const selected = cfg.options.find(o =>
+                    o.label === rowValueEl.textContent) || cfg.options[0];
+                if (selected.file) setSrc(selected.file);
+            });
+        });
+
+        rows.filter(r => r.dataset.var).forEach(r =>
+            r.addEventListener('click', () => renderVar(r.dataset.var)));
+
+        renderVar('point-count');
+    })();
+    </script>
+</body>
+</html>
