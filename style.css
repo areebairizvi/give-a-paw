@@ -1245,6 +1245,81 @@ blockquote footer {
     }
 }
 
+/* ===== SPLIT LAYOUT (block left, pinned demo right) ===== */
+body.wide .content {
+    max-width: 1200px;
+}
+
+.split-layout {
+    display: grid;
+    grid-template-columns: 340px minmax(0, 1fr);
+    gap: 1.25rem;
+    align-items: start;
+}
+
+.split-right {
+    position: sticky;
+    top: 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 1rem 1.25rem;
+    background: #fff;
+}
+
+.split-right model-viewer {
+    width: 100%;
+    height: 52vh;
+    background: #2a2e36;
+    border-radius: 8px;
+    --poster-color: #2a2e36;
+}
+
+.split-left .ntop-demo-desc {
+    margin-top: 1rem;
+    font-size: 0.92rem;
+}
+
+.split-controls { margin-bottom: 0.75rem; }
+.split-controls .point-slider { margin-bottom: 0.6rem; }
+
+@media (max-width: 900px) {
+    .split-layout { grid-template-columns: 1fr; }
+    .split-right { position: static; }
+}
+
+/* Compact variant of the block */
+.ntop-block.compact .ntop-block-title { padding: 0.4rem 0.75rem; font-size: 0.85rem; }
+.ntop-block.compact .ntop-block-row { padding: 0.3rem 0.75rem; font-size: 0.82rem; gap: 0.45rem; }
+.ntop-block.compact .ntop-row-badge { flex: 0 0 2em; font-size: 0.6rem; }
+.ntop-block.compact .ntop-row-value { padding: 0.05rem 0.45rem; font-size: 0.78rem; min-width: 2.8em; }
+.ntop-block.compact .ntop-row-unit { flex: 0 0 1.6em; font-size: 0.72rem; }
+
+/* Import Mesh rows expand an animal chooser inside the block */
+.ntop-mesh-options {
+    padding: 0.35rem 0.75rem 0.5rem 2.6rem;
+    background: #17171a;
+    border-bottom: 1px solid #2c2c30;
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.ntop-mesh-option {
+    text-align: left;
+    background: transparent;
+    border: 1px solid #3c3c42;
+    color: #d8d8dc;
+    border-radius: 3px;
+    padding: 0.25rem 0.6rem;
+    font-family: var(--font-heading);
+    font-size: 0.78rem;
+    cursor: pointer;
+}
+
+.ntop-mesh-option:hover:not(:disabled) { background: #2a2d31; }
+.ntop-mesh-option.selected { border-color: #e8833a; color: #e8833a; font-weight: 600; }
+.ntop-mesh-option:disabled { color: #66666e; cursor: default; }
+
 /* ===== POINT-COUNT SLIDER ===== */
 .point-slider {
     display: flex;
@@ -1357,10 +1432,33 @@ blockquote footer {
     border-radius: 6px;
 }
 
+.quiz-viewport {
+    display: inline-block;
+    overflow: hidden;
+    line-height: 0;
+    border-radius: 6px;
+}
+
 .quiz-figure-frame {
     position: relative;
     display: inline-block;
     line-height: 0;
+    transform-origin: 0 0;
+}
+
+/* Zoom/pan (dev editor) */
+.quiz-viewport.quiz-zoomable {
+    touch-action: none;
+    cursor: grab;
+}
+
+.quiz-viewport.quiz-zoomable.panning {
+    cursor: grabbing;
+}
+
+.quiz-viewport.quiz-zoomable img {
+    -webkit-user-drag: none;
+    user-select: none;
 }
 
 .quiz-figure-frame img {

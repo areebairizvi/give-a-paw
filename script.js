@@ -512,6 +512,7 @@ document.querySelectorAll('model-viewer').forEach(mv => {
               '<button type="button" class="quiz-dev-trace">Trace shape on selected</button>' +
               '<button type="button" class="quiz-dev-undo">Delete last point</button>' +
               '<button type="button" class="quiz-dev-clearpoly">Clear shape</button>' +
+              '<button type="button" class="quiz-dev-resetview">Reset view (zoom: scroll, pan: drag)</button>' +
             '</div>' +
             '<label class="quiz-dev-smooth">Smoothing ' +
               '<input type="range" min="0" max="100" step="5" value="60" disabled>' +
@@ -537,6 +538,69 @@ document.querySelectorAll('model-viewer').forEach(mv => {
         const SVGNS = 'http://www.w3.org/2000/svg';
         const roundP = n => Math.round(n * 10) / 10;
         const clampP = n => Math.min(99.5, Math.max(0.5, n));
+
+        // --- Zoom & pan (scroll to zoom at the cursor, drag to pan) ---
+        // The whole frame (image + overlay + markers) is scaled with a CSS
+        // transform, so every existing percent-coordinate computation keeps
+        // working: getBoundingClientRect() reflects the transform.
+        const viewport = frame.parentElement;
+        const resetViewBtn = devPanel.querySelector('.quiz-dev-resetview');
+        viewport.classList.add('quiz-zoomable');
+        let zoom = 1, panX = 0, panY = 0;
+        let panMoved = false; // suppresses the trace click right after a pan
+
+        function applyView() {
+            const vw = viewport.clientWidth, vh = viewport.clientHeight;
+            // keep the image covering the viewport
+            panX = Math.min(0, Math.max(vw - vw * zoom, panX));
+            panY = Math.min(0, Math.max(vh - vh * zoom, panY));
+            frame.style.transform =
+                'translate(' + panX + 'px,' + panY + 'px) scale(' + zoom + ')';
+        }
+
+        viewport.addEventListener('wheel', e => {
+            e.preventDefault();
+            const rect = viewport.getBoundingClientRect();
+            const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+            const prev = zoom;
+            zoom = Math.min(8, Math.max(1, zoom * (e.deltaY < 0 ? 1.2 : 1 / 1.2)));
+            if (zoom === prev) return;
+            // keep the point under the cursor fixed while zooming
+            panX = mx - (mx - panX) * (zoom / prev);
+            panY = my - (my - panY) * (zoom / prev);
+            if (zoom === 1) { panX = 0; panY = 0; }
+            applyView();
+        }, { passive: false });
+
+        viewport.addEventListener('pointerdown', e => {
+            // markers/vertices/midpoints stopPropagation in their own
+            // handlers, so reaching here means the press is on open canvas.
+            panMoved = false;
+            const startX = e.clientX, startY = e.clientY;
+            const startPanX = panX, startPanY = panY;
+            const onMove = ev => {
+                const dx = ev.clientX - startX, dy = ev.clientY - startY;
+                if (!panMoved && Math.hypot(dx, dy) < 4) return;
+                panMoved = true;
+                viewport.classList.add('panning');
+                panX = startPanX + dx;
+                panY = startPanY + dy;
+                applyView();
+            };
+            const onUp = () => {
+                viewport.removeEventListener('pointermove', onMove);
+                viewport.removeEventListener('pointerup', onUp);
+                viewport.classList.remove('panning');
+            };
+            try { viewport.setPointerCapture(e.pointerId); } catch (err) {}
+            viewport.addEventListener('pointermove', onMove);
+            viewport.addEventListener('pointerup', onUp);
+        });
+
+        resetViewBtn.addEventListener('click', () => {
+            zoom = 1; panX = 0; panY = 0;
+            applyView();
+        });
 
         let devKey = 'bones';
         let selectedItem = null;
@@ -794,6 +858,7 @@ document.querySelectorAll('model-viewer').forEach(mv => {
         // point simply repositions the circle marker (a one-point shape IS
         // the circle); the second click turns it into an outline.
         frame.addEventListener('click', e => {
+            if (panMoved) { panMoved = false; return; }
             if (!tracing || !selectedItem) return;
             if (e.target.closest('#quiz-dev-verts')) return;
             if (e.target.closest('#quiz-dev-mids')) return;
