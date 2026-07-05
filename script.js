@@ -429,7 +429,7 @@ document.querySelectorAll('model-viewer').forEach(mv => {
         'thoracic-bones': {
             image: 'anatomy-thoracic-limb.png', noun: 'bone',
             items: [
-                { name: 'Scapula', x: 46.0, y: 19.0, points: [[52, 6], [60, 14], [59, 24], [52, 32], [44, 34], [38, 29], [41, 17], [46, 9]] },
+                { name: 'Scapula', x: 46.0, y: 19.0, points: [[52, 6], [60, 14], [59, 24], [52, 32], [44, 34], [38, 29], [41, 17], [46, 9]], smooth: 0.6 },
                 { name: 'Humerus', x: 47.0, y: 40.0 },
                 { name: 'Radius', x: 40.0, y: 56.0 },
                 { name: 'Ulna', x: 46.0, y: 54.0 },
@@ -450,6 +450,28 @@ document.querySelectorAll('model-viewer').forEach(mv => {
             ],
         },
     };
+
+    // Closed Catmull-Rom spline rendered as cubic beziers. `smooth` 0..1:
+    // 0 gives straight polygon edges, 1 a fully rounded curve through the
+    // same control points.
+    function smoothPath(pts, smooth) {
+        if (!pts || pts.length < 3) return '';
+        const s = Math.max(0, Math.min(1, smooth == null ? 0.6 : smooth)) / 6 * 4;
+        const n = pts.length;
+        const at = i => pts[(i + n) % n];
+        let d = 'M ' + at(0)[0] + ' ' + at(0)[1];
+        for (let i = 0; i < n; i++) {
+            const p0 = at(i - 1), p1 = at(i), p2 = at(i + 1), p3 = at(i + 2);
+            const c1x = p1[0] + (p2[0] - p0[0]) * s / 4;
+            const c1y = p1[1] + (p2[1] - p0[1]) * s / 4;
+            const c2x = p2[0] - (p3[0] - p1[0]) * s / 4;
+            const c2y = p2[1] - (p3[1] - p1[1]) * s / 4;
+            d += ' C ' + c1x.toFixed(2) + ' ' + c1y.toFixed(2) +
+                 ', ' + c2x.toFixed(2) + ' ' + c2y.toFixed(2) +
+                 ', ' + p2[0] + ' ' + p2[1];
+        }
+        return d + ' Z';
+    }
 
     const imageEl = document.getElementById('quiz-image');
     const marker = document.getElementById('quiz-marker');
@@ -478,18 +500,23 @@ document.querySelectorAll('model-viewer').forEach(mv => {
         const devPanel = document.createElement('div');
         devPanel.className = 'quiz-dev-panel';
         devPanel.innerHTML =
-            '<p class="quiz-dev-help">Drag a marker to move it; drag the square ' +
-            'handle to stretch it into an ellipse and the gold stem to rotate. ' +
-            'Double-click a marker to reset it. <strong>Polygon trace:</strong> click ' +
-            'a marker to select it, press <em>Trace polygon</em>, then click around ' +
-            'the bone to drop control points (drag any point to fine-tune). Copy the ' +
-            'code below over the matching <code>items:</code> block in ' +
-            '<code>script.js</code>.</p>' +
+            '<p class="quiz-dev-help"><strong>Shape editor.</strong> Drag a marker to ' +
+            'move it; drag the square handle to stretch it into an ellipse and the ' +
+            'gold stem to rotate. <strong>Trace a shape:</strong> select a marker, ' +
+            'press <em>Trace shape</em>, then click on the bone. The first point ' +
+            'stays a circle; a second click turns it into an outline. Drag any ' +
+            'control point to adjust, click a square segment handle to insert a ' +
+            'point, double-click a point to delete it. Copy the code below over ' +
+            'the matching <code>items:</code> block in <code>script.js</code>.</p>' +
             '<div class="quiz-dev-actions">' +
-              '<button type="button" class="quiz-dev-trace">Trace polygon on selected</button>' +
+              '<button type="button" class="quiz-dev-trace">Trace shape on selected</button>' +
               '<button type="button" class="quiz-dev-undo">Delete last point</button>' +
-              '<button type="button" class="quiz-dev-clearpoly">Clear polygon</button>' +
+              '<button type="button" class="quiz-dev-clearpoly">Clear shape</button>' +
             '</div>' +
+            '<label class="quiz-dev-smooth">Smoothing ' +
+              '<input type="range" min="0" max="100" step="5" value="60" disabled>' +
+              '<output>60</output>' +
+            '</label>' +
             '<p class="quiz-dev-hint quiz-dev-tracestatus"></p>' +
             '<textarea class="quiz-dev-output" readonly spellcheck="false"></textarea>' +
             '<button type="button" class="quiz-dev-copy">Copy code</button>' +
@@ -502,7 +529,10 @@ document.querySelectorAll('model-viewer').forEach(mv => {
         const undoBtn = devPanel.querySelector('.quiz-dev-undo');
         const clearPolyBtn = devPanel.querySelector('.quiz-dev-clearpoly');
         const traceStatus = devPanel.querySelector('.quiz-dev-tracestatus');
+        const smoothSlider = devPanel.querySelector('.quiz-dev-smooth input');
+        const smoothOut = devPanel.querySelector('.quiz-dev-smooth output');
         const devPolys = document.getElementById('quiz-dev-polys');
+        const devMids = document.getElementById('quiz-dev-mids');
         const devVerts = document.getElementById('quiz-dev-verts');
         const SVGNS = 'http://www.w3.org/2000/svg';
         const roundP = n => Math.round(n * 10) / 10;
@@ -512,41 +542,106 @@ document.querySelectorAll('model-viewer').forEach(mv => {
         let selectedItem = null;
         let tracing = false;
 
-        // Draw every item's polygon, plus draggable vertex handles for the
-        // currently-selected item.
+        const hasShape = item => item.points && item.points.length >= 3;
+
+        function syncSmoothUI() {
+            const on = !!(selectedItem && hasShape(selectedItem));
+            smoothSlider.disabled = !on;
+            const v = on ? Math.round((selectedItem.smooth == null ? 0.6 : selectedItem.smooth) * 100) : 60;
+            smoothSlider.value = v;
+            smoothOut.textContent = v;
+        }
+
+        // Draw every item's traced shape; the selected one also gets vertex
+        // control points and midpoint insert handles.
         function renderPolys() {
             const cfg = QUIZZES[devKey];
             devPolys.innerHTML = '';
+            devMids.innerHTML = '';
             devVerts.innerHTML = '';
             cfg.items.forEach(item => {
                 if (!item.points || item.points.length < 2) return;
-                const poly = document.createElementNS(SVGNS, 'polygon');
-                poly.setAttribute('points', item.points.map(p => p.join(',')).join(' '));
-                if (item === selectedItem) poly.classList.add('selected');
-                devPolys.appendChild(poly);
+                const path = document.createElementNS(SVGNS, 'path');
+                const pts = item.points;
+                const d = pts.length >= 3
+                    ? smoothPath(pts, item.smooth)
+                    : 'M ' + pts.map(p => p.join(' ')).join(' L ');
+                path.setAttribute('d', d);
+                if (item === selectedItem) path.classList.add('selected');
+                devPolys.appendChild(path);
             });
-            if (selectedItem && selectedItem.points) {
-                selectedItem.points.forEach((p, i) => {
+            if (selectedItem && selectedItem.points && selectedItem.points.length) {
+                const pts = selectedItem.points;
+                // Midpoint insert handles (only for closed shapes)
+                if (pts.length >= 3) {
+                    pts.forEach((p, i) => {
+                        const q = pts[(i + 1) % pts.length];
+                        const mx = (p[0] + q[0]) / 2, my = (p[1] + q[1]) / 2;
+                        const r = document.createElementNS(SVGNS, 'rect');
+                        const S = 1.6;
+                        r.setAttribute('x', mx - S / 2);
+                        r.setAttribute('y', my - S / 2);
+                        r.setAttribute('width', S);
+                        r.setAttribute('height', S);
+                        r.addEventListener('pointerdown', ev => {
+                            ev.preventDefault();
+                            ev.stopPropagation();
+                            pts.splice(i + 1, 0, [roundP(mx), roundP(my)]);
+                            renderPolys();
+                            serialize();
+                        });
+                        devMids.appendChild(r);
+                    });
+                }
+                // Vertex control points
+                pts.forEach((p, i) => {
                     const c = document.createElementNS(SVGNS, 'circle');
                     c.setAttribute('cx', p[0]);
                     c.setAttribute('cy', p[1]);
-                    c.setAttribute('r', '1.5');
+                    c.setAttribute('r', '1.4');
+                    c.addEventListener('dblclick', ev => {
+                        ev.preventDefault();
+                        ev.stopPropagation();
+                        pts.splice(i, 1);
+                        if (pts.length === 0) delete selectedItem.points;
+                        renderPolys();
+                        serialize();
+                        syncSmoothUI();
+                    });
                     c.addEventListener('pointerdown', ev => {
                         ev.preventDefault();
                         ev.stopPropagation();
+                        c.classList.add('active');
                         c.setPointerCapture(ev.pointerId);
                         const rect = frame.getBoundingClientRect();
                         const onMove = e => {
-                            selectedItem.points[i] = [
+                            const np = [
                                 roundP(clampP((e.clientX - rect.left) / rect.width * 100)),
                                 roundP(clampP((e.clientY - rect.top) / rect.height * 100)),
                             ];
-                            renderPolys();
+                            pts[i] = np;
+                            c.setAttribute('cx', np[0]);
+                            c.setAttribute('cy', np[1]);
+                            // redraw paths + midpoints live, keep this circle
+                            const cfg2 = QUIZZES[devKey];
+                            devPolys.innerHTML = '';
+                            cfg2.items.forEach(item => {
+                                if (!item.points || item.points.length < 2) return;
+                                const path = document.createElementNS(SVGNS, 'path');
+                                const d2 = item.points.length >= 3
+                                    ? smoothPath(item.points, item.smooth)
+                                    : 'M ' + item.points.map(pp => pp.join(' ')).join(' L ');
+                                path.setAttribute('d', d2);
+                                if (item === selectedItem) path.classList.add('selected');
+                                devPolys.appendChild(path);
+                            });
                             serialize();
                         };
                         const onUp = () => {
+                            c.classList.remove('active');
                             c.removeEventListener('pointermove', onMove);
                             c.removeEventListener('pointerup', onUp);
+                            renderPolys();
                         };
                         c.addEventListener('pointermove', onMove);
                         c.addEventListener('pointerup', onUp);
@@ -564,6 +659,7 @@ document.querySelectorAll('model-viewer').forEach(mv => {
                 if (it.points && it.points.length >= 3) {
                     s += ', points: [' +
                         it.points.map(p => '[' + p[0] + ', ' + p[1] + ']').join(', ') + ']';
+                    s += ', smooth: ' + (it.smooth == null ? 0.6 : it.smooth);
                 } else {
                     if (it.w && it.h) {
                         s += ', w: ' + it.w.toFixed(1) + ', h: ' + it.h.toFixed(1);
@@ -586,6 +682,7 @@ document.querySelectorAll('model-viewer').forEach(mv => {
             cfg.items.forEach(item => {
                 const dot = document.createElement('span');
                 dot.className = 'quiz-marker dev-marker';
+                if (item === selectedItem) dot.classList.add('selected');
                 dot.title = item.name;
                 const label = document.createElement('span');
                 label.className = 'dev-marker-label';
@@ -613,6 +710,7 @@ document.querySelectorAll('model-viewer').forEach(mv => {
                     dot.classList.add('selected');
                     selectedItem = item;
                     renderPolys();
+                    syncSmoothUI();
                 };
                 const center = rect => [
                     rect.left + item.x / 100 * rect.width,
@@ -646,6 +744,10 @@ document.querySelectorAll('model-viewer').forEach(mv => {
                 drag(dot, (ev, rect) => {
                     item.x = round1(clampPct((ev.clientX - rect.left) / rect.width * 100));
                     item.y = round1(clampPct((ev.clientY - rect.top) / rect.height * 100));
+                    // a one-point shape is the circle itself: keep them in sync
+                    if (item.points && item.points.length === 1) {
+                        item.points[0] = [item.x, item.y];
+                    }
                     label.textContent = item.name + ' (' +
                         item.x.toFixed(1) + ', ' + item.y.toFixed(1) + ')';
                 });
@@ -688,19 +790,36 @@ document.querySelectorAll('model-viewer').forEach(mv => {
             serialize();
         };
 
-        // Click on the image while tracing adds a control point to the
-        // selected item's polygon.
+        // Click on the image while tracing adds a control point. The first
+        // point simply repositions the circle marker (a one-point shape IS
+        // the circle); the second click turns it into an outline.
         frame.addEventListener('click', e => {
             if (!tracing || !selectedItem) return;
             if (e.target.closest('#quiz-dev-verts')) return;
+            if (e.target.closest('#quiz-dev-mids')) return;
             if (e.target.closest('.dev-marker')) return;
             const rect = frame.getBoundingClientRect();
             const x = roundP(clampP((e.clientX - rect.left) / rect.width * 100));
             const y = roundP(clampP((e.clientY - rect.top) / rect.height * 100));
             if (!selectedItem.points) selectedItem.points = [];
             selectedItem.points.push([x, y]);
-            renderPolys();
-            serialize();
+            if (selectedItem.points.length === 1) {
+                // one point = the circle marker, moved to the click
+                selectedItem.x = x;
+                selectedItem.y = y;
+                traceStatus.textContent = 'One point set - still a circle. Click again to grow an outline.';
+                renderDev();
+            } else if (selectedItem.points.length === 2) {
+                traceStatus.textContent = 'Two points - one more click closes an area.';
+                renderPolys();
+                serialize();
+            } else {
+                traceStatus.textContent = selectedItem.points.length +
+                    ' points. Drag points to adjust, use segment handles to insert, double-click a point to delete.';
+                renderPolys();
+                serialize();
+            }
+            syncSmoothUI();
         });
 
         traceBtn.addEventListener('click', () => {
@@ -710,9 +829,9 @@ document.querySelectorAll('model-viewer').forEach(mv => {
             }
             tracing = !tracing;
             frame.classList.toggle('quiz-tracing', tracing);
-            traceBtn.textContent = tracing ? 'Finish tracing' : 'Trace polygon on selected';
+            traceBtn.textContent = tracing ? 'Finish tracing' : 'Trace shape on selected';
             traceStatus.textContent = tracing
-                ? 'Tracing "' + selectedItem.name + '" - click around the bone; drag points to adjust.'
+                ? 'Tracing "' + selectedItem.name + '" - first click places the circle, further clicks grow the outline.'
                 : '';
             if (tracing && !selectedItem.points) selectedItem.points = [];
             renderPolys();
@@ -721,18 +840,28 @@ document.querySelectorAll('model-viewer').forEach(mv => {
         undoBtn.addEventListener('click', () => {
             if (selectedItem && selectedItem.points && selectedItem.points.length) {
                 selectedItem.points.pop();
-                renderPolys();
-                serialize();
+                if (selectedItem.points.length === 0) delete selectedItem.points;
+                renderDev();
+                syncSmoothUI();
             }
         });
 
         clearPolyBtn.addEventListener('click', () => {
             if (!selectedItem) return;
             delete selectedItem.points;
+            delete selectedItem.smooth;
             tracing = false;
             frame.classList.remove('quiz-tracing');
-            traceBtn.textContent = 'Trace polygon on selected';
+            traceBtn.textContent = 'Trace shape on selected';
             traceStatus.textContent = '';
+            renderDev();
+            syncSmoothUI();
+        });
+
+        smoothSlider.addEventListener('input', () => {
+            if (!selectedItem || !hasShape(selectedItem)) return;
+            selectedItem.smooth = Math.round(smoothSlider.value) / 100;
+            smoothOut.textContent = smoothSlider.value;
             renderPolys();
             serialize();
         });
@@ -758,9 +887,10 @@ document.querySelectorAll('model-viewer').forEach(mv => {
                 selectedItem = null;
                 tracing = false;
                 frame.classList.remove('quiz-tracing');
-                traceBtn.textContent = 'Trace polygon on selected';
+                traceBtn.textContent = 'Trace shape on selected';
                 traceStatus.textContent = '';
                 renderDev();
+                syncSmoothUI();
             });
         });
 
@@ -798,14 +928,14 @@ document.querySelectorAll('model-viewer').forEach(mv => {
         showQuestion();
     }
 
-    // A question is highlighted either by a traced polygon (item.points) or,
-    // failing that, the ellipse/dot marker (x, y, w, h, rot).
+    // A question is highlighted either by a traced shape (3+ points, drawn
+    // as a smoothed closed curve) or the ellipse/dot marker (x, y, w, h, rot).
     function renderShape(q) {
         if (q.points && q.points.length >= 3) {
-            highlight.setAttribute('points', q.points.map(p => p.join(',')).join(' '));
+            highlight.setAttribute('d', smoothPath(q.points, q.smooth));
             marker.hidden = true;
         } else {
-            highlight.setAttribute('points', '');
+            highlight.setAttribute('d', '');
             marker.hidden = false;
             marker.style.left = q.x + '%';
             marker.style.top = q.y + '%';
@@ -865,7 +995,7 @@ document.querySelectorAll('model-viewer').forEach(mv => {
         idx++;
         if (idx >= order.length) {
             marker.hidden = true;
-            highlight.setAttribute('points', '');
+            highlight.setAttribute('d', '');
             promptEl.textContent = '';
             optionsEl.innerHTML = '';
             feedbackEl.textContent = '';
