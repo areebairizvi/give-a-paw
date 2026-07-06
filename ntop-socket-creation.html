@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>nTop Socket Creation - Give a Paw</title>
-    <link rel="stylesheet" href="style.css?v=7">
+    <link rel="stylesheet" href="style.css?v=9">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
@@ -22,7 +22,8 @@
             <ul>
                 <li><a href="meet-the-team.html">Meet the Team</a></li>
                 <li><a href="downloads.html">Downloads</a></li>
-                <li><a href="anatomy-quiz.html">Anatomy Quiz</a></li>
+                <li><a href="anatomy-quiz.html">Canine Anatomy Quiz</a></li>
+                <li><a href="human-anatomy-quiz.html">Human Anatomy Quiz</a></li>
             </ul>
             <p class="sidebar-nav-title">Case Studies</p>
             <ul>
@@ -116,17 +117,26 @@
                         <div class="split-right">
                             <p class="ntop-demo-title" id="sl-title"></p>
                             <div class="split-controls" id="sl-controls"></div>
-                            <model-viewer id="sl-viewer"
-                                          alt="Interactive 3D model for the selected block input"
-                                          loading="eager"
-                                          camera-controls
-                                          touch-action="pan-y"
-                                          shadow-intensity="1"
-                                          shadow-softness="0.7"
-                                          exposure="0.85"
-                                          tone-mapping="neutral"
-                                          environment-image="model-env.png"
-                                          ar></model-viewer>
+                            <div class="overlay-toggles" id="sl-overlays"></div>
+                            <div class="viewer-wrap">
+                                <model-viewer id="sl-viewer"
+                                              alt="Interactive 3D model for the selected block input"
+                                              loading="eager"
+                                              camera-controls
+                                              touch-action="pan-y"
+                                              shadow-intensity="1"
+                                              shadow-softness="0.7"
+                                              exposure="0.85"
+                                              tone-mapping="neutral"
+                                              environment-image="model-env.png"
+                                              ar></model-viewer>
+                                <div class="view-gizmo" id="sl-gizmo" aria-hidden="true">
+                                    <svg viewBox="0 0 96 156" xmlns="http://www.w3.org/2000/svg">
+                                        <g class="gizmo-cube"></g>
+                                        <g class="gizmo-triad" transform="translate(48, 128)"></g>
+                                    </svg>
+                                </div>
+                            </div>
                             <p class="ntop-demo-missing" id="sl-missing" hidden>The model for this value has not been uploaded yet.</p>
                         </div>
                     </div>
@@ -165,6 +175,6 @@
         <span></span>
         <span></span>
     </button>
-    <script src="script.js?v=7"></script>
+    <script src="script.js?v=9"></script>
 </body>
 </html>

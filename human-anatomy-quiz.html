@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Canine Anatomy Quiz - Give a Paw</title>
-    <link rel="stylesheet" href="style.css?v=7">
+    <title>Human Anatomy Quiz - Give a Paw</title>
+    <link rel="stylesheet" href="style.css?v=8">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
@@ -45,22 +45,20 @@
     <div class="page">
         <div class="content">
             <article>
-                <section id="anatomy-quiz">
-                    <h1>Canine Anatomy Quiz<a class="headerlink" href="#anatomy-quiz" title="Permalink to this heading">¶</a></h1>
-                    <p>Test your knowledge of the dog skeleton. A point is marked on the skeleton &mdash; pick the correct bone or joint. Understanding canine anatomy is the foundation of every prosthetic we design.</p>
+                <section id="human-anatomy-quiz">
+                    <h1>Human Anatomy Quiz<a class="headerlink" href="#human-anatomy-quiz" title="Permalink to this heading">¶</a></h1>
+                    <p>Test your knowledge of the human skeleton. A point is marked on the skeleton &mdash; pick the correct bone or joint. Human anatomy is the reference point our animal prosthetic work builds on.</p>
 
                     <div class="quiz-tabs" role="tablist" aria-label="Quiz type">
-                        <button type="button" class="quiz-tab active" data-quiz="bones">Full Skeleton - Bones</button>
-                        <button type="button" class="quiz-tab" data-quiz="joints">Full Skeleton - Joints</button>
-                        <button type="button" class="quiz-tab" data-quiz="thoracic-bones">Thoracic Limb - Bones</button>
-                        <button type="button" class="quiz-tab" data-quiz="thoracic-joints">Thoracic Limb - Joints</button>
+                        <button type="button" class="quiz-tab active" data-quiz="bones">Bones</button>
+                        <button type="button" class="quiz-tab" data-quiz="joints">Joints</button>
                     </div>
 
-                    <div class="anatomy-quiz" id="anatomy-quiz-app">
+                    <div class="anatomy-quiz" id="human-quiz-app">
                         <div class="quiz-figure">
                             <div class="quiz-viewport">
                             <div class="quiz-figure-frame">
-                                <img id="quiz-image" src="anatomy-dog-skeleton.svg" alt="Lateral view of a dog skeleton">
+                                <img id="quiz-image" src="human-skeleton.svg" alt="Front view of a human skeleton">
                                 <svg class="quiz-overlay" id="quiz-overlay" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
                                     <path id="quiz-highlight" d=""></path>
                                     <g id="quiz-dev-polys"></g>
@@ -87,7 +85,7 @@
                         </div>
                     </div>
 
-                    <p class="quiz-credit">Skeleton diagram by Przemek Maksim, <a href="https://commons.wikimedia.org/wiki/File:Skeleton_of_a_dog_diagram.svg" target="_blank" rel="noopener">Wikimedia Commons</a>, <a href="https://creativecommons.org/licenses/by-sa/3.0/" target="_blank" rel="noopener">CC BY-SA 3.0</a> &mdash; labels removed for this quiz.</p>
+                    <p class="quiz-credit">Skeleton diagram from <a href="https://commons.wikimedia.org/wiki/File:Human_skeleton_diagram_trace.svg" target="_blank" rel="noopener">Wikimedia Commons</a> (traced from Collier's New Encyclopedia, 1921), public domain.</p>
                 </section>
             </article>
             <footer>
@@ -104,5 +102,6 @@
         <span></span>
     </button>
     <script src="script.js?v=8"></script>
+    <script src="human-quiz.js?v=1"></script>
 </body>
 </html>
