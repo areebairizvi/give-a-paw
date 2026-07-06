@@ -369,7 +369,7 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
                     .filter(e => e.depth > 0.02)
                     .sort((a, b) => a.depth - b.depth)
                     .forEach(({ f }) => {
-                        const pts = f.corners.map(c => proj(c, 21, 48, 48));
+                        const pts = f.corners.map(c => proj(c, 21, 60, 60));
                         const poly = document.createElementNS(SVG_NS, 'polygon');
                         poly.setAttribute('points',
                             pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' '));
@@ -409,23 +409,42 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
                 });
             };
 
-            gizmo.addEventListener('click', e => {
-                const axis = e.target.getAttribute && e.target.getAttribute('data-axis');
-                if (!axis) return;
-                const orbit = viewer.getCameraOrbit();
-                const thetaDeg = orbit.theta * 180 / Math.PI;
-                const SNAPS = {
-                    '+x': [90, 90], '-x': [-90, 90],
-                    '+y': [thetaDeg, 0.1], '-y': [thetaDeg, 179.9],
-                    '+z': [0, 90], '-z': [180, 90],
-                };
-                const s = SNAPS[axis];
+            const setOrbit = (thetaDeg, phiDeg, radius) => {
                 // Remove first: re-setting an identical attribute value is a
-                // no-op, which would break re-snapping to the same face.
+                // no-op, which would break repeating the same snap.
                 viewer.removeAttribute('camera-orbit');
                 viewer.setAttribute('camera-orbit',
-                    s[0].toFixed(1) + 'deg ' + s[1].toFixed(1) + 'deg ' +
-                    orbit.radius.toFixed(1) + 'm');
+                    thetaDeg.toFixed(1) + 'deg ' + phiDeg.toFixed(1) + 'deg ' +
+                    radius.toFixed(1) + 'm');
+            };
+
+            gizmo.addEventListener('click', e => {
+                const target = e.target.closest ? e.target.closest('[data-axis], [data-rot]') : null;
+                if (!target) return;
+                const orbit = viewer.getCameraOrbit();
+                const thetaDeg = orbit.theta * 180 / Math.PI;
+                const phiDeg = orbit.phi * 180 / Math.PI;
+                const axis = target.getAttribute('data-axis');
+                if (axis) {
+                    const SNAPS = {
+                        '+x': [90, 90], '-x': [-90, 90],
+                        '+y': [thetaDeg, 0.1], '-y': [thetaDeg, 179.9],
+                        '+z': [0, 90], '-z': [180, 90],
+                    };
+                    const s = SNAPS[axis];
+                    setOrbit(s[0], s[1], orbit.radius);
+                    return;
+                }
+                // 90-degree rotate arrows; phi is clamped at the poles.
+                const rot = target.getAttribute('data-rot');
+                const STEPS = {
+                    left: [-90, 0], right: [90, 0],
+                    up: [0, -90], down: [0, 90],
+                };
+                const st = STEPS[rot];
+                setOrbit(thetaDeg + st[0],
+                    Math.min(179.9, Math.max(0.1, phiDeg + st[1])),
+                    orbit.radius);
             });
 
             // Throttle with a timeout, not requestAnimationFrame: rAF can be

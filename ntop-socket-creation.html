@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>nTop Socket Creation - Give a Paw</title>
-    <link rel="stylesheet" href="style.css?v=9">
+    <link rel="stylesheet" href="style.css?v=10">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
@@ -131,9 +131,23 @@
                                               environment-image="model-env.png"
                                               ar></model-viewer>
                                 <div class="view-gizmo" id="sl-gizmo" aria-hidden="true">
-                                    <svg viewBox="0 0 96 156" xmlns="http://www.w3.org/2000/svg">
+                                    <svg viewBox="0 0 120 190" xmlns="http://www.w3.org/2000/svg">
+                                        <g class="gizmo-arrows">
+                                            <polygon class="gizmo-arrow" data-rot="up" points="60,2 52,12 68,12">
+                                                <title>Rotate up 90&#176;</title>
+                                            </polygon>
+                                            <polygon class="gizmo-arrow" data-rot="down" points="60,118 52,108 68,108">
+                                                <title>Rotate down 90&#176;</title>
+                                            </polygon>
+                                            <polygon class="gizmo-arrow" data-rot="left" points="2,60 12,52 12,68">
+                                                <title>Rotate left 90&#176;</title>
+                                            </polygon>
+                                            <polygon class="gizmo-arrow" data-rot="right" points="118,60 108,52 108,68">
+                                                <title>Rotate right 90&#176;</title>
+                                            </polygon>
+                                        </g>
                                         <g class="gizmo-cube"></g>
-                                        <g class="gizmo-triad" transform="translate(48, 128)"></g>
+                                        <g class="gizmo-triad" transform="translate(60, 162)"></g>
                                     </svg>
                                 </div>
                             </div>
@@ -175,6 +189,6 @@
         <span></span>
         <span></span>
     </button>
-    <script src="script.js?v=9"></script>
+    <script src="script.js?v=10"></script>
 </body>
 </html>
