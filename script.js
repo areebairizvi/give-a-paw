@@ -186,6 +186,13 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
         },
     };
 
+    // Default camera view per variable key, captured with the ?dev=1 panel.
+    // '*' is the fallback for keys without a captured view.
+    const DEFAULT_VIEWS = {};
+    // Default color of the Thickest Lattice Point sphere overlay (hex),
+    // set with the ?dev=1 panel.
+    const SPHERE_COLOR = '#ff3b30';
+
     if (block && viewer) {
         const titleEl = document.getElementById('sl-title');
         const descEl = document.getElementById('sl-desc');
@@ -205,10 +212,240 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
         }));
 
         viewer.addEventListener('error', () => { missing.hidden = false; });
+        // The `load` event is unreliable when src changes rapidly, so each
+        // src change also polls `loaded` and reapplies overlay state and
+        // toggle availability once the new model is in.
+        let loadPollToken = 0;
+        const afterLoad = () => {
+            applyOverlays();
+            updateToggles();
+        };
         const setSrc = src => {
             missing.hidden = true;
             if (viewer.getAttribute('src') !== src) viewer.setAttribute('src', src);
+            const token = ++loadPollToken;
+            const poll = () => {
+                if (token !== loadPollToken) return;
+                if (viewer.loaded && viewer.model) afterLoad();
+                else setTimeout(poll, 150);
+            };
+            setTimeout(poll, 200);
         };
+
+        // ---- Overlay meshes baked into the sweep GLBs ----
+        // Each sweep GLB contains hidden overlay meshes (alpha 0); toggling
+        // sets the material alpha via the model-viewer material API.
+        const OVERLAYS = [
+            { name: 'overlay-dog', label: 'Full Dog' },
+            { name: 'overlay-surface', label: 'Attachment Surface' },
+            { name: 'overlay-sphere', label: 'Lattice Point Sphere',
+              onlyFor: ['min-thickness', 'max-thickness'] },
+        ];
+        const overlayState = {};
+        let sphereColor = SPHERE_COLOR;
+        let activeKey = null;
+
+        const hexToRgb = hex => {
+            const h = hex.replace('#', '');
+            return [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16) / 255);
+        };
+        const applyOverlays = () => {
+            if (!viewer.model) return;
+            viewer.model.materials.forEach(m => {
+                if (!m.name || m.name.indexOf('overlay-') !== 0) return;
+                const on = !!overlayState[m.name];
+                try {
+                    const pbr = m.pbrMetallicRoughness;
+                    const rgb = m.name === 'overlay-sphere'
+                        ? hexToRgb(sphereColor)
+                        : pbr.baseColorFactor.slice(0, 3);
+                    m.setAlphaMode(on ? 'OPAQUE' : 'BLEND');
+                    pbr.setBaseColorFactor([rgb[0], rgb[1], rgb[2], on ? 1 : 0]);
+                } catch (e) {}
+            });
+        };
+
+        const toggleBar = document.getElementById('sl-overlays');
+        const toggleBtns = [];
+        OVERLAYS.forEach(o => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'model-toggle-btn';
+            btn.textContent = o.label;
+            btn.addEventListener('click', () => {
+                overlayState[o.name] = !overlayState[o.name];
+                btn.classList.toggle('active', !!overlayState[o.name]);
+                applyOverlays();
+            });
+            toggleBar.appendChild(btn);
+            toggleBtns.push({ btn, cfg: o });
+        });
+        const updateToggles = () => {
+            const mats = viewer.model
+                ? viewer.model.materials.map(m => m.name) : [];
+            toggleBtns.forEach(({ btn, cfg }) => {
+                btn.hidden = cfg.onlyFor && cfg.onlyFor.indexOf(activeKey) === -1;
+                btn.disabled = mats.indexOf(cfg.name) === -1;
+            });
+        };
+        viewer.addEventListener('load', () => {
+            applyOverlays();
+            updateToggles();
+        });
+
+        // ---- Default camera views (captured with the ?dev=1 panel) ----
+        const views = Object.assign({}, DEFAULT_VIEWS);
+        const applyView = key => {
+            const view = views[key] || views['*'];
+            if (view) {
+                // Remove first so re-applying the same view after the user
+                // has orbited away still registers as an attribute change.
+                viewer.removeAttribute('camera-orbit');
+                viewer.removeAttribute('camera-target');
+                viewer.removeAttribute('field-of-view');
+                viewer.setAttribute('camera-orbit', view.orbit);
+                viewer.setAttribute('camera-target', view.target);
+                if (view.fov) viewer.setAttribute('field-of-view', view.fov);
+            } else {
+                viewer.removeAttribute('camera-orbit');
+                viewer.removeAttribute('camera-target');
+                viewer.removeAttribute('field-of-view');
+            }
+            if (viewer.jumpCameraToGoal) viewer.jumpCameraToGoal();
+        };
+
+        // ---- Orientation gizmo: SolidWorks-style view cube + triad ----
+        // Rendered as an SVG overlay projected with the same spherical
+        // convention model-viewer uses for camera-orbit (theta = 0 puts the
+        // camera on +Z). Clicking a cube face snaps the camera to that axis.
+        const gizmo = document.getElementById('sl-gizmo');
+        if (gizmo) {
+            const SVG_NS = 'http://www.w3.org/2000/svg';
+            const cubeG = gizmo.querySelector('.gizmo-cube');
+            const triadG = gizmo.querySelector('.gizmo-triad');
+            const CUBE_FACES = [
+                { axis: '+x', normal: [1, 0, 0],
+                  corners: [[1, -1, -1], [1, 1, -1], [1, 1, 1], [1, -1, 1]] },
+                { axis: '-x', normal: [-1, 0, 0],
+                  corners: [[-1, -1, -1], [-1, 1, -1], [-1, 1, 1], [-1, -1, 1]] },
+                { axis: '+y', normal: [0, 1, 0],
+                  corners: [[-1, 1, -1], [1, 1, -1], [1, 1, 1], [-1, 1, 1]] },
+                { axis: '-y', normal: [0, -1, 0],
+                  corners: [[-1, -1, -1], [1, -1, -1], [1, -1, 1], [-1, -1, 1]] },
+                { axis: '+z', normal: [0, 0, 1],
+                  corners: [[-1, -1, 1], [1, -1, 1], [1, 1, 1], [-1, 1, 1]] },
+                { axis: '-z', normal: [0, 0, -1],
+                  corners: [[-1, -1, -1], [1, -1, -1], [1, 1, -1], [-1, 1, -1]] },
+            ];
+            const TRIAD_AXES = [
+                { label: 'X', v: [1, 0, 0], color: '#d64541' },
+                { label: 'Y', v: [0, 1, 0], color: '#2e7d46' },
+                { label: 'Z', v: [0, 0, 1], color: '#2465c2' },
+            ];
+            const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+
+            const renderGizmo = () => {
+                if (typeof viewer.getCameraOrbit !== 'function') return;
+                const orbit = viewer.getCameraOrbit();
+                const phi = Math.min(Math.max(orbit.phi, 0.002), Math.PI - 0.002);
+                const theta = orbit.theta;
+                // Camera basis: zc points from target to camera.
+                const zc = [Math.sin(phi) * Math.sin(theta), Math.cos(phi),
+                    Math.sin(phi) * Math.cos(theta)];
+                let xc = [zc[2], 0, -zc[0]];
+                const xl = Math.hypot(xc[0], xc[1], xc[2]) || 1;
+                xc = xc.map(v => v / xl);
+                const yc = [
+                    zc[1] * xc[2] - zc[2] * xc[1],
+                    zc[2] * xc[0] - zc[0] * xc[2],
+                    zc[0] * xc[1] - zc[1] * xc[0],
+                ];
+                const proj = (p, scale, cx, cy) =>
+                    [cx + scale * dot(p, xc), cy - scale * dot(p, yc)];
+
+                cubeG.innerHTML = '';
+                CUBE_FACES
+                    .map(f => ({ f, depth: dot(f.normal, zc) }))
+                    .filter(e => e.depth > 0.02)
+                    .sort((a, b) => a.depth - b.depth)
+                    .forEach(({ f }) => {
+                        const pts = f.corners.map(c => proj(c, 21, 48, 48));
+                        const poly = document.createElementNS(SVG_NS, 'polygon');
+                        poly.setAttribute('points',
+                            pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' '));
+                        poly.setAttribute('class', 'gizmo-face');
+                        poly.setAttribute('data-axis', f.axis);
+                        cubeG.appendChild(poly);
+                        const cx = pts.reduce((a, p) => a + p[0], 0) / 4;
+                        const cy = pts.reduce((a, p) => a + p[1], 0) / 4;
+                        const text = document.createElementNS(SVG_NS, 'text');
+                        text.setAttribute('x', cx.toFixed(1));
+                        text.setAttribute('y', (cy + 3).toFixed(1));
+                        text.setAttribute('class', 'gizmo-face-label');
+                        text.setAttribute('text-anchor', 'middle');
+                        text.textContent = f.axis.replace('x', 'X')
+                            .replace('y', 'Y').replace('z', 'Z');
+                        cubeG.appendChild(text);
+                    });
+
+                triadG.innerHTML = '';
+                TRIAD_AXES.forEach(axis => {
+                    const end = proj(axis.v, 18, 0, 0);
+                    const line = document.createElementNS(SVG_NS, 'line');
+                    line.setAttribute('x1', '0');
+                    line.setAttribute('y1', '0');
+                    line.setAttribute('x2', end[0].toFixed(1));
+                    line.setAttribute('y2', end[1].toFixed(1));
+                    line.setAttribute('stroke', axis.color);
+                    triadG.appendChild(line);
+                    const tip = proj(axis.v, 25, 0, 0);
+                    const text = document.createElementNS(SVG_NS, 'text');
+                    text.setAttribute('x', tip[0].toFixed(1));
+                    text.setAttribute('y', (tip[1] + 3).toFixed(1));
+                    text.setAttribute('fill', axis.color);
+                    text.setAttribute('text-anchor', 'middle');
+                    text.textContent = axis.label;
+                    triadG.appendChild(text);
+                });
+            };
+
+            gizmo.addEventListener('click', e => {
+                const axis = e.target.getAttribute && e.target.getAttribute('data-axis');
+                if (!axis) return;
+                const orbit = viewer.getCameraOrbit();
+                const thetaDeg = orbit.theta * 180 / Math.PI;
+                const SNAPS = {
+                    '+x': [90, 90], '-x': [-90, 90],
+                    '+y': [thetaDeg, 0.1], '-y': [thetaDeg, 179.9],
+                    '+z': [0, 90], '-z': [180, 90],
+                };
+                const s = SNAPS[axis];
+                // Remove first: re-setting an identical attribute value is a
+                // no-op, which would break re-snapping to the same face.
+                viewer.removeAttribute('camera-orbit');
+                viewer.setAttribute('camera-orbit',
+                    s[0].toFixed(1) + 'deg ' + s[1].toFixed(1) + 'deg ' +
+                    orbit.radius.toFixed(1) + 'm');
+            });
+
+            // Throttle with a timeout, not requestAnimationFrame: rAF can be
+            // suspended in background tabs, which would wedge the queue flag
+            // and freeze the gizmo permanently.
+            let gizmoQueued = false;
+            const queueGizmo = () => {
+                if (gizmoQueued) return;
+                gizmoQueued = true;
+                setTimeout(() => {
+                    gizmoQueued = false;
+                    renderGizmo();
+                }, 50);
+            };
+            viewer.addEventListener('camera-change', queueGizmo);
+            viewer.addEventListener('load', queueGizmo);
+            // The element may not be upgraded yet when this runs; wait for
+            // the custom element definition before the first render.
+            customElements.whenDefined('model-viewer').then(queueGizmo);
+        }
 
         const makeSlider = (labelText, min, max, step, value, unit, ticks) => {
             const wrap = document.createElement('div');
@@ -248,6 +485,9 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
             const row = rows.find(r => r.dataset.var === key);
             closeMeshPanels();
             activate(row);
+            activeKey = key;
+            applyView(key);
+            updateToggles();
             titleEl.textContent = cfg.title;
             descEl.textContent = cfg.desc;
             controls.innerHTML = '';
@@ -313,6 +553,9 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
                 closeMeshPanels();
                 panel.hidden = !wasHidden;
                 activate(row);
+                activeKey = key;
+                applyView(key);
+                updateToggles();
                 titleEl.textContent = cfg.title;
                 descEl.textContent = cfg.desc;
                 controls.innerHTML = '';
@@ -324,6 +567,85 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
 
         rows.filter(r => r.dataset.var).forEach(r =>
             r.addEventListener('click', () => renderVar(r.dataset.var)));
+
+        // ---- View editor: open ntop-socket-creation.html?dev=1, orbit the
+        // model, capture the view per input, pick the sphere color, then
+        // paste the generated block over DEFAULT_VIEWS / SPHERE_COLOR above.
+        if (new URLSearchParams(window.location.search).has('dev')) {
+            const panel = document.createElement('div');
+            panel.className = 'quiz-dev-panel';
+            panel.innerHTML =
+                '<p class="quiz-dev-help">View editor: click an input on the block, ' +
+                'orbit and zoom the model to the view you want, then press ' +
+                '<strong>Capture view</strong>. "Capture as fallback" sets the view ' +
+                'used by inputs without their own. Pick the sphere color with the ' +
+                'swatch. Copy the code below and paste it over the ' +
+                '<code>DEFAULT_VIEWS</code> / <code>SPHERE_COLOR</code> block in ' +
+                '<code>script.js</code>.</p>' +
+                '<p class="quiz-dev-actions">' +
+                '<button type="button" class="quiz-dev-copy" data-capture>Capture view for current input</button> ' +
+                '<button type="button" class="quiz-dev-copy" data-capture-all>Capture as fallback (*)</button> ' +
+                '<label class="dev-sphere-label">Sphere color: ' +
+                '<input type="color" data-sphere-color></label></p>' +
+                '<textarea class="quiz-dev-output" readonly spellcheck="false"></textarea>' +
+                '<button type="button" class="quiz-dev-copy" data-copy>Copy code</button>' +
+                '<span class="quiz-dev-copied" hidden>Copied!</span>';
+            document.querySelector('.split-layout').after(panel);
+            const output = panel.querySelector('.quiz-dev-output');
+            const colorInput = panel.querySelector('[data-sphere-color]');
+            colorInput.value = sphereColor;
+
+            const serialize = () => {
+                const keys = Object.keys(views);
+                const lines = keys.map(k =>
+                    "        '" + k + "': { orbit: '" + views[k].orbit +
+                    "', target: '" + views[k].target +
+                    "', fov: '" + views[k].fov + "' },");
+                output.value =
+                    '    const DEFAULT_VIEWS = {\n' + lines.join('\n') +
+                    (lines.length ? '\n' : '') + '    };\n' +
+                    "    const SPHERE_COLOR = '" + sphereColor + "';";
+            };
+
+            const capture = key => {
+                const orbit = viewer.getCameraOrbit();
+                const target = viewer.getCameraTarget();
+                views[key] = {
+                    orbit: (orbit.theta * 180 / Math.PI).toFixed(1) + 'deg ' +
+                        (orbit.phi * 180 / Math.PI).toFixed(1) + 'deg ' +
+                        orbit.radius.toFixed(1) + 'm',
+                    target: target.x.toFixed(1) + 'm ' + target.y.toFixed(1) +
+                        'm ' + target.z.toFixed(1) + 'm',
+                    fov: viewer.getFieldOfView().toFixed(1) + 'deg',
+                };
+                serialize();
+            };
+
+            panel.querySelector('[data-capture]').addEventListener('click',
+                () => { if (activeKey) capture(activeKey); });
+            panel.querySelector('[data-capture-all]').addEventListener('click',
+                () => capture('*'));
+            colorInput.addEventListener('input', () => {
+                sphereColor = colorInput.value;
+                applyOverlays();
+                serialize();
+            });
+            panel.querySelector('[data-copy]').addEventListener('click', () => {
+                const note = panel.querySelector('.quiz-dev-copied');
+                const show = () => {
+                    note.hidden = false;
+                    setTimeout(() => { note.hidden = true; }, 1500);
+                };
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(output.value).then(show);
+                } else {
+                    output.select();
+                    document.execCommand('copy');
+                    show();
+                }
+            });
+            serialize();
+        }
 
         renderVar('point-count');
     }
@@ -373,7 +695,9 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
 })();
 
 // Force matte material on all model-viewer instances so lighting is purely
-// diffuse (avoids one-side-blown-out highlights on white meshes).
+// diffuse (avoids one-side-blown-out highlights on white meshes). Materials
+// named overlay-* keep their baked color and alpha; the socket-lattice
+// block manages those (toggles and sphere color).
 document.querySelectorAll('model-viewer').forEach(mv => {
     const applyMatte = () => {
         if (!mv.model) return;
@@ -382,7 +706,9 @@ document.querySelectorAll('model-viewer').forEach(mv => {
                 const pbr = material.pbrMetallicRoughness;
                 pbr.setRoughnessFactor(1.0);
                 pbr.setMetallicFactor(0.0);
-                pbr.setBaseColorFactor([0.9, 0.9, 0.9, 1.0]);
+                if (!material.name || material.name.indexOf('overlay-') !== 0) {
+                    pbr.setBaseColorFactor([0.9, 0.9, 0.9, 1.0]);
+                }
             } catch (e) {}
         });
     };
