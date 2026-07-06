@@ -4,13 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>nTop Socket Creation - Give a Paw</title>
-    <link rel="stylesheet" href="style.css?v=6">
+    <link rel="stylesheet" href="style.css?v=7">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
     <script type="module" src="https://unpkg.com/@google/model-viewer@4.1.0/dist/model-viewer.min.js"></script>
 </head>
-<body>
+<body class="wide">
     <aside class="sidebar">
         <div class="sidebar-brand">
             <a href="index.html" class="sidebar-logo-link">
@@ -57,57 +57,79 @@
                     <h2>Latticing<a class="headerlink" href="#latticing" title="Permalink to this heading">¶</a></h2>
                     <p>The Socket Lattice block converts the solid socket shell into a flexible lattice that can bend with the animal's residual limb while staying strong enough to carry load. Below is the block as it appears in nTop.</p>
                     <div class="lesson-callout">
-                        <p><strong>Tip:</strong> Click any input on the block to open a live demo of that input. Each demo changes one input while the others stay at their defaults, so the difference you see comes from that parameter alone. Drag the model to rotate it and scroll to zoom.</p>
+                        <p><strong>Tip:</strong> Click any input on the block to load its live demo on the right. Each demo changes one input while the others stay at their defaults, so the difference you see comes from that parameter alone. Drag the model to rotate it and scroll to zoom.</p>
                     </div>
-                    <div class="ntop-block" id="socket-lattice-block">
-                        <div class="ntop-block-title">
-                            <span class="ntop-block-arrow" aria-hidden="true">&#9662;</span>
-                            <span class="ntop-block-name">CB - Socket Lattice</span>
+                    <div class="split-layout">
+                        <div class="split-left">
+                            <div class="ntop-block compact" id="socket-lattice-block">
+                                <div class="ntop-block-title">
+                                    <span class="ntop-block-arrow" aria-hidden="true">&#9662;</span>
+                                    <span class="ntop-block-name">CB - Socket Lattice</span>
+                                </div>
+                                <button type="button" class="ntop-block-row" data-mesh="solid-animal">
+                                    <span class="ntop-row-badge" aria-hidden="true">mesh</span>
+                                    <span class="ntop-row-label">Solid Animal:</span>
+                                    <span class="ntop-row-value ntop-row-value-mesh" data-value>Billie</span>
+                                    <span class="ntop-row-unit"></span>
+                                </button>
+                                <div class="ntop-mesh-options" data-options="solid-animal" hidden></div>
+                                <button type="button" class="ntop-block-row" data-mesh="attachment-surface">
+                                    <span class="ntop-row-badge" aria-hidden="true">mesh</span>
+                                    <span class="ntop-row-label">Socket Attachment Surface:</span>
+                                    <span class="ntop-row-value ntop-row-value-mesh" data-value>Billie</span>
+                                    <span class="ntop-row-unit"></span>
+                                </button>
+                                <div class="ntop-mesh-options" data-options="attachment-surface" hidden></div>
+                                <button type="button" class="ntop-block-row" data-var="thickest-point">
+                                    <span class="ntop-row-badge" aria-hidden="true">xyz</span>
+                                    <span class="ntop-row-label">Thickest Lattice Point:</span>
+                                    <span class="ntop-row-value" data-value>-137.5, -451, -29.83</span>
+                                    <span class="ntop-row-unit">mm</span>
+                                </button>
+                                <button type="button" class="ntop-block-row" data-var="max-thickness">
+                                    <span class="ntop-row-badge" aria-hidden="true">0.1</span>
+                                    <span class="ntop-row-label">Max Socket Thickness:</span>
+                                    <span class="ntop-row-value" data-value>10</span>
+                                    <span class="ntop-row-unit">mm</span>
+                                </button>
+                                <button type="button" class="ntop-block-row" data-var="min-thickness">
+                                    <span class="ntop-row-badge" aria-hidden="true">0.1</span>
+                                    <span class="ntop-row-label">Min Socket Thickness:</span>
+                                    <span class="ntop-row-value" data-value>12</span>
+                                    <span class="ntop-row-unit">mm</span>
+                                </button>
+                                <button type="button" class="ntop-block-row" data-var="boundary-thickness">
+                                    <span class="ntop-row-badge" aria-hidden="true">0.1</span>
+                                    <span class="ntop-row-label">Boundary Lattice Thickness:</span>
+                                    <span class="ntop-row-value" data-value>14</span>
+                                    <span class="ntop-row-unit">mm</span>
+                                </button>
+                                <button type="button" class="ntop-block-row" data-var="point-count">
+                                    <span class="ntop-row-badge" aria-hidden="true">123</span>
+                                    <span class="ntop-row-label">Lattice Point Count:</span>
+                                    <span class="ntop-row-value" data-value>100</span>
+                                    <span class="ntop-row-unit"></span>
+                                </button>
+                            </div>
+                            <p class="ntop-demo-desc" id="sl-desc"></p>
                         </div>
-                        <button type="button" class="ntop-block-row" data-var="solid-animal">
-                            <span class="ntop-row-badge" aria-hidden="true">mesh</span>
-                            <span class="ntop-row-label">Solid Animal:</span>
-                            <span class="ntop-row-value ntop-row-value-mesh">Import Mesh</span>
-                            <span class="ntop-row-unit"></span>
-                        </button>
-                        <button type="button" class="ntop-block-row" data-var="attachment-surface">
-                            <span class="ntop-row-badge" aria-hidden="true">mesh</span>
-                            <span class="ntop-row-label">Socket Attachment Surface:</span>
-                            <span class="ntop-row-value ntop-row-value-mesh">Import Mesh</span>
-                            <span class="ntop-row-unit"></span>
-                        </button>
-                        <button type="button" class="ntop-block-row" data-var="thickest-point">
-                            <span class="ntop-row-badge" aria-hidden="true">xyz</span>
-                            <span class="ntop-row-label">Thickest Lattice Point:</span>
-                            <span class="ntop-row-value" data-value>0, 0, 0</span>
-                            <span class="ntop-row-unit">mm</span>
-                        </button>
-                        <button type="button" class="ntop-block-row" data-var="max-thickness">
-                            <span class="ntop-row-badge" aria-hidden="true">0.1</span>
-                            <span class="ntop-row-label">Max Socket Thickness:</span>
-                            <span class="ntop-row-value" data-value>10</span>
-                            <span class="ntop-row-unit">mm</span>
-                        </button>
-                        <button type="button" class="ntop-block-row" data-var="min-thickness">
-                            <span class="ntop-row-badge" aria-hidden="true">0.1</span>
-                            <span class="ntop-row-label">Min Socket Thickness:</span>
-                            <span class="ntop-row-value" data-value>10</span>
-                            <span class="ntop-row-unit">mm</span>
-                        </button>
-                        <button type="button" class="ntop-block-row" data-var="boundary-thickness">
-                            <span class="ntop-row-badge" aria-hidden="true">0.1</span>
-                            <span class="ntop-row-label">Boundary Lattice Thickness:</span>
-                            <span class="ntop-row-value" data-value>10</span>
-                            <span class="ntop-row-unit">mm</span>
-                        </button>
-                        <button type="button" class="ntop-block-row" data-var="point-count">
-                            <span class="ntop-row-badge" aria-hidden="true">123</span>
-                            <span class="ntop-row-label">Lattice Point Count:</span>
-                            <span class="ntop-row-value" data-value>100</span>
-                            <span class="ntop-row-unit"></span>
-                        </button>
+                        <div class="split-right">
+                            <p class="ntop-demo-title" id="sl-title"></p>
+                            <div class="split-controls" id="sl-controls"></div>
+                            <model-viewer id="sl-viewer"
+                                          alt="Interactive 3D model for the selected block input"
+                                          loading="eager"
+                                          camera-controls
+                                          touch-action="pan-y"
+                                          shadow-intensity="1"
+                                          shadow-softness="0.7"
+                                          exposure="0.85"
+                                          tone-mapping="neutral"
+                                          environment-image="model-env.png"
+                                          ar></model-viewer>
+                            <p class="ntop-demo-missing" id="sl-missing" hidden>The model for this value has not been uploaded yet.</p>
+                        </div>
                     </div>
-                    <div class="ntop-block-demo" id="ntop-block-demo" hidden></div>
                 </section>
                 
                 <section id="mechanical-interface">
@@ -143,6 +165,6 @@
         <span></span>
         <span></span>
     </button>
-    <script src="script.js?v=6"></script>
+    <script src="script.js?v=7"></script>
 </body>
 </html>
