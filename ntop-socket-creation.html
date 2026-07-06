@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>nTop Socket Creation - Give a Paw</title>
-    <link rel="stylesheet" href="style.css?v=10">
+    <link rel="stylesheet" href="style.css?v=11">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
@@ -145,6 +145,16 @@
                                             <polygon class="gizmo-arrow" data-rot="right" points="118,60 108,52 108,68">
                                                 <title>Rotate right 90&#176;</title>
                                             </polygon>
+                                            <g class="gizmo-roll" data-rot="ccw">
+                                                <title>Roll counterclockwise 90&#176;</title>
+                                                <path d="M 8 28 A 19 19 0 0 1 25 9" />
+                                                <polygon points="25,3 25,15 33,9" />
+                                            </g>
+                                            <g class="gizmo-roll" data-rot="cw">
+                                                <title>Roll clockwise 90&#176;</title>
+                                                <path d="M 112 28 A 19 19 0 0 0 95 9" />
+                                                <polygon points="95,3 95,15 87,9" />
+                                            </g>
                                         </g>
                                         <g class="gizmo-cube"></g>
                                         <g class="gizmo-triad" transform="translate(60, 162)"></g>
@@ -189,6 +199,6 @@
         <span></span>
         <span></span>
     </button>
-    <script src="script.js?v=10"></script>
+    <script src="script.js?v=11"></script>
 </body>
 </html>

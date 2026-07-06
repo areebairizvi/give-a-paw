@@ -293,6 +293,119 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
             updateToggles();
         });
 
+        // ---- Model orientation, tracked as a quaternion ----
+        // The 90-degree rotate arrows compose quaternion rotations about the
+        // current screen axes and drive model-viewer's `orientation`
+        // attribute (the orbit camera itself cannot roll). Quaternions make
+        // the steps compose correctly at any orientation with no gimbal
+        // trouble; Euler angles only appear at the output boundary because
+        // that is the format the attribute takes. Quaternions are
+        // [w, x, y, z]. model-viewer applies orientation as Euler YXZ (yaw
+        // about Y, then pitch about X, then roll about Z) and the attribute
+        // string is "<roll> <pitch> <yaw>".
+        const QID = [1, 0, 0, 0];
+        let qModel = QID.slice();
+        let gizmoRefresh = () => {};
+        const qMul = (a, b) => [
+            a[0] * b[0] - a[1] * b[1] - a[2] * b[2] - a[3] * b[3],
+            a[0] * b[1] + a[1] * b[0] + a[2] * b[3] - a[3] * b[2],
+            a[0] * b[2] - a[1] * b[3] + a[2] * b[0] + a[3] * b[1],
+            a[0] * b[3] + a[1] * b[2] - a[2] * b[1] + a[3] * b[0],
+        ];
+        const qAxisAngle = (axis, deg) => {
+            const h = deg * Math.PI / 360;
+            const s = Math.sin(h);
+            return [Math.cos(h), axis[0] * s, axis[1] * s, axis[2] * s];
+        };
+        const qRotate = (q, v) => {
+            const w = q[0], x = q[1], y = q[2], z = q[3];
+            const tx = 2 * (y * v[2] - z * v[1]);
+            const ty = 2 * (z * v[0] - x * v[2]);
+            const tz = 2 * (x * v[1] - y * v[0]);
+            return [
+                v[0] + w * tx + (y * tz - z * ty),
+                v[1] + w * ty + (z * tx - x * tz),
+                v[2] + w * tz + (x * ty - y * tx),
+            ];
+        };
+        const qSlerp = (a, b, t) => {
+            let cosom = a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3] * b[3];
+            const bb = cosom < 0 ? b.map(v => -v) : b;
+            cosom = Math.abs(cosom);
+            let s0, s1;
+            if (cosom > 0.9995) {
+                s0 = 1 - t;
+                s1 = t;
+            } else {
+                const om = Math.acos(cosom);
+                const so = Math.sin(om);
+                s0 = Math.sin((1 - t) * om) / so;
+                s1 = Math.sin(t * om) / so;
+            }
+            const out = [
+                s0 * a[0] + s1 * bb[0], s0 * a[1] + s1 * bb[1],
+                s0 * a[2] + s1 * bb[2], s0 * a[3] + s1 * bb[3],
+            ];
+            const len = Math.hypot(out[0], out[1], out[2], out[3]) || 1;
+            return out.map(v => v / len);
+        };
+        const qToOrientation = q => {
+            const w = q[0], x = q[1], y = q[2], z = q[3];
+            const m00 = 1 - 2 * (y * y + z * z);
+            const m02 = 2 * (x * z + w * y);
+            const m10 = 2 * (x * y + w * z);
+            const m11 = 1 - 2 * (x * x + z * z);
+            const m12 = 2 * (y * z - w * x);
+            const m20 = 2 * (x * z - w * y);
+            const m22 = 1 - 2 * (x * x + y * y);
+            const pitch = Math.asin(Math.min(1, Math.max(-1, -m12)));
+            let yaw, roll;
+            if (Math.abs(m12) < 0.9999999) {
+                yaw = Math.atan2(m02, m22);
+                roll = Math.atan2(m10, m11);
+            } else {
+                yaw = Math.atan2(-m20, m00);
+                roll = 0;
+            }
+            const d = 180 / Math.PI;
+            return (roll * d).toFixed(2) + 'deg ' + (pitch * d).toFixed(2) +
+                'deg ' + (yaw * d).toFixed(2) + 'deg';
+        };
+        const qFromOrientation = str => {
+            const p = (str || '').trim().split(/\s+/).map(s => parseFloat(s) || 0);
+            const qy = qAxisAngle([0, 1, 0], p[2]);
+            const qx = qAxisAngle([1, 0, 0], p[1]);
+            const qz = qAxisAngle([0, 0, 1], p[0]);
+            return qMul(qy, qMul(qx, qz));
+        };
+        let orientTimer = null;
+        const setOrientation = (q, animate) => {
+            if (orientTimer) {
+                clearInterval(orientTimer);
+                orientTimer = null;
+            }
+            const from = qModel.slice();
+            qModel = q.slice();
+            const write = qq => {
+                viewer.setAttribute('orientation', qToOrientation(qq));
+                gizmoRefresh();
+            };
+            if (!animate) {
+                write(qModel);
+                return;
+            }
+            const t0 = Date.now();
+            const DURATION = 350;
+            orientTimer = setInterval(() => {
+                const t = Math.min(1, (Date.now() - t0) / DURATION);
+                write(qSlerp(from, qModel, t * (2 - t)));
+                if (t >= 1) {
+                    clearInterval(orientTimer);
+                    orientTimer = null;
+                }
+            }, 16);
+        };
+
         // ---- Default camera views (captured with the ?dev=1 panel) ----
         const views = Object.assign({}, DEFAULT_VIEWS);
         const applyView = key => {
@@ -306,10 +419,13 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
                 viewer.setAttribute('camera-orbit', view.orbit);
                 viewer.setAttribute('camera-target', view.target);
                 if (view.fov) viewer.setAttribute('field-of-view', view.fov);
+                setOrientation(view.orient
+                    ? qFromOrientation(view.orient) : QID.slice(), false);
             } else {
                 viewer.removeAttribute('camera-orbit');
                 viewer.removeAttribute('camera-target');
                 viewer.removeAttribute('field-of-view');
+                setOrientation(QID.slice(), false);
             }
             if (viewer.jumpCameraToGoal) viewer.jumpCameraToGoal();
         };
@@ -344,12 +460,11 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
             ];
             const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 
-            const renderGizmo = () => {
-                if (typeof viewer.getCameraOrbit !== 'function') return;
+            // Camera basis in world space: zc points from target to camera.
+            const cameraBasis = () => {
                 const orbit = viewer.getCameraOrbit();
                 const phi = Math.min(Math.max(orbit.phi, 0.002), Math.PI - 0.002);
                 const theta = orbit.theta;
-                // Camera basis: zc points from target to camera.
                 const zc = [Math.sin(phi) * Math.sin(theta), Math.cos(phi),
                     Math.sin(phi) * Math.cos(theta)];
                 let xc = [zc[2], 0, -zc[0]];
@@ -360,12 +475,23 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
                     zc[2] * xc[0] - zc[0] * xc[2],
                     zc[0] * xc[1] - zc[1] * xc[0],
                 ];
-                const proj = (p, scale, cx, cy) =>
-                    [cx + scale * dot(p, xc), cy - scale * dot(p, yc)];
+                return { xc, yc, zc, orbit };
+            };
+
+            const renderGizmo = () => {
+                if (typeof viewer.getCameraOrbit !== 'function') return;
+                const { xc, yc, zc } = cameraBasis();
+                // The gizmo shows model axes, so world-project them through
+                // the model's orientation quaternion first.
+                const proj = (p, scale, cx, cy) => {
+                    const r = qRotate(qModel, p);
+                    return [cx + scale * dot(r, xc), cy - scale * dot(r, yc)];
+                };
+                const depthOf = n => dot(qRotate(qModel, n), zc);
 
                 cubeG.innerHTML = '';
                 CUBE_FACES
-                    .map(f => ({ f, depth: dot(f.normal, zc) }))
+                    .map(f => ({ f, depth: depthOf(f.normal) }))
                     .filter(e => e.depth > 0.02)
                     .sort((a, b) => a.depth - b.depth)
                     .forEach(({ f }) => {
@@ -418,33 +544,41 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
                     radius.toFixed(1) + 'm');
             };
 
+            const FACE_NORMALS = {};
+            CUBE_FACES.forEach(f => { FACE_NORMALS[f.axis] = f.normal; });
+
             gizmo.addEventListener('click', e => {
-                const target = e.target.closest ? e.target.closest('[data-axis], [data-rot]') : null;
+                const target = e.target.closest
+                    ? e.target.closest('[data-axis], [data-rot]') : null;
                 if (!target) return;
-                const orbit = viewer.getCameraOrbit();
-                const thetaDeg = orbit.theta * 180 / Math.PI;
-                const phiDeg = orbit.phi * 180 / Math.PI;
+                const { xc, yc, zc, orbit } = cameraBasis();
                 const axis = target.getAttribute('data-axis');
                 if (axis) {
-                    const SNAPS = {
-                        '+x': [90, 90], '-x': [-90, 90],
-                        '+y': [thetaDeg, 0.1], '-y': [thetaDeg, 179.9],
-                        '+z': [0, 90], '-z': [180, 90],
-                    };
-                    const s = SNAPS[axis];
-                    setOrbit(s[0], s[1], orbit.radius);
+                    // Point the camera at the face, wherever the model's
+                    // orientation has taken that axis in world space.
+                    const d = qRotate(qModel, FACE_NORMALS[axis]);
+                    const phiDeg = Math.acos(Math.min(1, Math.max(-1, d[1]))) *
+                        180 / Math.PI;
+                    const thetaDeg = Math.abs(d[1]) > 0.999
+                        ? orbit.theta * 180 / Math.PI
+                        : Math.atan2(d[0], d[2]) * 180 / Math.PI;
+                    setOrbit(thetaDeg,
+                        Math.min(179.9, Math.max(0.1, phiDeg)), orbit.radius);
                     return;
                 }
-                // 90-degree rotate arrows; phi is clamped at the poles.
+                // 90-degree rotate arrows: compose a quaternion step about
+                // the current screen axis onto the model orientation. This
+                // composes cleanly at any orientation (no pole clamping) and
+                // makes roll possible, which the orbit camera cannot do.
                 const rot = target.getAttribute('data-rot');
                 const STEPS = {
-                    left: [-90, 0], right: [90, 0],
-                    up: [0, -90], down: [0, 90],
+                    left: [yc, 90], right: [yc, -90],
+                    up: [xc, 90], down: [xc, -90],
+                    ccw: [zc, 90], cw: [zc, -90],
                 };
                 const st = STEPS[rot];
-                setOrbit(thetaDeg + st[0],
-                    Math.min(179.9, Math.max(0.1, phiDeg + st[1])),
-                    orbit.radius);
+                if (!st) return;
+                setOrientation(qMul(qAxisAngle(st[0], st[1]), qModel), true);
             });
 
             // Throttle with a timeout, not requestAnimationFrame: rAF can be
@@ -461,6 +595,7 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
             };
             viewer.addEventListener('camera-change', queueGizmo);
             viewer.addEventListener('load', queueGizmo);
+            gizmoRefresh = queueGizmo;
             // The element may not be upgraded yet when this runs; wait for
             // the custom element definition before the first render.
             customElements.whenDefined('model-viewer').then(queueGizmo);
@@ -619,7 +754,9 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
                 const lines = keys.map(k =>
                     "        '" + k + "': { orbit: '" + views[k].orbit +
                     "', target: '" + views[k].target +
-                    "', fov: '" + views[k].fov + "' },");
+                    "', fov: '" + views[k].fov + "'" +
+                    (views[k].orient ? ", orient: '" + views[k].orient + "'" : '') +
+                    ' },');
                 output.value =
                     '    const DEFAULT_VIEWS = {\n' + lines.join('\n') +
                     (lines.length ? '\n' : '') + '    };\n' +
@@ -636,6 +773,7 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
                     target: target.x.toFixed(1) + 'm ' + target.y.toFixed(1) +
                         'm ' + target.z.toFixed(1) + 'm',
                     fov: viewer.getFieldOfView().toFixed(1) + 'deg',
+                    orient: qToOrientation(qModel),
                 };
                 serialize();
             };
