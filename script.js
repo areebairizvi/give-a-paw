@@ -107,22 +107,23 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
     });
 });
 
-// Interactive Socket Lattice block on the nTop socket creation page, in a
-// split layout: the block sits on the left and the demo (title, sliders,
-// 3D viewer) stays pinned on the right. Clicking a variable row swaps the
-// demo; the Import Mesh rows expand an animal chooser inside the block.
-// Model filenames are generated per value; steps whose GLB has not been
-// uploaded yet show a note instead of a model. Sweep models are the
-// Example Dog socket: baseline Max 10 / Min 12 / Boundary 14 / Count 100.
+// Interactive Socket Lattice block on the nTop socket creation page: the
+// block sits centered and clicking an input row expands a dropdown inside
+// the block with that input's description, slider(s), overlay toggles, and
+// a 3D viewer with an orientation gizmo. One row is open at a time. Model
+// filenames are generated per value; steps whose GLB has not been uploaded
+// yet show a note instead of a model. Sweep models are the Example Dog
+// socket: baseline Max 10 / Min 12 / Boundary 14 / Count 100 (the thoracic
+// sweep was exported at Max 14).
 (() => {
     const block = document.getElementById('socket-lattice-block');
-    const viewer = document.getElementById('sl-viewer');
     const referencedUrls = new Set();
 
     const pad2 = n => String(n).padStart(2, '0');
     const POINT_COUNTS = [10, 20, 40, 60, 80, 100, 120, 140, 160, 180,
         200, 220, 240, 260, 280, 300, 320, 340, 360, 380, 400];
     const THICK_STEPS = Array.from({ length: 21 }, (_, i) => i * 2);
+    const THORACIC_STEPS = Array.from({ length: 11 }, (_, i) => i * 2);
 
     const VARS = {
         'thickest-point': {
@@ -150,6 +151,13 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
             file: v => 'ntop-minthick-' + pad2(v) + '.glb',
             desc: 'Sets the lower limit on the socket wall thickness.',
         },
+        'thoracic-thickness': {
+            title: 'Thoracic Thickness',
+            type: 'slider',
+            min: 0, max: 20, step: 2, def: 10, unit: 'mm',
+            file: v => 'ntop-thoracic-' + pad2(v) + '.glb',
+            desc: 'Sets the lattice thickness in the thoracic region of the socket.',
+        },
         'boundary-thickness': {
             title: 'Boundary Lattice Thickness',
             type: 'slider',
@@ -168,7 +176,7 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
     const MESH_VARS = {
         'solid-animal': {
             title: 'Solid Animal',
-            desc: 'The cleaned, watertight mesh of the animal\'s residual limb. The lattice socket is grown around this shape. Pick an animal in the block.',
+            desc: 'The cleaned, watertight mesh of the animal\'s residual limb. The lattice socket is grown around this shape. Pick an animal below.',
             options: [
                 { label: 'Billie', file: 'billie-solid-animal.glb' },
                 { label: 'Max', file: null },
@@ -177,7 +185,7 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
         },
         'attachment-surface': {
             title: 'Socket Attachment Surface',
-            desc: 'The region of the limb the socket grips, exported as a separate surface. It defines where the lattice sits on the limb. Pick an animal in the block.',
+            desc: 'The region of the limb the socket grips, exported as a separate surface. It defines where the lattice sits on the limb. Pick an animal below.',
             options: [
                 { label: 'Billie', file: 'billie-attachment-surface.glb' },
                 { label: 'Max', file: null },
@@ -200,6 +208,7 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
         'thickest-point': SOCKET_VIEW,
         'max-thickness': SOCKET_VIEW,
         'min-thickness': SOCKET_VIEW,
+        'thoracic-thickness': SOCKET_VIEW,
         'boundary-thickness': SOCKET_VIEW,
         'point-count': SOCKET_VIEW,
     };
@@ -207,203 +216,240 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
     // set with the ?dev=1 panel.
     const SPHERE_COLOR = '#ff3b30';
 
-    if (block && viewer) {
-        const titleEl = document.getElementById('sl-title');
-        const descEl = document.getElementById('sl-desc');
-        const controls = document.getElementById('sl-controls');
-        const missing = document.getElementById('sl-missing');
-        const rows = [...block.querySelectorAll('.ntop-block-row')];
+    const OVERLAYS = [
+        { name: 'overlay-dog', label: 'Full Dog' },
+        { name: 'overlay-surface', label: 'Attachment Surface' },
+        { name: 'overlay-sphere', label: 'Lattice Point Sphere',
+          onlyFor: ['min-thickness', 'max-thickness'] },
+    ];
 
-        // Models with complete sets are preloaded for smooth scrubbing.
-        POINT_COUNTS.forEach(v => referencedUrls.add(VARS['point-count'].file(v)));
-        THICK_STEPS.forEach(mm => {
-            referencedUrls.add(VARS['boundary-thickness'].file(mm));
-            referencedUrls.add(VARS['min-thickness'].file(mm));
-            referencedUrls.add(VARS['max-thickness'].file(mm));
-        });
-        Object.values(MESH_VARS).forEach(cfg => cfg.options.forEach(o => {
-            if (o.file) referencedUrls.add(o.file);
-        }));
-
-        viewer.addEventListener('error', () => { missing.hidden = false; });
-        // The `load` event is unreliable when src changes rapidly, so each
-        // src change also polls `loaded` and reapplies overlay state and
-        // toggle availability once the new model is in. The poll is
-        // two-phase: `loaded` can still be true for the OLD model right
-        // after a src change, so wait to observe it drop before trusting it
-        // again (with a time fallback for instant cache swaps the poll
-        // interval might miss).
-        let loadPollToken = 0;
-        const afterLoad = () => {
-            applyOverlays();
-            updateToggles();
-        };
-        const setSrc = src => {
-            missing.hidden = true;
-            if (viewer.getAttribute('src') !== src) viewer.setAttribute('src', src);
-            const token = ++loadPollToken;
-            const t0 = Date.now();
-            let sawUnloaded = false;
-            const poll = () => {
-                if (token !== loadPollToken) return;
-                if (!viewer.loaded) sawUnloaded = true;
-                if (viewer.loaded && viewer.model &&
-                    (sawUnloaded || Date.now() - t0 > 450)) {
-                    afterLoad();
-                    return;
-                }
-                setTimeout(poll, 100);
-            };
-            setTimeout(poll, 100);
-        };
-
-        // ---- Overlay meshes baked into the sweep GLBs ----
-        // Each sweep GLB contains hidden overlay meshes (alpha 0); toggling
-        // sets the material alpha via the model-viewer material API.
-        const OVERLAYS = [
-            { name: 'overlay-dog', label: 'Full Dog' },
-            { name: 'overlay-surface', label: 'Attachment Surface' },
-            { name: 'overlay-sphere', label: 'Lattice Point Sphere',
-              onlyFor: ['min-thickness', 'max-thickness'] },
+    // ---- Quaternion helpers ----
+    // The 90-degree rotate arrows compose quaternion rotations about the
+    // current screen axes and drive model-viewer's `orientation` attribute
+    // (the orbit camera itself cannot roll). Quaternions make the steps
+    // compose correctly at any orientation with no gimbal trouble; Euler
+    // angles only appear at the output boundary because that is the format
+    // the attribute takes. Quaternions are [w, x, y, z]. model-viewer
+    // applies orientation as Euler YXZ (yaw about Y, then pitch about X,
+    // then roll about Z) and the attribute string is "<roll> <pitch> <yaw>".
+    const QID = [1, 0, 0, 0];
+    const qMul = (a, b) => [
+        a[0] * b[0] - a[1] * b[1] - a[2] * b[2] - a[3] * b[3],
+        a[0] * b[1] + a[1] * b[0] + a[2] * b[3] - a[3] * b[2],
+        a[0] * b[2] - a[1] * b[3] + a[2] * b[0] + a[3] * b[1],
+        a[0] * b[3] + a[1] * b[2] - a[2] * b[1] + a[3] * b[0],
+    ];
+    const qAxisAngle = (axis, deg) => {
+        const h = deg * Math.PI / 360;
+        const s = Math.sin(h);
+        return [Math.cos(h), axis[0] * s, axis[1] * s, axis[2] * s];
+    };
+    const qRotate = (q, v) => {
+        const w = q[0], x = q[1], y = q[2], z = q[3];
+        const tx = 2 * (y * v[2] - z * v[1]);
+        const ty = 2 * (z * v[0] - x * v[2]);
+        const tz = 2 * (x * v[1] - y * v[0]);
+        return [
+            v[0] + w * tx + (y * tz - z * ty),
+            v[1] + w * ty + (z * tx - x * tz),
+            v[2] + w * tz + (x * ty - y * tx),
         ];
-        const overlayState = {};
-        let sphereColor = SPHERE_COLOR;
-        let activeKey = null;
-
-        const hexToRgb = hex => {
-            const h = hex.replace('#', '');
-            return [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16) / 255);
-        };
-        const applyOverlays = () => {
-            if (!viewer.model) return;
-            viewer.model.materials.forEach(m => {
-                if (!m.name || m.name.indexOf('overlay-') !== 0) return;
-                const on = !!overlayState[m.name];
-                try {
-                    const pbr = m.pbrMetallicRoughness;
-                    const rgb = m.name === 'overlay-sphere'
-                        ? hexToRgb(sphereColor)
-                        : pbr.baseColorFactor.slice(0, 3);
-                    m.setAlphaMode(on ? 'OPAQUE' : 'BLEND');
-                    pbr.setBaseColorFactor([rgb[0], rgb[1], rgb[2], on ? 1 : 0]);
-                } catch (e) {}
-            });
-        };
-
-        const toggleBar = document.getElementById('sl-overlays');
-        const toggleBtns = [];
-        OVERLAYS.forEach(o => {
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'model-toggle-btn';
-            btn.textContent = o.label;
-            btn.addEventListener('click', () => {
-                overlayState[o.name] = !overlayState[o.name];
-                btn.classList.toggle('active', !!overlayState[o.name]);
-                applyOverlays();
-            });
-            toggleBar.appendChild(btn);
-            toggleBtns.push({ btn, cfg: o });
-        });
-        const updateToggles = () => {
-            const mats = viewer.model
-                ? viewer.model.materials.map(m => m.name) : [];
-            toggleBtns.forEach(({ btn, cfg }) => {
-                btn.hidden = cfg.onlyFor && cfg.onlyFor.indexOf(activeKey) === -1;
-                btn.disabled = mats.indexOf(cfg.name) === -1;
-            });
-        };
-        viewer.addEventListener('load', () => {
-            applyOverlays();
-            updateToggles();
-        });
-
-        // ---- Model orientation, tracked as a quaternion ----
-        // The 90-degree rotate arrows compose quaternion rotations about the
-        // current screen axes and drive model-viewer's `orientation`
-        // attribute (the orbit camera itself cannot roll). Quaternions make
-        // the steps compose correctly at any orientation with no gimbal
-        // trouble; Euler angles only appear at the output boundary because
-        // that is the format the attribute takes. Quaternions are
-        // [w, x, y, z]. model-viewer applies orientation as Euler YXZ (yaw
-        // about Y, then pitch about X, then roll about Z) and the attribute
-        // string is "<roll> <pitch> <yaw>".
-        const QID = [1, 0, 0, 0];
-        let qModel = QID.slice();
-        let gizmoRefresh = () => {};
-        const qMul = (a, b) => [
-            a[0] * b[0] - a[1] * b[1] - a[2] * b[2] - a[3] * b[3],
-            a[0] * b[1] + a[1] * b[0] + a[2] * b[3] - a[3] * b[2],
-            a[0] * b[2] - a[1] * b[3] + a[2] * b[0] + a[3] * b[1],
-            a[0] * b[3] + a[1] * b[2] - a[2] * b[1] + a[3] * b[0],
+    };
+    const qSlerp = (a, b, t) => {
+        let cosom = a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3] * b[3];
+        const bb = cosom < 0 ? b.map(v => -v) : b;
+        cosom = Math.abs(cosom);
+        let s0, s1;
+        if (cosom > 0.9995) {
+            s0 = 1 - t;
+            s1 = t;
+        } else {
+            const om = Math.acos(cosom);
+            const so = Math.sin(om);
+            s0 = Math.sin((1 - t) * om) / so;
+            s1 = Math.sin(t * om) / so;
+        }
+        const out = [
+            s0 * a[0] + s1 * bb[0], s0 * a[1] + s1 * bb[1],
+            s0 * a[2] + s1 * bb[2], s0 * a[3] + s1 * bb[3],
         ];
-        const qAxisAngle = (axis, deg) => {
-            const h = deg * Math.PI / 360;
-            const s = Math.sin(h);
-            return [Math.cos(h), axis[0] * s, axis[1] * s, axis[2] * s];
-        };
-        const qRotate = (q, v) => {
-            const w = q[0], x = q[1], y = q[2], z = q[3];
-            const tx = 2 * (y * v[2] - z * v[1]);
-            const ty = 2 * (z * v[0] - x * v[2]);
-            const tz = 2 * (x * v[1] - y * v[0]);
-            return [
-                v[0] + w * tx + (y * tz - z * ty),
-                v[1] + w * ty + (z * tx - x * tz),
-                v[2] + w * tz + (x * ty - y * tx),
-            ];
-        };
-        const qSlerp = (a, b, t) => {
-            let cosom = a[0] * b[0] + a[1] * b[1] + a[2] * b[2] + a[3] * b[3];
-            const bb = cosom < 0 ? b.map(v => -v) : b;
-            cosom = Math.abs(cosom);
-            let s0, s1;
-            if (cosom > 0.9995) {
-                s0 = 1 - t;
-                s1 = t;
-            } else {
-                const om = Math.acos(cosom);
-                const so = Math.sin(om);
-                s0 = Math.sin((1 - t) * om) / so;
-                s1 = Math.sin(t * om) / so;
-            }
-            const out = [
-                s0 * a[0] + s1 * bb[0], s0 * a[1] + s1 * bb[1],
-                s0 * a[2] + s1 * bb[2], s0 * a[3] + s1 * bb[3],
-            ];
-            const len = Math.hypot(out[0], out[1], out[2], out[3]) || 1;
-            return out.map(v => v / len);
-        };
-        const qToOrientation = q => {
-            const w = q[0], x = q[1], y = q[2], z = q[3];
-            const m00 = 1 - 2 * (y * y + z * z);
-            const m02 = 2 * (x * z + w * y);
-            const m10 = 2 * (x * y + w * z);
-            const m11 = 1 - 2 * (x * x + z * z);
-            const m12 = 2 * (y * z - w * x);
-            const m20 = 2 * (x * z - w * y);
-            const m22 = 1 - 2 * (x * x + y * y);
-            const pitch = Math.asin(Math.min(1, Math.max(-1, -m12)));
-            let yaw, roll;
-            if (Math.abs(m12) < 0.9999999) {
-                yaw = Math.atan2(m02, m22);
-                roll = Math.atan2(m10, m11);
-            } else {
-                yaw = Math.atan2(-m20, m00);
-                roll = 0;
-            }
-            const d = 180 / Math.PI;
-            return (roll * d).toFixed(2) + 'deg ' + (pitch * d).toFixed(2) +
-                'deg ' + (yaw * d).toFixed(2) + 'deg';
-        };
-        const qFromOrientation = str => {
-            const p = (str || '').trim().split(/\s+/).map(s => parseFloat(s) || 0);
-            const qy = qAxisAngle([0, 1, 0], p[2]);
-            const qx = qAxisAngle([1, 0, 0], p[1]);
-            const qz = qAxisAngle([0, 0, 1], p[0]);
-            return qMul(qy, qMul(qx, qz));
-        };
+        const len = Math.hypot(out[0], out[1], out[2], out[3]) || 1;
+        return out.map(v => v / len);
+    };
+    const qToOrientation = q => {
+        const w = q[0], x = q[1], y = q[2], z = q[3];
+        const m00 = 1 - 2 * (y * y + z * z);
+        const m02 = 2 * (x * z + w * y);
+        const m10 = 2 * (x * y + w * z);
+        const m11 = 1 - 2 * (x * x + z * z);
+        const m12 = 2 * (y * z - w * x);
+        const m20 = 2 * (x * z - w * y);
+        const m22 = 1 - 2 * (x * x + y * y);
+        const pitch = Math.asin(Math.min(1, Math.max(-1, -m12)));
+        let yaw, roll;
+        if (Math.abs(m12) < 0.9999999) {
+            yaw = Math.atan2(m02, m22);
+            roll = Math.atan2(m10, m11);
+        } else {
+            yaw = Math.atan2(-m20, m00);
+            roll = 0;
+        }
+        const d = 180 / Math.PI;
+        return (roll * d).toFixed(2) + 'deg ' + (pitch * d).toFixed(2) +
+            'deg ' + (yaw * d).toFixed(2) + 'deg';
+    };
+    const qFromOrientation = str => {
+        const p = (str || '').trim().split(/\s+/).map(s => parseFloat(s) || 0);
+        const qy = qAxisAngle([0, 1, 0], p[2]);
+        const qx = qAxisAngle([1, 0, 0], p[1]);
+        const qz = qAxisAngle([0, 0, 1], p[0]);
+        return qMul(qy, qMul(qx, qz));
+    };
+
+    // ---- Orientation gizmo: SolidWorks-style view cube, triad, and
+    // rotate arrows, attached per expansion viewer ----
+    const GIZMO_SVG =
+        '<svg viewBox="0 0 120 190" xmlns="http://www.w3.org/2000/svg">' +
+        '<g class="gizmo-arrows">' +
+        '<polygon class="gizmo-arrow" data-rot="up" points="60,2 52,12 68,12">' +
+        '<title>Rotate up 90°</title></polygon>' +
+        '<polygon class="gizmo-arrow" data-rot="down" points="60,118 52,108 68,108">' +
+        '<title>Rotate down 90°</title></polygon>' +
+        '<polygon class="gizmo-arrow" data-rot="left" points="2,60 12,52 12,68">' +
+        '<title>Rotate left 90°</title></polygon>' +
+        '<polygon class="gizmo-arrow" data-rot="right" points="118,60 108,52 108,68">' +
+        '<title>Rotate right 90°</title></polygon>' +
+        '<g class="gizmo-roll" data-rot="ccw"><title>Roll counterclockwise 90°</title>' +
+        '<path d="M 8 28 A 19 19 0 0 1 25 9" /><polygon points="25,3 25,15 33,9" /></g>' +
+        '<g class="gizmo-roll" data-rot="cw"><title>Roll clockwise 90°</title>' +
+        '<path d="M 112 28 A 19 19 0 0 0 95 9" /><polygon points="95,3 95,15 87,9" /></g>' +
+        '</g>' +
+        '<g class="gizmo-cube"></g>' +
+        '<g class="gizmo-triad" transform="translate(60, 162)"></g>' +
+        '</svg>';
+    const SVG_NS = 'http://www.w3.org/2000/svg';
+    const CUBE_FACES = [
+        { axis: '+x', normal: [1, 0, 0],
+          corners: [[1, -1, -1], [1, 1, -1], [1, 1, 1], [1, -1, 1]] },
+        { axis: '-x', normal: [-1, 0, 0],
+          corners: [[-1, -1, -1], [-1, 1, -1], [-1, 1, 1], [-1, -1, 1]] },
+        { axis: '+y', normal: [0, 1, 0],
+          corners: [[-1, 1, -1], [1, 1, -1], [1, 1, 1], [-1, 1, 1]] },
+        { axis: '-y', normal: [0, -1, 0],
+          corners: [[-1, -1, -1], [1, -1, -1], [1, -1, 1], [-1, -1, 1]] },
+        { axis: '+z', normal: [0, 0, 1],
+          corners: [[-1, -1, 1], [1, -1, 1], [1, 1, 1], [-1, 1, 1]] },
+        { axis: '-z', normal: [0, 0, -1],
+          corners: [[-1, -1, -1], [1, -1, -1], [1, 1, -1], [-1, 1, -1]] },
+    ];
+    const TRIAD_AXES = [
+        { label: 'X', v: [1, 0, 0], color: '#d64541' },
+        { label: 'Y', v: [0, 1, 0], color: '#2e7d46' },
+        { label: 'Z', v: [0, 0, 1], color: '#2465c2' },
+    ];
+    const dot3 = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+
+    const attachGizmo = (viewer, wrapEl, initialOrient) => {
+        let qModel = initialOrient ? qFromOrientation(initialOrient) : QID.slice();
         let orientTimer = null;
+        const holder = document.createElement('div');
+        holder.className = 'view-gizmo';
+        holder.setAttribute('aria-hidden', 'true');
+        holder.innerHTML = GIZMO_SVG;
+        wrapEl.appendChild(holder);
+        const cubeG = holder.querySelector('.gizmo-cube');
+        const triadG = holder.querySelector('.gizmo-triad');
+
+        const cameraBasis = () => {
+            const orbit = viewer.getCameraOrbit();
+            const phi = Math.min(Math.max(orbit.phi, 0.002), Math.PI - 0.002);
+            const theta = orbit.theta;
+            const zc = [Math.sin(phi) * Math.sin(theta), Math.cos(phi),
+                Math.sin(phi) * Math.cos(theta)];
+            let xc = [zc[2], 0, -zc[0]];
+            const xl = Math.hypot(xc[0], xc[1], xc[2]) || 1;
+            xc = xc.map(v => v / xl);
+            const yc = [
+                zc[1] * xc[2] - zc[2] * xc[1],
+                zc[2] * xc[0] - zc[0] * xc[2],
+                zc[0] * xc[1] - zc[1] * xc[0],
+            ];
+            return { xc, yc, zc, orbit };
+        };
+
+        const renderGizmo = () => {
+            if (typeof viewer.getCameraOrbit !== 'function') return;
+            const { xc, yc, zc } = cameraBasis();
+            const proj = (p, scale, cx, cy) => {
+                const r = qRotate(qModel, p);
+                return [cx + scale * dot3(r, xc), cy - scale * dot3(r, yc)];
+            };
+            cubeG.innerHTML = '';
+            CUBE_FACES
+                .map(f => ({ f, depth: dot3(qRotate(qModel, f.normal), zc) }))
+                .filter(e => e.depth > 0.02)
+                .sort((a, b) => a.depth - b.depth)
+                .forEach(({ f }) => {
+                    const pts = f.corners.map(c => proj(c, 21, 60, 60));
+                    const poly = document.createElementNS(SVG_NS, 'polygon');
+                    poly.setAttribute('points',
+                        pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' '));
+                    poly.setAttribute('class', 'gizmo-face');
+                    poly.setAttribute('data-axis', f.axis);
+                    cubeG.appendChild(poly);
+                    const cx = pts.reduce((a, p) => a + p[0], 0) / 4;
+                    const cy = pts.reduce((a, p) => a + p[1], 0) / 4;
+                    const text = document.createElementNS(SVG_NS, 'text');
+                    text.setAttribute('x', cx.toFixed(1));
+                    text.setAttribute('y', (cy + 3).toFixed(1));
+                    text.setAttribute('class', 'gizmo-face-label');
+                    text.setAttribute('text-anchor', 'middle');
+                    text.textContent = f.axis.replace('x', 'X')
+                        .replace('y', 'Y').replace('z', 'Z');
+                    cubeG.appendChild(text);
+                });
+            triadG.innerHTML = '';
+            TRIAD_AXES.forEach(axis => {
+                const rot = qRotate(qModel, axis.v);
+                const end = [18 * dot3(rot, xc), -18 * dot3(rot, yc)];
+                const line = document.createElementNS(SVG_NS, 'line');
+                line.setAttribute('x1', '0');
+                line.setAttribute('y1', '0');
+                line.setAttribute('x2', end[0].toFixed(1));
+                line.setAttribute('y2', end[1].toFixed(1));
+                line.setAttribute('stroke', axis.color);
+                triadG.appendChild(line);
+                const text = document.createElementNS(SVG_NS, 'text');
+                text.setAttribute('x', (end[0] * 25 / 18).toFixed(1));
+                text.setAttribute('y', (end[1] * 25 / 18 + 3).toFixed(1));
+                text.setAttribute('fill', axis.color);
+                text.setAttribute('text-anchor', 'middle');
+                text.textContent = axis.label;
+                triadG.appendChild(text);
+            });
+        };
+
+        // Throttle with a timeout, not requestAnimationFrame: rAF can be
+        // suspended in background tabs, which would wedge the queue flag.
+        let gizmoQueued = false;
+        const queueGizmo = () => {
+            if (gizmoQueued) return;
+            gizmoQueued = true;
+            setTimeout(() => {
+                gizmoQueued = false;
+                renderGizmo();
+            }, 50);
+        };
+
+        const setOrbit = (thetaDeg, phiDeg, radius) => {
+            // Remove first: re-setting an identical attribute value is a
+            // no-op, which would break repeating the same snap.
+            viewer.removeAttribute('camera-orbit');
+            viewer.setAttribute('camera-orbit',
+                thetaDeg.toFixed(1) + 'deg ' + phiDeg.toFixed(1) + 'deg ' +
+                radius.toFixed(1) + 'm');
+        };
+
         const setOrientation = (q, animate) => {
             if (orientTimer) {
                 clearInterval(orientTimer);
@@ -413,7 +459,7 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
             qModel = q.slice();
             const write = qq => {
                 viewer.setAttribute('orientation', qToOrientation(qq));
-                gizmoRefresh();
+                queueGizmo();
             };
             if (!animate) {
                 write(qModel);
@@ -431,200 +477,156 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
             }, 16);
         };
 
-        // ---- Default camera views (captured with the ?dev=1 panel) ----
-        const views = Object.assign({}, DEFAULT_VIEWS);
-        const applyView = key => {
-            const view = views[key] || views['*'];
-            if (view) {
-                // Remove first so re-applying the same view after the user
-                // has orbited away still registers as an attribute change.
-                viewer.removeAttribute('camera-orbit');
-                viewer.removeAttribute('camera-target');
-                viewer.removeAttribute('field-of-view');
-                viewer.setAttribute('camera-orbit', view.orbit);
-                viewer.setAttribute('camera-target', view.target);
-                if (view.fov) viewer.setAttribute('field-of-view', view.fov);
-                setOrientation(view.orient
-                    ? qFromOrientation(view.orient) : QID.slice(), false);
-            } else {
-                viewer.removeAttribute('camera-orbit');
-                viewer.removeAttribute('camera-target');
-                viewer.removeAttribute('field-of-view');
-                setOrientation(QID.slice(), false);
+        const FACE_NORMALS = {};
+        CUBE_FACES.forEach(f => { FACE_NORMALS[f.axis] = f.normal; });
+
+        holder.addEventListener('click', e => {
+            const target = e.target.closest
+                ? e.target.closest('[data-axis], [data-rot]') : null;
+            if (!target) return;
+            const { xc, yc, zc, orbit } = cameraBasis();
+            const axis = target.getAttribute('data-axis');
+            if (axis) {
+                // Point the camera at the face, wherever the model's
+                // orientation has taken that axis in world space.
+                const d = qRotate(qModel, FACE_NORMALS[axis]);
+                const phiDeg = Math.acos(Math.min(1, Math.max(-1, d[1]))) *
+                    180 / Math.PI;
+                const thetaDeg = Math.abs(d[1]) > 0.999
+                    ? orbit.theta * 180 / Math.PI
+                    : Math.atan2(d[0], d[2]) * 180 / Math.PI;
+                setOrbit(thetaDeg,
+                    Math.min(179.9, Math.max(0.1, phiDeg)), orbit.radius);
+                return;
             }
-            if (viewer.jumpCameraToGoal) viewer.jumpCameraToGoal();
+            // 90-degree rotate arrows: compose a quaternion step about the
+            // current screen axis onto the model orientation.
+            const rot = target.getAttribute('data-rot');
+            const STEPS = {
+                left: [yc, 90], right: [yc, -90],
+                up: [xc, 90], down: [xc, -90],
+                ccw: [zc, 90], cw: [zc, -90],
+            };
+            const st = STEPS[rot];
+            if (!st) return;
+            setOrientation(qMul(qAxisAngle(st[0], st[1]), qModel), true);
+        });
+
+        viewer.addEventListener('camera-change', queueGizmo);
+        viewer.addEventListener('load', queueGizmo);
+        customElements.whenDefined('model-viewer').then(queueGizmo);
+
+        return { orient: () => qToOrientation(qModel) };
+    };
+
+    if (block) {
+        const rows = [...block.querySelectorAll('.ntop-block-row')];
+        const views = Object.assign({}, DEFAULT_VIEWS);
+        const overlayState = {};
+        let sphereColor = SPHERE_COLOR;
+        let openKey = null;
+        let current = null; // { key, viewer, bar, missing, gizmo }
+        let loadPollToken = 0;
+
+        // Models with complete sets are preloaded for smooth scrubbing.
+        POINT_COUNTS.forEach(v => referencedUrls.add(VARS['point-count'].file(v)));
+        THICK_STEPS.forEach(mm => {
+            referencedUrls.add(VARS['boundary-thickness'].file(mm));
+            referencedUrls.add(VARS['min-thickness'].file(mm));
+            referencedUrls.add(VARS['max-thickness'].file(mm));
+        });
+        THORACIC_STEPS.forEach(mm =>
+            referencedUrls.add(VARS['thoracic-thickness'].file(mm)));
+        Object.values(MESH_VARS).forEach(cfg => cfg.options.forEach(o => {
+            if (o.file) referencedUrls.add(o.file);
+        }));
+
+        const hexToRgb = hex => {
+            const h = hex.replace('#', '');
+            return [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16) / 255);
         };
-
-        // ---- Orientation gizmo: SolidWorks-style view cube + triad ----
-        // Rendered as an SVG overlay projected with the same spherical
-        // convention model-viewer uses for camera-orbit (theta = 0 puts the
-        // camera on +Z). Clicking a cube face snaps the camera to that axis.
-        const gizmo = document.getElementById('sl-gizmo');
-        if (gizmo) {
-            const SVG_NS = 'http://www.w3.org/2000/svg';
-            const cubeG = gizmo.querySelector('.gizmo-cube');
-            const triadG = gizmo.querySelector('.gizmo-triad');
-            const CUBE_FACES = [
-                { axis: '+x', normal: [1, 0, 0],
-                  corners: [[1, -1, -1], [1, 1, -1], [1, 1, 1], [1, -1, 1]] },
-                { axis: '-x', normal: [-1, 0, 0],
-                  corners: [[-1, -1, -1], [-1, 1, -1], [-1, 1, 1], [-1, -1, 1]] },
-                { axis: '+y', normal: [0, 1, 0],
-                  corners: [[-1, 1, -1], [1, 1, -1], [1, 1, 1], [-1, 1, 1]] },
-                { axis: '-y', normal: [0, -1, 0],
-                  corners: [[-1, -1, -1], [1, -1, -1], [1, -1, 1], [-1, -1, 1]] },
-                { axis: '+z', normal: [0, 0, 1],
-                  corners: [[-1, -1, 1], [1, -1, 1], [1, 1, 1], [-1, 1, 1]] },
-                { axis: '-z', normal: [0, 0, -1],
-                  corners: [[-1, -1, -1], [1, -1, -1], [1, 1, -1], [-1, 1, -1]] },
-            ];
-            const TRIAD_AXES = [
-                { label: 'X', v: [1, 0, 0], color: '#d64541' },
-                { label: 'Y', v: [0, 1, 0], color: '#2e7d46' },
-                { label: 'Z', v: [0, 0, 1], color: '#2465c2' },
-            ];
-            const dot = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
-
-            // Camera basis in world space: zc points from target to camera.
-            const cameraBasis = () => {
-                const orbit = viewer.getCameraOrbit();
-                const phi = Math.min(Math.max(orbit.phi, 0.002), Math.PI - 0.002);
-                const theta = orbit.theta;
-                const zc = [Math.sin(phi) * Math.sin(theta), Math.cos(phi),
-                    Math.sin(phi) * Math.cos(theta)];
-                let xc = [zc[2], 0, -zc[0]];
-                const xl = Math.hypot(xc[0], xc[1], xc[2]) || 1;
-                xc = xc.map(v => v / xl);
-                const yc = [
-                    zc[1] * xc[2] - zc[2] * xc[1],
-                    zc[2] * xc[0] - zc[0] * xc[2],
-                    zc[0] * xc[1] - zc[1] * xc[0],
-                ];
-                return { xc, yc, zc, orbit };
-            };
-
-            const renderGizmo = () => {
-                if (typeof viewer.getCameraOrbit !== 'function') return;
-                const { xc, yc, zc } = cameraBasis();
-                // The gizmo shows model axes, so world-project them through
-                // the model's orientation quaternion first.
-                const proj = (p, scale, cx, cy) => {
-                    const r = qRotate(qModel, p);
-                    return [cx + scale * dot(r, xc), cy - scale * dot(r, yc)];
-                };
-                const depthOf = n => dot(qRotate(qModel, n), zc);
-
-                cubeG.innerHTML = '';
-                CUBE_FACES
-                    .map(f => ({ f, depth: depthOf(f.normal) }))
-                    .filter(e => e.depth > 0.02)
-                    .sort((a, b) => a.depth - b.depth)
-                    .forEach(({ f }) => {
-                        const pts = f.corners.map(c => proj(c, 21, 60, 60));
-                        const poly = document.createElementNS(SVG_NS, 'polygon');
-                        poly.setAttribute('points',
-                            pts.map(p => p[0].toFixed(1) + ',' + p[1].toFixed(1)).join(' '));
-                        poly.setAttribute('class', 'gizmo-face');
-                        poly.setAttribute('data-axis', f.axis);
-                        cubeG.appendChild(poly);
-                        const cx = pts.reduce((a, p) => a + p[0], 0) / 4;
-                        const cy = pts.reduce((a, p) => a + p[1], 0) / 4;
-                        const text = document.createElementNS(SVG_NS, 'text');
-                        text.setAttribute('x', cx.toFixed(1));
-                        text.setAttribute('y', (cy + 3).toFixed(1));
-                        text.setAttribute('class', 'gizmo-face-label');
-                        text.setAttribute('text-anchor', 'middle');
-                        text.textContent = f.axis.replace('x', 'X')
-                            .replace('y', 'Y').replace('z', 'Z');
-                        cubeG.appendChild(text);
-                    });
-
-                triadG.innerHTML = '';
-                TRIAD_AXES.forEach(axis => {
-                    const end = proj(axis.v, 18, 0, 0);
-                    const line = document.createElementNS(SVG_NS, 'line');
-                    line.setAttribute('x1', '0');
-                    line.setAttribute('y1', '0');
-                    line.setAttribute('x2', end[0].toFixed(1));
-                    line.setAttribute('y2', end[1].toFixed(1));
-                    line.setAttribute('stroke', axis.color);
-                    triadG.appendChild(line);
-                    const tip = proj(axis.v, 25, 0, 0);
-                    const text = document.createElementNS(SVG_NS, 'text');
-                    text.setAttribute('x', tip[0].toFixed(1));
-                    text.setAttribute('y', (tip[1] + 3).toFixed(1));
-                    text.setAttribute('fill', axis.color);
-                    text.setAttribute('text-anchor', 'middle');
-                    text.textContent = axis.label;
-                    triadG.appendChild(text);
-                });
-            };
-
-            const setOrbit = (thetaDeg, phiDeg, radius) => {
-                // Remove first: re-setting an identical attribute value is a
-                // no-op, which would break repeating the same snap.
-                viewer.removeAttribute('camera-orbit');
-                viewer.setAttribute('camera-orbit',
-                    thetaDeg.toFixed(1) + 'deg ' + phiDeg.toFixed(1) + 'deg ' +
-                    radius.toFixed(1) + 'm');
-            };
-
-            const FACE_NORMALS = {};
-            CUBE_FACES.forEach(f => { FACE_NORMALS[f.axis] = f.normal; });
-
-            gizmo.addEventListener('click', e => {
-                const target = e.target.closest
-                    ? e.target.closest('[data-axis], [data-rot]') : null;
-                if (!target) return;
-                const { xc, yc, zc, orbit } = cameraBasis();
-                const axis = target.getAttribute('data-axis');
-                if (axis) {
-                    // Point the camera at the face, wherever the model's
-                    // orientation has taken that axis in world space.
-                    const d = qRotate(qModel, FACE_NORMALS[axis]);
-                    const phiDeg = Math.acos(Math.min(1, Math.max(-1, d[1]))) *
-                        180 / Math.PI;
-                    const thetaDeg = Math.abs(d[1]) > 0.999
-                        ? orbit.theta * 180 / Math.PI
-                        : Math.atan2(d[0], d[2]) * 180 / Math.PI;
-                    setOrbit(thetaDeg,
-                        Math.min(179.9, Math.max(0.1, phiDeg)), orbit.radius);
+        // Matte plus overlay visibility for the current viewer. The global
+        // matte pass only sees viewers that exist at page load, so the
+        // dynamically created expansion viewers are handled here.
+        const applyMatteAndOverlays = () => {
+            if (!current || !current.viewer.model) return;
+            current.viewer.model.materials.forEach(m => {
+                try {
+                    const pbr = m.pbrMetallicRoughness;
+                    pbr.setRoughnessFactor(1.0);
+                    pbr.setMetallicFactor(0.0);
+                    const isOverlay = m.name && m.name.indexOf('overlay-') === 0;
+                    if (!isOverlay) {
+                        pbr.setBaseColorFactor([0.9, 0.9, 0.9, 1.0]);
+                        return;
+                    }
+                    const cfg = OVERLAYS.find(o => o.name === m.name);
+                    const allowed = !cfg || !cfg.onlyFor ||
+                        cfg.onlyFor.indexOf(openKey) !== -1;
+                    const on = allowed && !!overlayState[m.name];
+                    const rgb = m.name === 'overlay-sphere'
+                        ? hexToRgb(sphereColor)
+                        : pbr.baseColorFactor.slice(0, 3);
+                    m.setAlphaMode(on ? 'OPAQUE' : 'BLEND');
+                    pbr.setBaseColorFactor([rgb[0], rgb[1], rgb[2], on ? 1 : 0]);
+                } catch (e) {}
+            });
+        };
+        const updateToggleBar = () => {
+            if (!current || !current.bar) return;
+            const mats = current.viewer.model
+                ? current.viewer.model.materials.map(m => m.name) : [];
+            [...current.bar.querySelectorAll('button')].forEach(btn => {
+                btn.disabled = mats.indexOf(btn.dataset.overlay) === -1;
+            });
+        };
+        const setSrc = src => {
+            if (!current) return;
+            const viewer = current.viewer;
+            if (current.missing) current.missing.hidden = true;
+            if (viewer.getAttribute('src') !== src) viewer.setAttribute('src', src);
+            // Two-phase wait: `loaded` can still be true for the OLD model
+            // right after a src change, so wait to observe it drop before
+            // trusting it again (with a time fallback for instant cache
+            // swaps the poll interval might miss).
+            const token = ++loadPollToken;
+            const t0 = Date.now();
+            let sawUnloaded = false;
+            const poll = () => {
+                if (token !== loadPollToken) return;
+                if (!viewer.loaded) sawUnloaded = true;
+                if (viewer.loaded && viewer.model &&
+                    (sawUnloaded || Date.now() - t0 > 450)) {
+                    applyMatteAndOverlays();
+                    updateToggleBar();
                     return;
                 }
-                // 90-degree rotate arrows: compose a quaternion step about
-                // the current screen axis onto the model orientation. This
-                // composes cleanly at any orientation (no pole clamping) and
-                // makes roll possible, which the orbit camera cannot do.
-                const rot = target.getAttribute('data-rot');
-                const STEPS = {
-                    left: [yc, 90], right: [yc, -90],
-                    up: [xc, 90], down: [xc, -90],
-                    ccw: [zc, 90], cw: [zc, -90],
-                };
-                const st = STEPS[rot];
-                if (!st) return;
-                setOrientation(qMul(qAxisAngle(st[0], st[1]), qModel), true);
-            });
-
-            // Throttle with a timeout, not requestAnimationFrame: rAF can be
-            // suspended in background tabs, which would wedge the queue flag
-            // and freeze the gizmo permanently.
-            let gizmoQueued = false;
-            const queueGizmo = () => {
-                if (gizmoQueued) return;
-                gizmoQueued = true;
-                setTimeout(() => {
-                    gizmoQueued = false;
-                    renderGizmo();
-                }, 50);
+                setTimeout(poll, 100);
             };
-            viewer.addEventListener('camera-change', queueGizmo);
-            viewer.addEventListener('load', queueGizmo);
-            gizmoRefresh = queueGizmo;
-            // The element may not be upgraded yet when this runs; wait for
-            // the custom element definition before the first render.
-            customElements.whenDefined('model-viewer').then(queueGizmo);
-        }
+            setTimeout(poll, 100);
+        };
+
+        const makeViewer = key => {
+            const mv = document.createElement('model-viewer');
+            mv.setAttribute('alt', 'Interactive 3D model for the selected block input');
+            mv.setAttribute('loading', 'eager');
+            mv.setAttribute('camera-controls', '');
+            mv.setAttribute('touch-action', 'pan-y');
+            mv.setAttribute('shadow-intensity', '1');
+            mv.setAttribute('shadow-softness', '0.7');
+            mv.setAttribute('exposure', '0.85');
+            mv.setAttribute('tone-mapping', 'neutral');
+            mv.setAttribute('environment-image', 'model-env.png');
+            mv.setAttribute('ar', '');
+            const view = VARS[key] ? (views[key] || views['*']) : null;
+            if (view) {
+                mv.setAttribute('camera-orbit', view.orbit);
+                mv.setAttribute('camera-target', view.target);
+                if (view.fov) mv.setAttribute('field-of-view', view.fov);
+                if (view.orient) mv.setAttribute('orientation', view.orient);
+            }
+            return mv;
+        };
 
         const makeSlider = (labelText, min, max, step, value, unit, ticks) => {
             const wrap = document.createElement('div');
@@ -654,24 +656,77 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
             return { wrap, input, readout };
         };
 
-        const activate = row => rows.forEach(r =>
-            r.classList.toggle('active', r === row));
-        const closeMeshPanels = () => block.querySelectorAll('.ntop-mesh-options')
-            .forEach(p => { p.hidden = true; });
+        const makeToggleBar = key => {
+            const bar = document.createElement('div');
+            bar.className = 'overlay-toggles';
+            OVERLAYS.forEach(o => {
+                if (o.onlyFor && o.onlyFor.indexOf(key) === -1) return;
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'model-toggle-btn' +
+                    (overlayState[o.name] ? ' active' : '');
+                btn.textContent = o.label;
+                btn.dataset.overlay = o.name;
+                btn.disabled = true;
+                btn.addEventListener('click', () => {
+                    overlayState[o.name] = !overlayState[o.name];
+                    btn.classList.toggle('active', !!overlayState[o.name]);
+                    applyMatteAndOverlays();
+                });
+                bar.appendChild(btn);
+            });
+            return bar;
+        };
 
-        const renderVar = key => {
-            const cfg = VARS[key];
-            const row = rows.find(r => r.dataset.var === key);
-            closeMeshPanels();
-            activate(row);
-            activeKey = key;
-            applyView(key);
-            updateToggles();
-            titleEl.textContent = cfg.title;
-            descEl.textContent = cfg.desc;
-            controls.innerHTML = '';
+        const closeAll = () => {
+            loadPollToken++;
+            block.querySelectorAll('.ntop-expand.open').forEach(p =>
+                p.classList.remove('open'));
+            rows.forEach(r => r.classList.remove('open', 'active'));
+            block.querySelectorAll('.ntop-expand-body').forEach(b => {
+                b.innerHTML = '';
+            });
+            current = null;
+            openKey = null;
+        };
+
+        const buildExpansion = key => {
+            const body = block.querySelector(
+                '[data-expand="' + key + '"] .ntop-expand-body');
+            const row = rows.find(r => r.dataset.key === key);
+            if (!body || !row) return;
             const rowValueEl = row.querySelector('[data-value]');
-            if (cfg.type === 'grid') {
+            const cfg = VARS[key] || MESH_VARS[key];
+            openKey = key;
+
+            const desc = document.createElement('p');
+            desc.className = 'ntop-expand-desc';
+            desc.textContent = cfg.desc;
+            body.appendChild(desc);
+
+            const viewer = makeViewer(key);
+            current = { key, viewer, bar: null, missing: null, gizmo: null };
+
+            if (MESH_VARS[key]) {
+                const choices = document.createElement('div');
+                choices.className = 'ntop-mesh-choices';
+                cfg.options.forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.type = 'button';
+                    btn.className = 'model-toggle-btn' +
+                        (opt.label === rowValueEl.textContent ? ' active' : '');
+                    btn.textContent = opt.label + (opt.file ? '' : ' (coming soon)');
+                    btn.disabled = !opt.file;
+                    btn.addEventListener('click', () => {
+                        choices.querySelectorAll('button').forEach(b =>
+                            b.classList.toggle('active', b === btn));
+                        rowValueEl.textContent = opt.label;
+                        setSrc(opt.file);
+                    });
+                    choices.appendChild(btn);
+                });
+                body.appendChild(choices);
+            } else if (cfg.type === 'grid') {
                 const state = {};
                 cfg.axes.forEach(axis => {
                     state[axis.key] = axis.def;
@@ -685,9 +740,8 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
                         rowValueEl.textContent = cfg.rowValue(state.Y, state.Z);
                         setSrc(cfg.file(state.Y, state.Z));
                     });
-                    controls.appendChild(s.wrap);
+                    body.appendChild(s.wrap);
                 });
-                setSrc(cfg.file(...cfg.axes.map(a => a.def)));
             } else {
                 const values = cfg.values ||
                     Array.from({ length: (cfg.max - cfg.min) / cfg.step + 1 },
@@ -695,66 +749,85 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
                 const defIdx = Math.max(0, values.indexOf(cfg.def));
                 const s = makeSlider(cfg.title, 0, values.length - 1, 1,
                     defIdx, cfg.unit, values);
-                s.readout.textContent = values[defIdx];
+                const cur = parseInt(rowValueEl.textContent, 10);
+                const curIdx = values.indexOf(cur);
+                if (curIdx !== -1) {
+                    s.input.value = curIdx;
+                    s.readout.textContent = values[curIdx];
+                } else {
+                    s.readout.textContent = values[defIdx];
+                }
                 s.input.addEventListener('input', () => {
                     const v = values[parseInt(s.input.value, 10)];
                     s.readout.textContent = v;
                     rowValueEl.textContent = v;
                     setSrc(cfg.file(v));
                 });
-                controls.appendChild(s.wrap);
-                setSrc(cfg.file(values[defIdx]));
+                body.appendChild(s.wrap);
             }
+
+            const bar = makeToggleBar(key);
+            body.appendChild(bar);
+            current.bar = bar;
+
+            const wrap = document.createElement('div');
+            wrap.className = 'viewer-wrap';
+            wrap.appendChild(viewer);
+            body.appendChild(wrap);
+            const view = VARS[key] ? (views[key] || views['*']) : null;
+            current.gizmo = attachGizmo(viewer, wrap, view && view.orient);
+
+            const missing = document.createElement('p');
+            missing.className = 'ntop-demo-missing';
+            missing.textContent = 'The model for this value has not been uploaded yet.';
+            missing.hidden = true;
+            body.appendChild(missing);
+            current.missing = missing;
+            viewer.addEventListener('error', () => { missing.hidden = false; });
+            // Backup for the poll in setSrc: when the load event does fire,
+            // reapply overlay state to the new model immediately.
+            viewer.addEventListener('load', () => {
+                applyMatteAndOverlays();
+                updateToggleBar();
+            });
+
+            // Initial model
+            if (MESH_VARS[key]) {
+                const sel = cfg.options.find(o =>
+                    o.label === rowValueEl.textContent) || cfg.options[0];
+                if (sel.file) setSrc(sel.file);
+            } else if (cfg.type === 'grid') {
+                setSrc(cfg.file(...cfg.axes.map(a => a.def)));
+            } else {
+                const values = cfg.values ||
+                    Array.from({ length: (cfg.max - cfg.min) / cfg.step + 1 },
+                        (_, i) => cfg.min + i * cfg.step);
+                const cur = parseInt(rowValueEl.textContent, 10);
+                const v = values.indexOf(cur) !== -1 ? cur : cfg.def;
+                setSrc(cfg.file(v));
+            }
+
+            block.querySelector('[data-expand="' + key + '"]').classList.add('open');
+            row.classList.add('open', 'active');
         };
 
-        Object.keys(MESH_VARS).forEach(key => {
-            const cfg = MESH_VARS[key];
-            const row = rows.find(r => r.dataset.mesh === key);
-            const panel = block.querySelector('[data-options="' + key + '"]');
-            if (!row || !panel) return;
-            const rowValueEl = row.querySelector('[data-value]');
-            cfg.options.forEach((opt, i) => {
-                const btn = document.createElement('button');
-                btn.type = 'button';
-                btn.className = 'ntop-mesh-option' + (i === 0 ? ' selected' : '');
-                btn.textContent = opt.label + (opt.file ? '' : ' (coming soon)');
-                btn.disabled = !opt.file;
-                btn.addEventListener('click', () => {
-                    panel.querySelectorAll('.ntop-mesh-option').forEach(b =>
-                        b.classList.toggle('selected', b === btn));
-                    rowValueEl.textContent = opt.label;
-                    setSrc(opt.file);
-                });
-                panel.appendChild(btn);
-            });
+        rows.forEach(row => {
             row.addEventListener('click', () => {
-                const wasHidden = panel.hidden;
-                closeMeshPanels();
-                panel.hidden = !wasHidden;
-                activate(row);
-                activeKey = key;
-                applyView(key);
-                updateToggles();
-                titleEl.textContent = cfg.title;
-                descEl.textContent = cfg.desc;
-                controls.innerHTML = '';
-                const selected = cfg.options.find(o =>
-                    o.label === rowValueEl.textContent) || cfg.options[0];
-                if (selected.file) setSrc(selected.file);
+                const key = row.dataset.key;
+                const wasOpen = openKey === key;
+                closeAll();
+                if (!wasOpen) buildExpansion(key);
             });
         });
 
-        rows.filter(r => r.dataset.var).forEach(r =>
-            r.addEventListener('click', () => renderVar(r.dataset.var)));
-
-        // ---- View editor: open ntop-socket-creation.html?dev=1, orbit the
-        // model, capture the view per input, pick the sphere color, then
-        // paste the generated block over DEFAULT_VIEWS / SPHERE_COLOR above.
+        // ---- View editor: open ntop-socket-creation.html?dev=1, open an
+        // input, orbit the model, capture the view, pick the sphere color,
+        // then paste the generated block over DEFAULT_VIEWS / SPHERE_COLOR.
         if (new URLSearchParams(window.location.search).has('dev')) {
             const panel = document.createElement('div');
             panel.className = 'quiz-dev-panel';
             panel.innerHTML =
-                '<p class="quiz-dev-help">View editor: click an input on the block, ' +
+                '<p class="quiz-dev-help">View editor: open an input on the block, ' +
                 'orbit and zoom the model to the view you want, then press ' +
                 '<strong>Capture view</strong>. "Capture as fallback" sets the view ' +
                 'used by inputs without their own. Pick the sphere color with the ' +
@@ -762,14 +835,14 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
                 '<code>DEFAULT_VIEWS</code> / <code>SPHERE_COLOR</code> block in ' +
                 '<code>script.js</code>.</p>' +
                 '<p class="quiz-dev-actions">' +
-                '<button type="button" class="quiz-dev-copy" data-capture>Capture view for current input</button> ' +
+                '<button type="button" class="quiz-dev-copy" data-capture>Capture view for open input</button> ' +
                 '<button type="button" class="quiz-dev-copy" data-capture-all>Capture as fallback (*)</button> ' +
                 '<label class="dev-sphere-label">Sphere color: ' +
                 '<input type="color" data-sphere-color></label></p>' +
                 '<textarea class="quiz-dev-output" readonly spellcheck="false"></textarea>' +
                 '<button type="button" class="quiz-dev-copy" data-copy>Copy code</button>' +
                 '<span class="quiz-dev-copied" hidden>Copied!</span>';
-            document.querySelector('.split-layout').after(panel);
+            document.querySelector('.accordion-wrap').after(panel);
             const output = panel.querySelector('.quiz-dev-output');
             const colorInput = panel.querySelector('[data-sphere-color]');
             colorInput.value = sphereColor;
@@ -789,6 +862,8 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
             };
 
             const capture = key => {
+                if (!current) return;
+                const viewer = current.viewer;
                 const orbit = viewer.getCameraOrbit();
                 const target = viewer.getCameraTarget();
                 views[key] = {
@@ -798,18 +873,18 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
                     target: target.x.toFixed(1) + 'm ' + target.y.toFixed(1) +
                         'm ' + target.z.toFixed(1) + 'm',
                     fov: viewer.getFieldOfView().toFixed(1) + 'deg',
-                    orient: qToOrientation(qModel),
+                    orient: current.gizmo ? current.gizmo.orient() : undefined,
                 };
                 serialize();
             };
 
             panel.querySelector('[data-capture]').addEventListener('click',
-                () => { if (activeKey) capture(activeKey); });
+                () => { if (openKey) capture(openKey); });
             panel.querySelector('[data-capture-all]').addEventListener('click',
                 () => capture('*'));
             colorInput.addEventListener('input', () => {
                 sphereColor = colorInput.value;
-                applyOverlays();
+                applyMatteAndOverlays();
                 serialize();
             });
             panel.querySelector('[data-copy]').addEventListener('click', () => {
@@ -829,14 +904,13 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
             serialize();
         }
 
-        renderVar('point-count');
+        buildExpansion('point-count');
     }
 
     // Preload every model referenced on this page so slider scrubbing and
-    // tab swaps are smooth from the first interaction. All viewers are made
-    // eager (no waiting to scroll into view), then a hidden viewer walks
-    // through each GLB once, warming model-viewer's parsed-model cache.
-    // Files that don't exist yet are skipped via a HEAD check.
+    // tab swaps are smooth from the first interaction, then a hidden viewer
+    // walks through each GLB once, warming model-viewer's parsed-model
+    // cache. Files that don't exist yet are skipped via a HEAD check.
     document.querySelectorAll('.model-toggle-btn[data-model]').forEach(btn => {
         referencedUrls.add(btn.getAttribute('data-model'));
     });
