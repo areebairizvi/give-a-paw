@@ -349,16 +349,24 @@
             const token = ++loadPollToken;
             const bar = viewer.closest('.ntop-expand-body') &&
                 viewer.closest('.ntop-expand-body').querySelector('.overlay-toggles');
+            // Two-phase wait: `loaded` can still be true for the OLD model
+            // right after a src change, so wait to observe it drop before
+            // trusting it again (with a time fallback for instant cache
+            // swaps the poll interval might miss).
+            const t0 = Date.now();
+            let sawUnloaded = false;
             const poll = () => {
                 if (token !== loadPollToken) return;
-                if (viewer.loaded && viewer.model) {
+                if (!viewer.loaded) sawUnloaded = true;
+                if (viewer.loaded && viewer.model &&
+                    (sawUnloaded || Date.now() - t0 > 450)) {
                     applyMatteAndOverlays();
                     updateToggleBar(bar);
-                } else {
-                    setTimeout(poll, 150);
+                    return;
                 }
+                setTimeout(poll, 100);
             };
-            setTimeout(poll, 200);
+            setTimeout(poll, 100);
         };
 
         const makeViewer = withView => {
@@ -512,7 +520,8 @@
                 body.appendChild(s.wrap);
             }
 
-            body.appendChild(makeToggleBar(key));
+            const bar = makeToggleBar(key);
+            body.appendChild(bar);
             body.appendChild(viewer);
             missingEl = document.createElement('p');
             missingEl.className = 'ntop-demo-missing';
@@ -520,6 +529,12 @@
             missingEl.hidden = true;
             body.appendChild(missingEl);
             viewer.addEventListener('error', () => { missingEl.hidden = false; });
+            // Backup for the poll in setSrc: when the load event does fire,
+            // reapply overlay state to the new model immediately.
+            viewer.addEventListener('load', () => {
+                applyMatteAndOverlays();
+                updateToggleBar(bar);
+            });
 
             // Initial model
             if (MESH_VARS[key]) {

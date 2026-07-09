@@ -228,7 +228,11 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
         viewer.addEventListener('error', () => { missing.hidden = false; });
         // The `load` event is unreliable when src changes rapidly, so each
         // src change also polls `loaded` and reapplies overlay state and
-        // toggle availability once the new model is in.
+        // toggle availability once the new model is in. The poll is
+        // two-phase: `loaded` can still be true for the OLD model right
+        // after a src change, so wait to observe it drop before trusting it
+        // again (with a time fallback for instant cache swaps the poll
+        // interval might miss).
         let loadPollToken = 0;
         const afterLoad = () => {
             applyOverlays();
@@ -238,12 +242,19 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
             missing.hidden = true;
             if (viewer.getAttribute('src') !== src) viewer.setAttribute('src', src);
             const token = ++loadPollToken;
+            const t0 = Date.now();
+            let sawUnloaded = false;
             const poll = () => {
                 if (token !== loadPollToken) return;
-                if (viewer.loaded && viewer.model) afterLoad();
-                else setTimeout(poll, 150);
+                if (!viewer.loaded) sawUnloaded = true;
+                if (viewer.loaded && viewer.model &&
+                    (sawUnloaded || Date.now() - t0 > 450)) {
+                    afterLoad();
+                    return;
+                }
+                setTimeout(poll, 100);
             };
-            setTimeout(poll, 200);
+            setTimeout(poll, 100);
         };
 
         // ---- Overlay meshes baked into the sweep GLBs ----
