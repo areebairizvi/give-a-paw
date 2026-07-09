@@ -187,8 +187,22 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
     };
 
     // Default camera view per variable key, captured with the ?dev=1 panel.
-    // '*' is the fallback for keys without a captured view.
-    const DEFAULT_VIEWS = {};
+    // '*' is the fallback for keys without a captured view. The mesh input
+    // demos (Billie files) are centered differently, so they intentionally
+    // have no entry and fall back to auto-framing.
+    const SOCKET_VIEW = {
+        orbit: '-88.0deg 90.0deg 3209.3m',
+        target: '-152.4m -30.0m 347.7m',
+        fov: '20.1deg',
+        orient: '90.00deg -88.05deg -88.05deg',
+    };
+    const DEFAULT_VIEWS = {
+        'thickest-point': SOCKET_VIEW,
+        'max-thickness': SOCKET_VIEW,
+        'min-thickness': SOCKET_VIEW,
+        'boundary-thickness': SOCKET_VIEW,
+        'point-count': SOCKET_VIEW,
+    };
     // Default color of the Thickest Lattice Point sphere overlay (hex),
     // set with the ?dev=1 panel.
     const SPHERE_COLOR = '#ff3b30';
