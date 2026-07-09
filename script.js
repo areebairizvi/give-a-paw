@@ -107,16 +107,14 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
     });
 });
 
-// Interactive Socket Lattice block on the nTop socket creation page: the
+// Interactive nTop block accordions (socket creation and paw pages): the
 // block sits centered and clicking an input row expands a dropdown inside
-// the block with that input's description, slider(s), overlay toggles, and
+// the block with that input's description, controls, overlay toggles, and
 // a 3D viewer with an orientation gizmo. One row is open at a time. Model
 // filenames are generated per value; steps whose GLB has not been uploaded
-// yet show a note instead of a model. Sweep models are the Example Dog
-// socket: baseline Max 10 / Min 12 / Boundary 14 / Count 100 (the thoracic
-// sweep was exported at Max 14).
+// yet show a note instead of a model. Each page provides a config; the
+// engine (initBlock) is shared.
 (() => {
-    const block = document.getElementById('socket-lattice-block');
     const referencedUrls = new Set();
 
     const pad2 = n => String(n).padStart(2, '0');
@@ -125,7 +123,7 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
     const THICK_STEPS = Array.from({ length: 21 }, (_, i) => i * 2);
     const THORACIC_STEPS = Array.from({ length: 11 }, (_, i) => i * 2);
 
-    const VARS = {
+    const SOCKET_VARS = {
         'thickest-point': {
             title: 'Thickest Lattice Point',
             type: 'grid',
@@ -173,7 +171,7 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
             desc: 'Controls how densely the lattice is sampled across the surface: a low count yields a sparse, open structure that flexes more freely; a high count yields a finer, denser mesh that is stiffer and distributes load over more contact area.',
         },
     };
-    const MESH_VARS = {
+    const SOCKET_MESH_VARS = {
         'solid-animal': {
             title: 'Solid Animal',
             desc: 'The cleaned, watertight mesh of the animal\'s residual limb. The lattice socket is grown around this shape. Pick an animal below.',
@@ -216,7 +214,7 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
     // set with the ?dev=1 panel.
     const SPHERE_COLOR = '#ff3b30';
 
-    const OVERLAYS = [
+    const SOCKET_OVERLAYS = [
         { name: 'overlay-dog', label: 'Full Dog' },
         { name: 'overlay-surface', label: 'Attachment Surface' },
         { name: 'overlay-sphere', label: 'Lattice Point Sphere',
@@ -519,27 +517,24 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
         return { orient: () => qToOrientation(qModel) };
     };
 
-    if (block) {
+    // ---- Shared accordion engine ----
+    // opts: { blockId, vars, meshVars, overlays, defaultViews, sphereColor,
+    //         autoOpen, preloadUrls }
+    const initBlock = opts => {
+        const block = document.getElementById(opts.blockId);
+        if (!block) return false;
+        const VARS = opts.vars;
+        const MESH_VARS = opts.meshVars || {};
+        const OVERLAYS = opts.overlays || [];
         const rows = [...block.querySelectorAll('.ntop-block-row')];
-        const views = Object.assign({}, DEFAULT_VIEWS);
+        const views = Object.assign({}, opts.defaultViews || {});
         const overlayState = {};
-        let sphereColor = SPHERE_COLOR;
+        let sphereColor = opts.sphereColor || '#ff3b30';
         let openKey = null;
         let current = null; // { key, viewer, bar, missing, gizmo }
         let loadPollToken = 0;
 
-        // Models with complete sets are preloaded for smooth scrubbing.
-        POINT_COUNTS.forEach(v => referencedUrls.add(VARS['point-count'].file(v)));
-        THICK_STEPS.forEach(mm => {
-            referencedUrls.add(VARS['boundary-thickness'].file(mm));
-            referencedUrls.add(VARS['min-thickness'].file(mm));
-            referencedUrls.add(VARS['max-thickness'].file(mm));
-        });
-        THORACIC_STEPS.forEach(mm =>
-            referencedUrls.add(VARS['thoracic-thickness'].file(mm)));
-        Object.values(MESH_VARS).forEach(cfg => cfg.options.forEach(o => {
-            if (o.file) referencedUrls.add(o.file);
-        }));
+        (opts.preloadUrls || []).forEach(u => referencedUrls.add(u));
 
         const hexToRgb = hex => {
             const h = hex.replace('#', '');
@@ -842,7 +837,7 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
                 '<textarea class="quiz-dev-output" readonly spellcheck="false"></textarea>' +
                 '<button type="button" class="quiz-dev-copy" data-copy>Copy code</button>' +
                 '<span class="quiz-dev-copied" hidden>Copied!</span>';
-            document.querySelector('.accordion-wrap').after(panel);
+            block.closest('.accordion-wrap').after(panel);
             const output = panel.querySelector('.quiz-dev-output');
             const colorInput = panel.querySelector('[data-sphere-color]');
             colorInput.value = sphereColor;
@@ -904,8 +899,85 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
             serialize();
         }
 
-        buildExpansion('point-count');
-    }
+        if (opts.autoOpen) buildExpansion(opts.autoOpen);
+        return true;
+    };
+
+    // ---- Page configs ----
+    const socketPreload = [];
+    POINT_COUNTS.forEach(v => socketPreload.push(SOCKET_VARS['point-count'].file(v)));
+    THICK_STEPS.forEach(mm => {
+        socketPreload.push(SOCKET_VARS['boundary-thickness'].file(mm));
+        socketPreload.push(SOCKET_VARS['min-thickness'].file(mm));
+        socketPreload.push(SOCKET_VARS['max-thickness'].file(mm));
+    });
+    THORACIC_STEPS.forEach(mm =>
+        socketPreload.push(SOCKET_VARS['thoracic-thickness'].file(mm)));
+    Object.values(SOCKET_MESH_VARS).forEach(cfg => cfg.options.forEach(o => {
+        if (o.file) socketPreload.push(o.file);
+    }));
+    initBlock({
+        blockId: 'socket-lattice-block',
+        vars: SOCKET_VARS,
+        meshVars: SOCKET_MESH_VARS,
+        overlays: SOCKET_OVERLAYS,
+        defaultViews: DEFAULT_VIEWS,
+        sphereColor: SPHERE_COLOR,
+        autoOpen: 'point-count',
+        preloadUrls: socketPreload,
+    });
+
+    // Paw lattice page. Slider ranges are provisional until the sweep
+    // exports arrive; missing steps show the not-uploaded note.
+    const PAW_VARS = {
+        'cell-size': {
+            title: 'Cell Size',
+            type: 'slider',
+            min: 2, max: 20, step: 2, def: 10, unit: 'mm',
+            file: v => 'ntop-paw-cellsize-' + pad2(v) + '.glb',
+            desc: 'Sets the size of each honeycomb cell across the paw.',
+        },
+        'curve-depth': {
+            title: 'Curve Depth',
+            type: 'slider',
+            min: 0, max: 20, step: 2, def: 10, unit: 'mm',
+            file: v => 'ntop-paw-curvedepth-' + pad2(v) + '.glb',
+            desc: 'Sets how deeply the bottom surface of the paw curves.',
+        },
+        'bottom-length': {
+            title: 'Bottom Length',
+            type: 'slider',
+            min: 0, max: 40, step: 4, def: 20, unit: 'mm',
+            file: v => 'ntop-paw-bottomlength-' + pad2(v) + '.glb',
+            desc: 'Sets the length of the flat bottom section of the paw.',
+        },
+    };
+    const PAW_MESH_VARS = {
+        'unit-cell': {
+            title: 'Unit Cell',
+            desc: 'Chooses the lattice pattern the paw is built from. Pick a unit cell to compare the two structures.',
+            options: [
+                { label: 'Square Honey Comb', file: 'ntop-paw-unitcell-square.glb' },
+                { label: 'Hexagonal Honey Comb', file: 'ntop-paw-unitcell-hex.glb' },
+            ],
+        },
+    };
+    const pawPreload = [];
+    Object.values(PAW_VARS).forEach(cfg => {
+        for (let v = cfg.min; v <= cfg.max; v += cfg.step) {
+            pawPreload.push(cfg.file(v));
+        }
+    });
+    PAW_MESH_VARS['unit-cell'].options.forEach(o => pawPreload.push(o.file));
+    initBlock({
+        blockId: 'paw-lattice-block',
+        vars: PAW_VARS,
+        meshVars: PAW_MESH_VARS,
+        overlays: [],
+        defaultViews: {},
+        autoOpen: 'unit-cell',
+        preloadUrls: pawPreload,
+    });
 
     // Preload every model referenced on this page so slider scrubbing and
     // tab swaps are smooth from the first interaction, then a hidden viewer

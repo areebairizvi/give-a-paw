@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>nTop Paw Creation - Give a Paw</title>
+    <link rel="stylesheet" href="style.css?v=12">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <script type="module" src="https://unpkg.com/@google/model-viewer@4.1.0/dist/model-viewer.min.js"></script>
+</head>
+<body class="wide">
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <a href="index.html" class="sidebar-logo-link">
+                <img src="logo.jpg" alt="Give a Paw Logo" class="sidebar-logo">
+            </a>
+        </div>
+        <nav class="sidebar-nav">
+            <p class="sidebar-nav-title">Program</p>
+            <ul>
+                <li><a href="meet-the-team.html">Meet the Team</a></li>
+                <li><a href="downloads.html">Downloads</a></li>
+                <li><a href="anatomy-quiz.html">Canine Anatomy Quiz</a></li>
+                <li><a href="human-anatomy-quiz.html">Human Anatomy Quiz</a></li>
+            </ul>
+            <p class="sidebar-nav-title">Case Studies</p>
+            <ul>
+                <li><a href="full-limb.html">Full Limb</a></li>
+                <li><a href="wheel-chair.html">Wheel Chair</a></li>
+            </ul>
+            <p class="sidebar-nav-title">Socket Creation</p>
+            <ul>
+                <li><a href="preparing-ntop-input.html">Preparing nTop Input</a></li>
+                <li><a href="ntop-socket-creation.html">nTop Socket Creation</a></li>
+                <li class="active"><a href="ntop-paw-creation.html">nTop Paw Creation</a></li>
+            </ul>
+            <p class="sidebar-nav-title">Manufacturing Considerations</p>
+            <ul>
+                <li><a href="materials.html">Materials</a></li>
+                <li><a href="3d-printing.html">3D Printing</a></li>
+            </ul>
+            <p class="sidebar-nav-title">3D-scanning</p>
+            <ul>
+                <li><a href="3d-scanning.html">3D-scanning</a></li>
+            </ul>
+        </nav>
+    </aside>
+    <div class="page">
+        <div class="content">
+            <article>
+                <section id="ntop-paw-creation">
+                    <h1>nTop Paw Creation<a class="headerlink" href="#ntop-paw-creation" title="Permalink to this heading">¶</a></h1>
+                    <p>The paw is the part of the prosthetic that meets the ground, so its lattice must balance grip, cushioning, and durability. This page documents the Paw block: what it does, the inputs you can change, and an interactive demo of how each input reshapes the paw.</p>
+                </section>
+
+                <section id="paw-lattice">
+                    <h2>Paw Lattice<a class="headerlink" href="#paw-lattice" title="Permalink to this heading">¶</a></h2>
+                    <p>The Paw block builds the foot of the prosthetic from a honeycomb lattice. Below is the block as it appears in nTop.</p>
+                    <div class="lesson-callout">
+                        <p><strong>Tip:</strong> Click any input on the block to expand its live demo. Each demo changes one input while the others stay at their defaults, so the difference you see comes from that parameter alone. Drag the model to rotate it, scroll to zoom, and use the view cube to snap or step the orientation.</p>
+                    </div>
+                    <div class="accordion-wrap">
+                        <div class="ntop-block" id="paw-lattice-block">
+                            <div class="ntop-block-title">
+                                <span class="ntop-block-arrow" aria-hidden="true">&#9662;</span>
+                                <span class="ntop-block-name">CB - Paw Lattice</span>
+                            </div>
+                            <button type="button" class="ntop-block-row" data-key="unit-cell">
+                                <span class="ntop-row-badge" aria-hidden="true">cell</span>
+                                <span class="ntop-row-label">Unit Cell:</span>
+                                <span class="ntop-row-value ntop-row-value-mesh" data-value>Square Honey Comb</span>
+                                <span class="ntop-row-unit"></span>
+                                <span class="ntop-row-caret" aria-hidden="true">&#9662;</span>
+                            </button>
+                            <div class="ntop-expand" data-expand="unit-cell"><div class="ntop-expand-inner"><div class="ntop-expand-body"></div></div></div>
+                            <button type="button" class="ntop-block-row" data-key="cell-size">
+                                <span class="ntop-row-badge" aria-hidden="true">0.1</span>
+                                <span class="ntop-row-label">Cell Size:</span>
+                                <span class="ntop-row-value" data-value>10</span>
+                                <span class="ntop-row-unit">mm</span>
+                                <span class="ntop-row-caret" aria-hidden="true">&#9662;</span>
+                            </button>
+                            <div class="ntop-expand" data-expand="cell-size"><div class="ntop-expand-inner"><div class="ntop-expand-body"></div></div></div>
+                            <button type="button" class="ntop-block-row" data-key="curve-depth">
+                                <span class="ntop-row-badge" aria-hidden="true">0.1</span>
+                                <span class="ntop-row-label">Curve Depth:</span>
+                                <span class="ntop-row-value" data-value>10</span>
+                                <span class="ntop-row-unit">mm</span>
+                                <span class="ntop-row-caret" aria-hidden="true">&#9662;</span>
+                            </button>
+                            <div class="ntop-expand" data-expand="curve-depth"><div class="ntop-expand-inner"><div class="ntop-expand-body"></div></div></div>
+                            <button type="button" class="ntop-block-row" data-key="bottom-length">
+                                <span class="ntop-row-badge" aria-hidden="true">0.1</span>
+                                <span class="ntop-row-label">Bottom Length:</span>
+                                <span class="ntop-row-value" data-value>20</span>
+                                <span class="ntop-row-unit">mm</span>
+                                <span class="ntop-row-caret" aria-hidden="true">&#9662;</span>
+                            </button>
+                            <div class="ntop-expand" data-expand="bottom-length"><div class="ntop-expand-inner"><div class="ntop-expand-body"></div></div></div>
+                        </div>
+                    </div>
+                </section>
+            </article>
+            <footer>
+                <div class="footer-navigation">
+                    <a href="ntop-socket-creation.html" class="footer-prev">
+                        <div class="footer-prev-label">Previous</div>
+                        <div class="footer-prev-title">nTop Socket Creation</div>
+                    </a>
+                    <a href="materials.html" class="footer-next">
+                        <div class="footer-next-label">Next</div>
+                        <div class="footer-next-title">Materials</div>
+                    </a>
+                </div>
+                <div class="footer-credits">
+                    <p>© 2026 Give a Paw</p>
+                    <p>Animal Prosthetics Documentation</p>
+                </div>
+            </footer>
+        </div>
+    </div>
+    <button class="mobile-toggle" id="mobile-toggle">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+    <script src="script.js?v=15"></script>
+</body>
+</html>
