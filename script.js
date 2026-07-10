@@ -913,13 +913,14 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
     });
     PELVIC_STEPS.forEach(mm =>
         socketPreload.push(SOCKET_VARS['pelvic-thickness'].file(mm)));
-    Object.values(SOCKET_MESH_VARS).forEach(cfg => cfg.options.forEach(o => {
-        if (o.file) socketPreload.push(o.file);
-    }));
+    // The Solid Animal and Socket Attachment Surface rows are removed from
+    // the block (and Thickest Lattice Point is temporarily hidden in the
+    // HTML), so SOCKET_MESH_VARS is not passed and the Billie meshes are
+    // not preloaded. Restore by passing meshVars: SOCKET_MESH_VARS and
+    // re-adding the rows in ntop-socket-creation.html.
     initBlock({
         blockId: 'socket-lattice-block',
         vars: SOCKET_VARS,
-        meshVars: SOCKET_MESH_VARS,
         overlays: SOCKET_OVERLAYS,
         defaultViews: DEFAULT_VIEWS,
         sphereColor: SPHERE_COLOR,
