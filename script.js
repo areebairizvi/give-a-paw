@@ -927,35 +927,35 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
         preloadUrls: socketPreload,
     });
 
-    // Paw lattice page. Slider ranges are provisional until the sweep
-    // exports arrive; missing steps show the not-uploaded note.
+    // Paw lattice page. Sweeps from the July 9 exports; the baseline is
+    // Curve Depth -35 / Bottom Length 120 / Cell Size 8 / Hexagonal.
     const PAW_VARS = {
         'cell-size': {
             title: 'Cell Size',
             type: 'slider',
-            min: 2, max: 20, step: 2, def: 10, unit: 'mm',
+            min: 5, max: 15, step: 1, def: 8, unit: 'mm',
             file: v => 'ntop-paw-cellsize-' + pad2(v) + '.glb',
-            desc: 'Sets the size of each honeycomb cell across the paw.',
+            desc: 'Sets the size of each honeycomb cell across the paw. Smaller cells give a denser, stiffer tread; larger cells are more open and compliant.',
         },
         'curve-depth': {
             title: 'Curve Depth',
             type: 'slider',
-            min: 0, max: 20, step: 2, def: 10, unit: 'mm',
-            file: v => 'ntop-paw-curvedepth-' + pad2(v) + '.glb',
+            min: -35, max: -14, step: 1, def: -35, unit: 'mm',
+            file: v => 'ntop-paw-curvedepth-' + pad2(Math.abs(v)) + '.glb',
             desc: 'Sets how deeply the bottom surface of the paw curves.',
         },
         'bottom-length': {
             title: 'Bottom Length',
             type: 'slider',
-            min: 0, max: 40, step: 4, def: 20, unit: 'mm',
-            file: v => 'ntop-paw-bottomlength-' + pad2(v) + '.glb',
+            min: 30, max: 120, step: 5, def: 120, unit: 'mm',
+            file: v => 'ntop-paw-bottomlength-' + String(v).padStart(3, '0') + '.glb',
             desc: 'Sets the length of the flat bottom section of the paw.',
         },
     };
     const PAW_MESH_VARS = {
         'unit-cell': {
             title: 'Unit Cell',
-            desc: 'Chooses the lattice pattern the paw is built from. Pick a unit cell to compare the two structures.',
+            desc: 'Chooses the lattice pattern the paw is built from. Pick a unit cell to compare the two structures (the square honeycomb is shown at its 12 mm cell size).',
             options: [
                 { label: 'Square Honey Comb', file: 'ntop-paw-unitcell-square.glb' },
                 { label: 'Hexagonal Honey Comb', file: 'ntop-paw-unitcell-hex.glb' },
