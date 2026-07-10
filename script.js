@@ -613,7 +613,7 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
             mv.setAttribute('tone-mapping', 'neutral');
             mv.setAttribute('environment-image', 'model-env.png');
             mv.setAttribute('ar', '');
-            const view = VARS[key] ? (views[key] || views['*']) : null;
+            const view = views[key] || (VARS[key] ? views['*'] : null);
             if (view) {
                 mv.setAttribute('camera-orbit', view.orbit);
                 mv.setAttribute('camera-target', view.target);
@@ -769,7 +769,7 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
             wrap.className = 'viewer-wrap';
             wrap.appendChild(viewer);
             body.appendChild(wrap);
-            const view = VARS[key] ? (views[key] || views['*']) : null;
+            const view = views[key] || (VARS[key] ? views['*'] : null);
             current.gizmo = attachGizmo(viewer, wrap, view && view.orient);
 
             const missing = document.createElement('p');
@@ -962,6 +962,15 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
             ],
         },
     };
+    // Default camera view for the paw demos, captured with the ?dev=1
+    // panel. The unit-cell models share the paw coordinate space, so the
+    // view applies to the chooser too.
+    const PAW_VIEW = {
+        orbit: '97.4deg 89.1deg 275.3m',
+        target: '0.4m 16.3m -4.2m',
+        fov: '30.0deg',
+        orient: '89.91deg -81.68deg -83.34deg',
+    };
     const pawPreload = [];
     Object.values(PAW_VARS).forEach(cfg => {
         for (let v = cfg.min; v <= cfg.max; v += cfg.step) {
@@ -974,7 +983,12 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
         vars: PAW_VARS,
         meshVars: PAW_MESH_VARS,
         overlays: [],
-        defaultViews: {},
+        defaultViews: {
+            'unit-cell': PAW_VIEW,
+            'cell-size': PAW_VIEW,
+            'curve-depth': PAW_VIEW,
+            'bottom-length': PAW_VIEW,
+        },
         autoOpen: 'unit-cell',
         preloadUrls: pawPreload,
     });
