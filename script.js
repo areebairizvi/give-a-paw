@@ -121,7 +121,7 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
     const POINT_COUNTS = [10, 20, 40, 60, 80, 100, 120, 140, 160, 180,
         200, 220, 240, 260, 280, 300, 320, 340, 360, 380, 400];
     const THICK_STEPS = Array.from({ length: 21 }, (_, i) => i * 2);
-    const THORACIC_STEPS = Array.from({ length: 11 }, (_, i) => i * 2);
+    const PELVIC_STEPS = Array.from({ length: 11 }, (_, i) => i * 2);
 
     const SOCKET_VARS = {
         'thickest-point': {
@@ -149,12 +149,12 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
             file: v => 'ntop-minthick-' + pad2(v) + '.glb',
             desc: 'Sets the lower limit on the socket wall thickness.',
         },
-        'thoracic-thickness': {
-            title: 'Thoracic Thickness',
+        'pelvic-thickness': {
+            title: 'Pelvic Thickness',
             type: 'slider',
             min: 0, max: 20, step: 2, def: 10, unit: 'mm',
-            file: v => 'ntop-thoracic-' + pad2(v) + '.glb',
-            desc: 'Sets the lattice thickness in the thoracic region of the socket.',
+            file: v => 'ntop-pelvic-' + pad2(v) + '.glb',
+            desc: 'Sets the lattice thickness in the pelvic region of the socket.',
         },
         'boundary-thickness': {
             title: 'Boundary Lattice Thickness',
@@ -206,7 +206,7 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
         'thickest-point': SOCKET_VIEW,
         'max-thickness': SOCKET_VIEW,
         'min-thickness': SOCKET_VIEW,
-        'thoracic-thickness': SOCKET_VIEW,
+        'pelvic-thickness': SOCKET_VIEW,
         'boundary-thickness': SOCKET_VIEW,
         'point-count': SOCKET_VIEW,
     };
@@ -911,8 +911,8 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
         socketPreload.push(SOCKET_VARS['min-thickness'].file(mm));
         socketPreload.push(SOCKET_VARS['max-thickness'].file(mm));
     });
-    THORACIC_STEPS.forEach(mm =>
-        socketPreload.push(SOCKET_VARS['thoracic-thickness'].file(mm)));
+    PELVIC_STEPS.forEach(mm =>
+        socketPreload.push(SOCKET_VARS['pelvic-thickness'].file(mm)));
     Object.values(SOCKET_MESH_VARS).forEach(cfg => cfg.options.forEach(o => {
         if (o.file) socketPreload.push(o.file);
     }));
