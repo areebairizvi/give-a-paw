@@ -924,7 +924,6 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
         overlays: SOCKET_OVERLAYS,
         defaultViews: DEFAULT_VIEWS,
         sphereColor: SPHERE_COLOR,
-        autoOpen: 'point-count',
         preloadUrls: socketPreload,
     });
 
@@ -990,7 +989,6 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
             'curve-depth': PAW_VIEW,
             'bottom-length': PAW_VIEW,
         },
-        autoOpen: 'unit-cell',
         preloadUrls: pawPreload,
     });
 
