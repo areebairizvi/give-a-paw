@@ -34,7 +34,6 @@
             <ul>
                 <li><a href="preparing-ntop-input.html">Preparing nTop Input</a></li>
                 <li class="active"><a href="ntop-socket-creation.html">nTop Socket Creation</a></li>
-                <li><a href="ntop-paw-creation.html">nTop Paw Creation</a></li>
             </ul>
             <p class="sidebar-nav-title">Manufacturing Considerations</p>
             <ul>
@@ -52,11 +51,11 @@
             <article>
                 <section id="ntop-socket-creation">
                     <h1>nTop Socket Creation<a class="headerlink" href="#ntop-socket-creation" title="Permalink to this heading">¶</a></h1>
-                    <p>Our custom nTop workflow turns a cleaned 3D scan into a printable lattice socket. This page documents each block in the workflow: what it does, the inputs you can change, and an interactive demo of how each input reshapes the final socket.</p>
+                    <p>Our custom nTop workflow turns a cleaned 3D scan into a printable lattice prosthetic. This page documents each block in the workflow: what it does, the inputs you can change, and an interactive demo of how each input reshapes the socket and the paw.</p>
                 </section>
 
                 <section id="latticing">
-                    <h2>Latticing<a class="headerlink" href="#latticing" title="Permalink to this heading">¶</a></h2>
+                    <h2>Socket Lattice<a class="headerlink" href="#latticing" title="Permalink to this heading">¶</a></h2>
                     <p>The Socket Lattice block converts the solid socket shell into a flexible lattice that can bend with the animal's residual limb while staying strong enough to carry load. Below is the block as it appears in nTop.</p>
                     <div class="lesson-callout">
                         <p><strong>Tip:</strong> Click any input on the block to expand its live demo. Each demo changes one input while the others stay at their defaults, so the difference you see comes from that parameter alone. Drag the model to rotate it, scroll to zoom, and use the view cube to snap or step the orientation.</p>
@@ -124,6 +123,51 @@
                     </div>
                 </section>
                 
+                <section id="paw-lattice">
+                    <h2>Paw Lattice<a class="headerlink" href="#paw-lattice" title="Permalink to this heading">¶</a></h2>
+                    <p>The Paw block builds the foot of the prosthetic from a honeycomb lattice. Below is the block as it appears in nTop; click any input to explore it.</p>
+                    <div class="accordion-wrap">
+                        <div class="ntop-block" id="paw-lattice-block">
+                            <div class="ntop-block-title">
+                                <span class="ntop-block-arrow" aria-hidden="true">&#9662;</span>
+                                <span class="ntop-block-name">CB - Paw Lattice</span>
+                            </div>
+                            <button type="button" class="ntop-block-row" data-key="unit-cell">
+                                <span class="ntop-row-badge" aria-hidden="true">cell</span>
+                                <span class="ntop-row-label">Unit Cell:</span>
+                                <span class="ntop-row-value ntop-row-value-mesh" data-value>Hexagonal Honey Comb</span>
+                                <span class="ntop-row-unit"></span>
+                                <span class="ntop-row-caret" aria-hidden="true">&#9662;</span>
+                            </button>
+                            <div class="ntop-expand" data-expand="unit-cell"><div class="ntop-expand-inner"><div class="ntop-expand-body"></div></div></div>
+                            <button type="button" class="ntop-block-row" data-key="cell-size">
+                                <span class="ntop-row-badge" aria-hidden="true">0.1</span>
+                                <span class="ntop-row-label">Cell Size:</span>
+                                <span class="ntop-row-value" data-value>8</span>
+                                <span class="ntop-row-unit">mm</span>
+                                <span class="ntop-row-caret" aria-hidden="true">&#9662;</span>
+                            </button>
+                            <div class="ntop-expand" data-expand="cell-size"><div class="ntop-expand-inner"><div class="ntop-expand-body"></div></div></div>
+                            <button type="button" class="ntop-block-row" data-key="curve-depth">
+                                <span class="ntop-row-badge" aria-hidden="true">0.1</span>
+                                <span class="ntop-row-label">Curve Depth:</span>
+                                <span class="ntop-row-value" data-value>-35</span>
+                                <span class="ntop-row-unit">mm</span>
+                                <span class="ntop-row-caret" aria-hidden="true">&#9662;</span>
+                            </button>
+                            <div class="ntop-expand" data-expand="curve-depth"><div class="ntop-expand-inner"><div class="ntop-expand-body"></div></div></div>
+                            <button type="button" class="ntop-block-row" data-key="bottom-length">
+                                <span class="ntop-row-badge" aria-hidden="true">0.1</span>
+                                <span class="ntop-row-label">Bottom Length:</span>
+                                <span class="ntop-row-value" data-value>120</span>
+                                <span class="ntop-row-unit">mm</span>
+                                <span class="ntop-row-caret" aria-hidden="true">&#9662;</span>
+                            </button>
+                            <div class="ntop-expand" data-expand="bottom-length"><div class="ntop-expand-inner"><div class="ntop-expand-body"></div></div></div>
+                        </div>
+                    </div>
+                </section>
+
                 <section id="mechanical-interface">
                     <h2>Mechanical Interface<a class="headerlink" href="#mechanical-interface" title="Permalink to this heading">¶</a></h2>
                     <p>The Mechanical Interface block joins the lattice socket to the rigid leg components. Placeholder text for section.</p>
