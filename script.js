@@ -643,6 +643,11 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
             // Allow zooming out well past the auto-framed distance
             // (model-viewer's default max radius clamps close to it).
             mv.setAttribute('max-camera-orbit', 'auto auto 500%');
+            // Without this, every quick click re-targets the camera to the
+            // clicked surface point (and a click on the background resets
+            // the target and zooms fully out) - which makes the rotation
+            // pivot wander and fights shift-drag panning.
+            mv.setAttribute('disable-tap', '');
             const view = views[key] || (VARS[key] ? views['*'] : null);
             if (view) {
                 mv.setAttribute('camera-orbit', view.orbit);
