@@ -118,10 +118,30 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
     const referencedUrls = new Set();
 
     const pad2 = n => String(n).padStart(2, '0');
+    const pad3 = n => String(n).padStart(3, '0');
+
+    // ---- Animal selector ----
+    // The socket-creation demos are per-animal: the same parameter value
+    // produces very different geometry on a Chihuahua vs a German Shepherd,
+    // so each animal has its own GLB namespace. Every file fn below calls
+    // AP() at build time, so switching animals redirects the whole page to
+    // that animal's library. Animals without exported sweeps degrade to the
+    // per-step "not uploaded yet" note automatically. When the Golden
+    // Hound / German Shepherd sweeps land, their anatomy-anchored sliders
+    // (TLP, interface position, blend points, attach drop) will also need
+    // per-animal ranges - the current ranges are the Chihuahua's.
+    const ANIMALS = {
+        chi: { label: 'Small Dog', sub: 'Chihuahua', prefix: 'ntop-chi-', ready: true },
+        gh: { label: 'Medium Dog', sub: 'Golden Hound', prefix: 'ntop-gh-', ready: false },
+        gs: { label: 'Large Dog', sub: 'German Shepherd', prefix: 'ntop-gs-', ready: false },
+    };
+    let activeAnimal = 'chi';
+    const AP = () => ANIMALS[activeAnimal].prefix;
+    // Signed mm values (adjust sliders): n50..n05, 000, p05..p50 keeps
+    // filenames fixed-width where a bare minus sign could not.
+    const signed2 = v => v < 0 ? 'n' + pad2(-v) : v > 0 ? 'p' + pad2(v) : '000';
     const POINT_COUNTS = [10, 20, 40, 60, 80, 100, 120, 140, 160, 180,
         200, 220, 240, 260, 280, 300, 320, 340, 360, 380, 400];
-    const THICK_STEPS = Array.from({ length: 21 }, (_, i) => i * 2);
-    const PELVIC_STEPS = Array.from({ length: 11 }, (_, i) => i * 2);
 
     // Thickest Lattice Point sweep (Chihuahua): X and Z are fixed at
     // -58.106 / 155.02 mm; the slider moves Y. -113.08 is the design
@@ -135,28 +155,32 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
             title: 'Thickest Lattice Point',
             type: 'slider',
             values: TLP_YS, def: -113.08, unit: 'mm',
-            file: v => 'ntop-tlp-y' + v + '.glb',
+            file: v => AP() + 'tlp-y-' + (Number.isInteger(v)
+                ? pad3(Math.abs(v)) : String(Math.abs(v))) + '.glb',
             desc: 'Sets the location where the socket wall is at its thickest. X and Z are fixed at -58.106 and 155.02 mm; the slider moves the Y coordinate. Toggle the Lattice Point Sphere to see the point itself.',
         },
         'max-thickness': {
             title: 'Max Socket Thickness',
             type: 'slider',
-            min: 0, max: 40, step: 2, def: 10, unit: 'mm',
-            file: v => 'ntop-maxthick-' + pad2(v) + '.glb',
+            min: 0, max: 20, step: 2, def: 8, unit: 'mm',
+            file: v => AP() + 'maxthick-' + pad2(v) + '.glb',
             desc: 'Sets the upper limit on the socket wall thickness.',
         },
         'min-thickness': {
             title: 'Min Socket Thickness',
             type: 'slider',
-            min: 0, max: 40, step: 2, def: 12, unit: 'mm',
-            file: v => 'ntop-minthick-' + pad2(v) + '.glb',
+            // This sweep was intentionally run at Max 12 / Bdry 12 (not the
+            // 8/6/8 baseline the other sliders share) to make the min-wall
+            // effect easier to see.
+            min: 0, max: 20, step: 1, def: 8, unit: 'mm',
+            file: v => AP() + 'minthick-' + pad2(v) + '.glb',
             desc: 'Sets the lower limit on the socket wall thickness.',
         },
         'pelvic-thickness': {
             title: 'Pelvic Thickness',
             type: 'slider',
-            min: 0, max: 20, step: 2, def: 10, unit: 'mm',
-            file: v => 'ntop-pelvic-' + pad2(v) + '.glb',
+            min: 0, max: 30, step: 2, def: 0, unit: 'mm',
+            file: v => AP() + 'pelvic-' + pad2(v) + '.glb',
             desc: 'Sets the lattice thickness in the pelvic region of the socket.',
         },
         'pelvic-distance': {
@@ -165,21 +189,21 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
             values: [1, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100,
                 110, 120, 130, 140, 150, 160, 170, 180, 190, 200],
             def: 50, unit: 'mm',
-            file: v => 'ntop-pelvicdist-' + String(v).padStart(3, '0') + '.glb',
+            file: v => AP() + 'pelvicdist-' + String(v).padStart(3, '0') + '.glb',
             desc: 'Sets how far the pelvic thickening extends from the pelvic plane into the socket.',
         },
         'boundary-thickness': {
             title: 'Boundary Lattice Thickness',
             type: 'slider',
-            min: 0, max: 40, step: 2, def: 14, unit: 'mm',
-            file: v => 'ntop-boundary-' + pad2(v) + '.glb',
+            min: 0, max: 20, step: 2, def: 8, unit: 'mm',
+            file: v => AP() + 'boundary-' + pad2(v) + '.glb',
             desc: 'Controls how thick the strands are along the outer edge of the lattice. Thicker boundaries give a more rigid rim and a defined silhouette; thinner boundaries blend into the surface lattice and flex more.',
         },
         'point-count': {
             title: 'Lattice Point Count',
             type: 'slider',
             values: POINT_COUNTS, def: 100, unit: '',
-            file: v => 'ntop-pointcount-' + String(v).padStart(3, '0') + '.glb',
+            file: v => AP() + 'pointcount-' + String(v).padStart(3, '0') + '.glb',
             desc: 'Controls how densely the lattice is sampled across the surface: a low count yields a sparse, open structure that flexes more freely; a high count yields a finer, denser mesh that is stiffer and distributes load over more contact area.',
         },
     };
@@ -914,28 +938,22 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
         }
 
         if (opts.autoOpen) buildExpansion(opts.autoOpen);
-        return true;
+        // Handle for page-level controls (the animal selector closes all
+        // dropdowns so the next open rebuilds against the new namespace).
+        return { closeAll };
     };
 
     // ---- Page configs ----
-    const socketPreload = [];
-    POINT_COUNTS.forEach(v => socketPreload.push(SOCKET_VARS['point-count'].file(v)));
-    THICK_STEPS.forEach(mm => {
-        socketPreload.push(SOCKET_VARS['boundary-thickness'].file(mm));
-        socketPreload.push(SOCKET_VARS['min-thickness'].file(mm));
-        socketPreload.push(SOCKET_VARS['max-thickness'].file(mm));
-    });
-    PELVIC_STEPS.forEach(mm =>
-        socketPreload.push(SOCKET_VARS['pelvic-thickness'].file(mm)));
-    TLP_YS.forEach(y =>
-        socketPreload.push(SOCKET_VARS['thickest-point'].file(y)));
-    SOCKET_VARS['pelvic-distance'].values.forEach(v =>
-        socketPreload.push(SOCKET_VARS['pelvic-distance'].file(v)));
+    // Preload only each row's default model; every other step loads on
+    // demand the first time its slider reaches it. With ~500 GLBs on this
+    // page, preloading the full library (~200 MB) is no longer viable.
+    const socketPreload =
+        Object.values(SOCKET_VARS).map(cfg => cfg.file(cfg.def));
     // The Solid Animal and Socket Attachment Surface rows are removed from
     // the block, so SOCKET_MESH_VARS is not passed and the Billie meshes
     // are not preloaded. Restore by passing meshVars: SOCKET_MESH_VARS and
     // re-adding the rows in ntop-socket-creation.html.
-    initBlock({
+    const socketBlockHandle = initBlock({
         blockId: 'socket-lattice-block',
         vars: SOCKET_VARS,
         overlays: SOCKET_OVERLAYS,
@@ -946,73 +964,115 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
 
     // ---- Socket & Interface Cap block ----
     // The Interface Cap joins the lattice socket to the mechanical socket.
-    // Slider ranges are provisional until the sweep exports arrive; every
-    // step shows the not-uploaded note until its GLB lands.
+    // Chihuahua sweep exports (July 19). Non-swept inputs sit at the
+    // notebook baseline: IntPos (-49.9, -110, 165), Lateral -152, Medial 2,
+    // Rotation -15, Adjust (0, 0, 20), blend radii 12/6. The blend point
+    // sweeps were run at Max Blend Radius 20 / Min Blend Radius 5 so the
+    // moving blend is easier to see. Angle sweeps cover the full circle,
+    // so their 0deg default differs from the baseline angles.
     const INTERFACE_VARS = {
         'lateral-angle': {
             title: 'Lateral Angle',
             type: 'slider',
-            min: -30, max: 30, step: 5, def: 0, unit: 'deg',
-            file: v => 'ntop-interface-lateralangle-' + v + '.glb',
-            desc: 'Rotates the interface cap about the lateral rotation axis.',
+            min: 0, max: 360, step: 10, def: 0, unit: 'deg',
+            file: v => AP() + 'lateralangle-' + pad3(v) + '.glb',
+            desc: 'Rotates the interface cap about the lateral rotation axis. The full sweep runs 0-360 degrees; the design baseline is -152 (equivalently 208) degrees.',
         },
         'medial-angle': {
             title: 'Medial Angle',
             type: 'slider',
-            min: -30, max: 30, step: 5, def: 0, unit: 'deg',
-            file: v => 'ntop-interface-medialangle-' + v + '.glb',
-            desc: 'Rotates the interface cap about the medial direction.',
+            min: 0, max: 360, step: 10, def: 0, unit: 'deg',
+            file: v => AP() + 'medialangle-' + pad3(v) + '.glb',
+            desc: 'Rotates the interface cap about the medial direction. The design baseline is 2 degrees.',
         },
         'interface-rotation': {
             title: 'Interface Rotation',
             type: 'slider',
-            min: 0, max: 90, step: 10, def: 0, unit: 'deg',
-            file: v => 'ntop-interface-rotation-' + pad2(v) + '.glb',
-            desc: 'Spins the interface cap about its own axis.',
+            min: 0, max: 360, step: 10, def: 0, unit: 'deg',
+            file: v => AP() + 'ifacerot-' + pad3(v) + '.glb',
+            desc: 'Spins the interface cap about its own axis. The design baseline is -15 (equivalently 345) degrees.',
+        },
+        'interface-position-y': {
+            title: 'Interface Position Y',
+            type: 'slider',
+            min: -200, max: 0, step: 10, def: -110, unit: 'mm',
+            file: v => AP() + 'ifacepos-y-' + pad3(Math.abs(v)) + '.glb',
+            desc: 'Moves the whole interface along the Y axis. X and Z are fixed at -49.9 and 165 mm.',
+        },
+        'interface-position-z': {
+            title: 'Interface Position Z',
+            type: 'slider',
+            min: 165, max: 355, step: 10, def: 165, unit: 'mm',
+            file: v => AP() + 'ifacepos-z-' + pad3(v) + '.glb',
+            desc: 'Moves the whole interface along the Z axis. X and Y are fixed at -49.9 and -110 mm.',
         },
         'interface-x': {
             title: 'Interface X Adjust',
             type: 'slider',
-            min: -20, max: 20, step: 5, def: 0, unit: 'mm',
-            file: v => 'ntop-interface-xadjust-' + v + '.glb',
+            min: -50, max: 50, step: 5, def: 0, unit: 'mm',
+            file: v => AP() + 'ifacexadj-' + signed2(v) + '.glb',
             desc: 'Shifts the interface cap along the X axis.',
         },
         'interface-y': {
             title: 'Interface Y Adjust',
             type: 'slider',
-            min: -20, max: 20, step: 5, def: 0, unit: 'mm',
-            file: v => 'ntop-interface-yadjust-' + v + '.glb',
+            min: -50, max: 50, step: 5, def: 0, unit: 'mm',
+            file: v => AP() + 'ifaceyadj-' + signed2(v) + '.glb',
             desc: 'Shifts the interface cap along the Y axis.',
         },
         'interface-z': {
             title: 'Interface Z Adjust',
             type: 'slider',
-            min: -20, max: 20, step: 5, def: 0, unit: 'mm',
-            file: v => 'ntop-interface-zadjust-' + v + '.glb',
-            desc: 'Shifts the interface cap along the Z axis.',
+            min: -50, max: 50, step: 5, def: 20, unit: 'mm',
+            file: v => AP() + 'ifacezadj-' + signed2(v) + '.glb',
+            desc: 'Shifts the interface cap along the Z axis. The design baseline is 20 mm.',
         },
         'max-blend-radius': {
             title: 'Max Blend Radius',
             type: 'slider',
-            min: 0, max: 20, step: 2, def: 10, unit: 'mm',
-            file: v => 'ntop-interface-maxblend-' + pad2(v) + '.glb',
+            min: 0, max: 30, step: 2, def: 12, unit: 'mm',
+            file: v => AP() + 'maxblendrad-' + pad2(v) + '.glb',
             desc: 'Sets the largest fillet radius where the cap meets the socket.',
         },
         'min-blend-radius': {
             title: 'Min Blend Radius',
             type: 'slider',
-            min: 0, max: 20, step: 2, def: 4, unit: 'mm',
-            file: v => 'ntop-interface-minblend-' + pad2(v) + '.glb',
+            min: 0, max: 30, step: 2, def: 6, unit: 'mm',
+            file: v => AP() + 'minblendrad-' + pad2(v) + '.glb',
             desc: 'Sets the smallest fillet radius where the cap meets the socket.',
         },
+        'max-blend-point-y': {
+            title: 'Max Blend Point Y',
+            type: 'slider',
+            min: -100, max: -50, step: 10, def: -100, unit: 'mm',
+            file: v => AP() + 'maxblendpt-y-' + pad3(Math.abs(v)) + '.glb',
+            desc: 'Moves the point of maximum blend along the Y axis (X and Z fixed at -60.1 and 183 mm). Shown with blend radii fixed at 20 / 5 mm.',
+        },
+        'max-blend-point-z': {
+            title: 'Max Blend Point Z',
+            type: 'slider',
+            min: 130, max: 230, step: 10, def: 180, unit: 'mm',
+            file: v => AP() + 'maxblendpt-z-' + pad3(v) + '.glb',
+            desc: 'Moves the point of maximum blend along the Z axis (X and Y fixed at -60.1 and -122 mm). Shown with blend radii fixed at 20 / 5 mm.',
+        },
+        'min-blend-point-y': {
+            title: 'Min Blend Point Y',
+            type: 'slider',
+            min: -100, max: -50, step: 10, def: -100, unit: 'mm',
+            file: v => AP() + 'minblendpt-y-' + pad3(Math.abs(v)) + '.glb',
+            desc: 'Moves the point of minimum blend along the Y axis (X and Z fixed at -50.9 and 145 mm). Shown with blend radii fixed at 20 / 5 mm.',
+        },
+        'min-blend-point-z': {
+            title: 'Min Blend Point Z',
+            type: 'slider',
+            min: 90, max: 190, step: 10, def: 140, unit: 'mm',
+            file: v => AP() + 'minblendpt-z-' + pad3(v) + '.glb',
+            desc: 'Moves the point of minimum blend along the Z axis (X and Y fixed at -50.9 and -113 mm). Shown with blend radii fixed at 20 / 5 mm.',
+        },
     };
-    const interfacePreload = [];
-    Object.values(INTERFACE_VARS).forEach(cfg => {
-        for (let v = cfg.min; v <= cfg.max; v += cfg.step) {
-            interfacePreload.push(cfg.file(v));
-        }
-    });
-    initBlock({
+    const interfacePreload =
+        Object.values(INTERFACE_VARS).map(cfg => cfg.file(cfg.def));
+    const interfaceBlockHandle = initBlock({
         blockId: 'interface-cap-block',
         vars: INTERFACE_VARS,
         overlays: [],
@@ -1021,76 +1081,87 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
     });
 
     // ---- Attachment block ----
-    // Screws the finished socket to the animal. Same provisional-range
-    // treatment until the sweep exports arrive.
+    // Screws the finished socket to the animal. Chihuahua sweep exports
+    // (July 19); non-swept inputs sit at the notebook baseline (Attach Dia
+    // 5, Wall 3, Head Dia 7, Head Height 4, Shaft 4, Hole Blend 3). Every
+    // GLB bundles an overlay-sphere mesh marking the six attachment points.
+    // Nozzle Diameter and Hole Cut Depth have no sweep yet and keep the
+    // not-uploaded note. ntop-screw-00..06.glb (ISO 4762 M1.6-M6 ladder)
+    // are exported and committed but wait on the button-group control.
     const ATTACH_VARS = {
+        'attach-points-drop': {
+            title: 'Attachment Points Drop',
+            type: 'slider',
+            min: 0, max: 100, step: 5, def: 0, unit: 'mm',
+            file: v => AP() + 'attachptsdrop-' + pad3(v) + '.glb',
+            desc: 'Lowers all six attachment points together along Z, keeping their X and Y positions. Toggle the Attachment Point Spheres to see the points themselves.',
+        },
         'attach-diameter': {
             title: 'Attach Diameter',
             type: 'slider',
-            min: 2, max: 20, step: 2, def: 10, unit: 'mm',
-            file: v => 'ntop-attach-diameter-' + pad2(v) + '.glb',
+            min: 1, max: 29, step: 2, def: 5, unit: 'mm',
+            file: v => AP() + 'attachdia-' + pad2(v) + '.glb',
             desc: 'Sets the diameter of each attachment pad.',
         },
         'normal-wall': {
             title: 'Normal Wall Distance',
             type: 'slider',
-            min: 0, max: 20, step: 2, def: 10, unit: 'mm',
-            file: v => 'ntop-attach-normalwall-' + pad2(v) + '.glb',
+            min: 1, max: 15, step: 1, def: 3, unit: 'mm',
+            file: v => AP() + 'wallthick-' + pad2(v) + '.glb',
             desc: 'Sets how far the attachment wall extends along the surface normal.',
         },
         'screw-head-diameter': {
             title: 'Screw Head Diameter',
             type: 'slider',
-            min: 2, max: 20, step: 2, def: 10, unit: 'mm',
-            file: v => 'ntop-attach-screwheadd-' + pad2(v) + '.glb',
+            min: 1, max: 15, step: 1, def: 7, unit: 'mm',
+            file: v => AP() + 'headdia-' + pad2(v) + '.glb',
             desc: 'Sets the countersink diameter for the screw head.',
         },
         'screw-head-height': {
             title: 'Screw Head Height',
             type: 'slider',
-            min: 0, max: 20, step: 2, def: 10, unit: 'mm',
-            file: v => 'ntop-attach-screwheadh-' + pad2(v) + '.glb',
+            min: 1, max: 15, step: 1, def: 4, unit: 'mm',
+            file: v => AP() + 'headheight-' + pad2(v) + '.glb',
             desc: 'Sets the countersink depth for the screw head.',
         },
         'screw-shaft-diameter': {
             title: 'Screw Shaft Diameter',
             type: 'slider',
-            min: 2, max: 20, step: 2, def: 10, unit: 'mm',
-            file: v => 'ntop-attach-screwshaft-' + pad2(v) + '.glb',
+            min: 1, max: 15, step: 1, def: 4, unit: 'mm',
+            file: v => AP() + 'shaftdia-' + pad2(v) + '.glb',
             desc: 'Sets the clearance hole diameter for the screw shaft.',
         },
         'hole-blend-radius': {
             title: 'Hole Blend Radius',
             type: 'slider',
-            min: 0, max: 20, step: 2, def: 10, unit: 'mm',
-            file: v => 'ntop-attach-holeblend-' + pad2(v) + '.glb',
+            // baseline is 3 mm but the sweep grid is even, so default to 4
+            min: 0, max: 30, step: 2, def: 4, unit: 'mm',
+            file: v => AP() + 'holeblend-' + pad2(v) + '.glb',
             desc: 'Sets the fillet radius around each screw hole.',
         },
         'nozzle-diameter': {
             title: 'Nozzle Diameter',
             type: 'slider',
             min: 0, max: 20, step: 2, def: 10, unit: 'mm',
-            file: v => 'ntop-attach-nozzle-' + pad2(v) + '.glb',
+            file: v => AP() + 'attach-nozzle-' + pad2(v) + '.glb',
             desc: 'Sets the nozzle diameter used for the attachment geometry.',
         },
         'hole-cut-depth': {
             title: 'Hole Cut Depth',
             type: 'slider',
             min: 0, max: 20, step: 2, def: 10, unit: 'mm',
-            file: v => 'ntop-attach-holecut-' + pad2(v) + '.glb',
+            file: v => AP() + 'attach-holecut-' + pad2(v) + '.glb',
             desc: 'Sets how deep each screw hole is cut into the socket.',
         },
     };
-    const attachPreload = [];
-    Object.values(ATTACH_VARS).forEach(cfg => {
-        for (let v = cfg.min; v <= cfg.max; v += cfg.step) {
-            attachPreload.push(cfg.file(v));
-        }
-    });
-    initBlock({
+    const attachPreload =
+        Object.values(ATTACH_VARS).map(cfg => cfg.file(cfg.def));
+    const attachBlockHandle = initBlock({
         blockId: 'attachment-block',
         vars: ATTACH_VARS,
-        overlays: [],
+        overlays: [
+            { name: 'overlay-sphere', label: 'Attachment Point Spheres' },
+        ],
         defaultViews: {},
         preloadUrls: attachPreload,
     });
@@ -1139,12 +1210,8 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
         fov: '30.0deg',
         orient: '89.91deg -81.68deg -83.34deg',
     };
-    const pawPreload = [];
-    Object.values(PAW_VARS).forEach(cfg => {
-        for (let v = cfg.min; v <= cfg.max; v += cfg.step) {
-            pawPreload.push(cfg.file(v));
-        }
-    });
+    const pawPreload =
+        Object.values(PAW_VARS).map(cfg => cfg.file(cfg.def));
     PAW_MESH_VARS['unit-cell'].options.forEach(o => pawPreload.push(o.file));
     initBlock({
         blockId: 'paw-lattice-block',
@@ -1160,10 +1227,46 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
         preloadUrls: pawPreload,
     });
 
-    // Preload every model referenced on this page so slider scrubbing and
-    // tab swaps are smooth from the first interaction, then a hidden viewer
-    // walks through each GLB once, warming model-viewer's parsed-model
-    // cache. Files that don't exist yet are skipped via a HEAD check.
+    // ---- Animal selector wiring ----
+    // Buttons live in #animal-select on the socket-creation page. Switching
+    // animals closes every open dropdown (so the next open rebuilds its
+    // viewer against the new namespace) and flips the active button. Blocks
+    // whose libraries are not exported yet degrade to the not-uploaded note.
+    const animalSelect = document.getElementById('animal-select');
+    if (animalSelect) {
+        const note = document.getElementById('animal-select-note');
+        Object.keys(ANIMALS).forEach(key => {
+            const a = ANIMALS[key];
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'model-toggle-btn animal-btn' +
+                (key === activeAnimal ? ' active' : '');
+            btn.innerHTML = a.label + '<span class="animal-btn-sub">' +
+                a.sub + '</span>';
+            btn.addEventListener('click', () => {
+                if (activeAnimal === key) return;
+                activeAnimal = key;
+                [socketBlockHandle, interfaceBlockHandle, attachBlockHandle]
+                    .forEach(h => { if (h && h.closeAll) h.closeAll(); });
+                [...animalSelect.querySelectorAll('.animal-btn')].forEach(
+                    b => b.classList.toggle('active', b === btn));
+                if (note) {
+                    note.hidden = a.ready;
+                    note.textContent = a.ready ? '' : 'The ' + a.sub +
+                        ' model library has not been generated yet - every ' +
+                        'demo will show a "not uploaded yet" note until its ' +
+                        'sweeps are exported and converted.';
+                }
+            });
+            animalSelect.appendChild(btn);
+        });
+    }
+
+    // Warm the cache with each block's default models only (plus any
+    // statically referenced viewers); the rest of the library loads on
+    // demand as sliders move. A hidden viewer walks each GLB once, warming
+    // model-viewer's parsed-model cache. Files that don't exist yet are
+    // skipped via a HEAD check.
     document.querySelectorAll('.model-toggle-btn[data-model]').forEach(btn => {
         referencedUrls.add(btn.getAttribute('data-model'));
     });
@@ -1181,7 +1284,9 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
             .map(c => c.value.url);
         if (urls.length === 0) return;
         const MV = customElements.get('model-viewer');
-        MV.modelCacheSize = Math.max(MV.modelCacheSize || 0, urls.length + 5);
+        // Roomy cache so models fetched on demand during slider scrubbing
+        // stay parsed instead of evicting each other.
+        MV.modelCacheSize = Math.max(MV.modelCacheSize || 0, 600);
         const preloader = document.createElement('model-viewer');
         preloader.setAttribute('loading', 'eager');
         preloader.setAttribute('aria-hidden', 'true');

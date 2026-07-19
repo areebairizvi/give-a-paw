@@ -1068,6 +1068,38 @@ blockquote footer {
     border-color: #002676;
 }
 
+/* Animal selector on the socket-creation page: reuses the model-toggle
+   button look with a two-line label (size class + breed). */
+.animal-select {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0.8rem 0 0.4rem;
+}
+
+.animal-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 11rem;
+    padding: 0.55rem 1.1rem;
+}
+
+.animal-btn-sub {
+    font-weight: 400;
+    font-size: 0.8rem;
+    opacity: 0.85;
+}
+
+.animal-select-note {
+    font-size: 0.9rem;
+    color: #6b4b00;
+    background: #fdf6e3;
+    border: 1px solid #e8d9a0;
+    border-radius: 4px;
+    padding: 0.5rem 0.8rem;
+}
+
 @media (max-width: 768px) {
     .model-viewer-figure model-viewer {
         height: 360px;
