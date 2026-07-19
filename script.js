@@ -229,25 +229,14 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
     };
 
     // Default camera view per variable key, captured with the ?dev=1 panel.
-    // '*' is the fallback for keys without a captured view. The mesh input
-    // demos (Billie files) are centered differently, so they intentionally
-    // have no entry and fall back to auto-framing.
-    const SOCKET_VIEW = {
-        orbit: '-88.0deg 90.0deg 3209.3m',
-        target: '-152.4m -30.0m 347.7m',
-        fov: '20.1deg',
-        orient: '90.00deg -88.05deg -88.05deg',
-    };
-    // The TLP and pelvic-distance demos are Chihuahua exports in a
-    // different coordinate space, so they auto-frame until a view is
-    // captured for them with ?dev=1.
-    const DEFAULT_VIEWS = {
-        'max-thickness': SOCKET_VIEW,
-        'min-thickness': SOCKET_VIEW,
-        'pelvic-thickness': SOCKET_VIEW,
-        'boundary-thickness': SOCKET_VIEW,
-        'point-count': SOCKET_VIEW,
-    };
+    // '*' is the fallback for keys without a captured view. Keys without an
+    // entry auto-frame: model-viewer centers the camera target on the
+    // model's bounding box, so rotation pivots around the model's center.
+    // The old Example Dog captures were removed with that model set - their
+    // targets pointed at coordinates the Chihuahua models don't occupy,
+    // which made rotation orbit a point far off the socket. Capture fresh
+    // Chihuahua views with ?dev=1 and paste the generated block here.
+    const DEFAULT_VIEWS = {};
     // Default color of the Thickest Lattice Point sphere overlay (hex),
     // set with the ?dev=1 panel.
     const SPHERE_COLOR = '#ff3b30';
@@ -651,6 +640,9 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
             mv.setAttribute('tone-mapping', 'neutral');
             mv.setAttribute('environment-image', 'model-env.png');
             mv.setAttribute('ar', '');
+            // Allow zooming out well past the auto-framed distance
+            // (model-viewer's default max radius clamps close to it).
+            mv.setAttribute('max-camera-orbit', 'auto auto 500%');
             const view = views[key] || (VARS[key] ? views['*'] : null);
             if (view) {
                 mv.setAttribute('camera-orbit', view.orbit);

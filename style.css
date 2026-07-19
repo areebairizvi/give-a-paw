@@ -1430,8 +1430,10 @@ body.wide .content {
     position: absolute;
     top: 10px;
     right: 10px;
-    width: 108px;
-    height: 171px;
+    /* Scaled up ~1.4x (was 108x171) so the rotate arrows are easier to
+       hit; the SVG scales everything inside proportionally. */
+    width: 150px;
+    height: 238px;
     z-index: 2;
     pointer-events: none;
     user-select: none;
