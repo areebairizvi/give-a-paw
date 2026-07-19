@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>nTop Socket Creation - Give a Paw</title>
-    <link rel="stylesheet" href="style.css?v=12">
+    <link rel="stylesheet" href="style.css?v=13">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
@@ -66,19 +66,14 @@
                                 <span class="ntop-block-arrow" aria-hidden="true">&#9662;</span>
                                 <span class="ntop-block-name">CB - Socket Lattice</span>
                             </div>
-                            <!-- Thickest Lattice Point is temporarily hidden; restore by
-                                 removing this comment wrapper (demo models for it are
-                                 still pending export anyway).
                             <button type="button" class="ntop-block-row" data-key="thickest-point">
                                 <span class="ntop-row-badge" aria-hidden="true">xyz</span>
                                 <span class="ntop-row-label">Thickest Lattice Point:</span>
-                                <span class="ntop-row-value" data-value>-137.5, -451, -29.83</span>
+                                <span class="ntop-row-value" data-value>-113.08</span>
                                 <span class="ntop-row-unit">mm</span>
                                 <span class="ntop-row-caret" aria-hidden="true">&#9662;</span>
                             </button>
                             <div class="ntop-expand" data-expand="thickest-point"><div class="ntop-expand-inner"><div class="ntop-expand-body"></div></div></div>
-                            -->
-
                             <button type="button" class="ntop-block-row" data-key="max-thickness">
                                 <span class="ntop-row-badge" aria-hidden="true">0.1</span>
                                 <span class="ntop-row-label">Max Socket Thickness:</span>
@@ -95,14 +90,6 @@
                                 <span class="ntop-row-caret" aria-hidden="true">&#9662;</span>
                             </button>
                             <div class="ntop-expand" data-expand="min-thickness"><div class="ntop-expand-inner"><div class="ntop-expand-body"></div></div></div>
-                            <button type="button" class="ntop-block-row" data-key="pelvic-thickness">
-                                <span class="ntop-row-badge" aria-hidden="true">0.1</span>
-                                <span class="ntop-row-label">Pelvic Thickness:</span>
-                                <span class="ntop-row-value" data-value>10</span>
-                                <span class="ntop-row-unit">mm</span>
-                                <span class="ntop-row-caret" aria-hidden="true">&#9662;</span>
-                            </button>
-                            <div class="ntop-expand" data-expand="pelvic-thickness"><div class="ntop-expand-inner"><div class="ntop-expand-body"></div></div></div>
                             <button type="button" class="ntop-block-row" data-key="boundary-thickness">
                                 <span class="ntop-row-badge" aria-hidden="true">0.1</span>
                                 <span class="ntop-row-label">Boundary Lattice Thickness:</span>
@@ -119,6 +106,206 @@
                                 <span class="ntop-row-caret" aria-hidden="true">&#9662;</span>
                             </button>
                             <div class="ntop-expand" data-expand="point-count"><div class="ntop-expand-inner"><div class="ntop-expand-body"></div></div></div>
+                            <button type="button" class="ntop-block-row" data-key="pelvic-thickness">
+                                <span class="ntop-row-badge" aria-hidden="true">0.1</span>
+                                <span class="ntop-row-label">Pelvic Thickness:</span>
+                                <span class="ntop-row-value" data-value>10</span>
+                                <span class="ntop-row-unit">mm</span>
+                                <span class="ntop-row-caret" aria-hidden="true">&#9662;</span>
+                            </button>
+                            <div class="ntop-expand" data-expand="pelvic-thickness"><div class="ntop-expand-inner"><div class="ntop-expand-body"></div></div></div>
+                            <button type="button" class="ntop-block-row" data-key="pelvic-distance">
+                                <span class="ntop-row-badge" aria-hidden="true">0.1</span>
+                                <span class="ntop-row-label">Pelvic Thicken Distance:</span>
+                                <span class="ntop-row-value" data-value>50</span>
+                                <span class="ntop-row-unit">mm</span>
+                                <span class="ntop-row-caret" aria-hidden="true">&#9662;</span>
+                            </button>
+                            <div class="ntop-expand" data-expand="pelvic-distance"><div class="ntop-expand-inner"><div class="ntop-expand-body"></div></div></div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="interface-cap">
+                    <h2>Socket &amp; Interface Cap<a class="headerlink" href="#interface-cap" title="Permalink to this heading">¶</a></h2>
+                    <p>The Interface Cap block joins the lattice socket to the mechanical socket. It takes the Socket Lattice output as its input and positions, angles, and blends the rigid interface. Demo models for this block are still being exported; each input below is wired and will light up as its files arrive.</p>
+                    <div class="accordion-wrap">
+                        <div class="ntop-block" id="interface-cap-block">
+                            <div class="ntop-block-title">
+                                <span class="ntop-block-arrow" aria-hidden="true">&#9662;</span>
+                                <span class="ntop-block-name">Socket &amp; Interface Cap</span>
+                            </div>
+                            <div class="ntop-block-row ntop-block-row-static">
+                                <span class="ntop-row-badge" aria-hidden="true">mesh</span>
+                                <span class="ntop-row-label">Solid, Socket:</span>
+                                <span class="ntop-row-value ntop-row-value-mesh">Socket Lattice</span>
+                                <span class="ntop-row-unit"></span>
+                            </div>
+                            <div class="ntop-block-row ntop-block-row-static">
+                                <span class="ntop-row-badge" aria-hidden="true">mesh</span>
+                                <span class="ntop-row-label">Mech, Solid:</span>
+                                <span class="ntop-row-value ntop-row-value-mesh">Mech, Solid</span>
+                                <span class="ntop-row-unit"></span>
+                            </div>
+                            <div class="ntop-block-row ntop-block-row-static">
+                                <span class="ntop-row-badge" aria-hidden="true">xyz</span>
+                                <span class="ntop-row-label">Lateral Rotation Axis:</span>
+                                <span class="ntop-row-value">-57.42, -82.51, 165.59</span>
+                                <span class="ntop-row-unit">mm</span>
+                            </div>
+                            <button type="button" class="ntop-block-row" data-key="lateral-angle">
+                                <span class="ntop-row-badge" aria-hidden="true">0.1</span>
+                                <span class="ntop-row-label">Lateral Angle:</span>
+                                <span class="ntop-row-value" data-value>0</span>
+                                <span class="ntop-row-unit">deg</span>
+                                <span class="ntop-row-caret" aria-hidden="true">&#9662;</span>
+                            </button>
+                            <div class="ntop-expand" data-expand="lateral-angle"><div class="ntop-expand-inner"><div class="ntop-expand-body"></div></div></div>
+                            <button type="button" class="ntop-block-row" data-key="medial-angle">
+                                <span class="ntop-row-badge" aria-hidden="true">0.1</span>
+                                <span class="ntop-row-label">Medial Angle:</span>
+                                <span class="ntop-row-value" data-value>0</span>
+                                <span class="ntop-row-unit">deg</span>
+                                <span class="ntop-row-caret" aria-hidden="true">&#9662;</span>
+                            </button>
+                            <div class="ntop-expand" data-expand="medial-angle"><div class="ntop-expand-inner"><div class="ntop-expand-body"></div></div></div>
+                            <button type="button" class="ntop-block-row" data-key="interface-rotation">
+                                <span class="ntop-row-badge" aria-hidden="true">0.1</span>
+                                <span class="ntop-row-label">Interface Rotation:</span>
+                                <span class="ntop-row-value" data-value>0</span>
+                                <span class="ntop-row-unit">deg</span>
+                                <span class="ntop-row-caret" aria-hidden="true">&#9662;</span>
+                            </button>
+                            <div class="ntop-expand" data-expand="interface-rotation"><div class="ntop-expand-inner"><div class="ntop-expand-body"></div></div></div>
+                            <button type="button" class="ntop-block-row" data-key="interface-x">
+                                <span class="ntop-row-badge" aria-hidden="true">0.1</span>
+                                <span class="ntop-row-label">Interface X Adjust:</span>
+                                <span class="ntop-row-value" data-value>0</span>
+                                <span class="ntop-row-unit">mm</span>
+                                <span class="ntop-row-caret" aria-hidden="true">&#9662;</span>
+                            </button>
+                            <div class="ntop-expand" data-expand="interface-x"><div class="ntop-expand-inner"><div class="ntop-expand-body"></div></div></div>
+                            <button type="button" class="ntop-block-row" data-key="interface-y">
+                                <span class="ntop-row-badge" aria-hidden="true">0.1</span>
+                                <span class="ntop-row-label">Interface Y Adjust:</span>
+                                <span class="ntop-row-value" data-value>0</span>
+                                <span class="ntop-row-unit">mm</span>
+                                <span class="ntop-row-caret" aria-hidden="true">&#9662;</span>
+                            </button>
+                            <div class="ntop-expand" data-expand="interface-y"><div class="ntop-expand-inner"><div class="ntop-expand-body"></div></div></div>
+                            <button type="button" class="ntop-block-row" data-key="interface-z">
+                                <span class="ntop-row-badge" aria-hidden="true">0.1</span>
+                                <span class="ntop-row-label">Interface Z Adjust:</span>
+                                <span class="ntop-row-value" data-value>0</span>
+                                <span class="ntop-row-unit">mm</span>
+                                <span class="ntop-row-caret" aria-hidden="true">&#9662;</span>
+                            </button>
+                            <div class="ntop-expand" data-expand="interface-z"><div class="ntop-expand-inner"><div class="ntop-expand-body"></div></div></div>
+                            <button type="button" class="ntop-block-row" data-key="max-blend-radius">
+                                <span class="ntop-row-badge" aria-hidden="true">0.1</span>
+                                <span class="ntop-row-label">Max Blend Radius:</span>
+                                <span class="ntop-row-value" data-value>10</span>
+                                <span class="ntop-row-unit">mm</span>
+                                <span class="ntop-row-caret" aria-hidden="true">&#9662;</span>
+                            </button>
+                            <div class="ntop-expand" data-expand="max-blend-radius"><div class="ntop-expand-inner"><div class="ntop-expand-body"></div></div></div>
+                            <button type="button" class="ntop-block-row" data-key="min-blend-radius">
+                                <span class="ntop-row-badge" aria-hidden="true">0.1</span>
+                                <span class="ntop-row-label">Min Blend Radius:</span>
+                                <span class="ntop-row-value" data-value>4</span>
+                                <span class="ntop-row-unit">mm</span>
+                                <span class="ntop-row-caret" aria-hidden="true">&#9662;</span>
+                            </button>
+                            <div class="ntop-expand" data-expand="min-blend-radius"><div class="ntop-expand-inner"><div class="ntop-expand-body"></div></div></div>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="attachment">
+                    <h2>Attachment<a class="headerlink" href="#attachment" title="Permalink to this heading">¶</a></h2>
+                    <p>The Attachment block adds the screw pads and holes that fasten the finished socket to the animal. It takes the Socket &amp; Interface Cap output as its input. Demo models for this block are still being exported.</p>
+                    <div class="accordion-wrap">
+                        <div class="ntop-block" id="attachment-block">
+                            <div class="ntop-block-title">
+                                <span class="ntop-block-arrow" aria-hidden="true">&#9662;</span>
+                                <span class="ntop-block-name">CB - Attachment</span>
+                            </div>
+                            <div class="ntop-block-row ntop-block-row-static">
+                                <span class="ntop-row-badge" aria-hidden="true">mesh</span>
+                                <span class="ntop-row-label">Socket, Solid Animal:</span>
+                                <span class="ntop-row-value ntop-row-value-mesh">Socket &amp; Interface Cap</span>
+                                <span class="ntop-row-unit"></span>
+                            </div>
+                            <div class="ntop-block-row ntop-block-row-static">
+                                <span class="ntop-row-badge" aria-hidden="true">xyz</span>
+                                <span class="ntop-row-label">Attachment Points:</span>
+                                <span class="ntop-row-value">Attachment Points</span>
+                                <span class="ntop-row-unit">mm</span>
+                            </div>
+                            <button type="button" class="ntop-block-row" data-key="attach-diameter">
+                                <span class="ntop-row-badge" aria-hidden="true">0.1</span>
+                                <span class="ntop-row-label">Attach Diameter:</span>
+                                <span class="ntop-row-value" data-value>10</span>
+                                <span class="ntop-row-unit">mm</span>
+                                <span class="ntop-row-caret" aria-hidden="true">&#9662;</span>
+                            </button>
+                            <div class="ntop-expand" data-expand="attach-diameter"><div class="ntop-expand-inner"><div class="ntop-expand-body"></div></div></div>
+                            <button type="button" class="ntop-block-row" data-key="normal-wall">
+                                <span class="ntop-row-badge" aria-hidden="true">0.1</span>
+                                <span class="ntop-row-label">Normal Wall Distance:</span>
+                                <span class="ntop-row-value" data-value>10</span>
+                                <span class="ntop-row-unit">mm</span>
+                                <span class="ntop-row-caret" aria-hidden="true">&#9662;</span>
+                            </button>
+                            <div class="ntop-expand" data-expand="normal-wall"><div class="ntop-expand-inner"><div class="ntop-expand-body"></div></div></div>
+                            <button type="button" class="ntop-block-row" data-key="screw-head-diameter">
+                                <span class="ntop-row-badge" aria-hidden="true">0.1</span>
+                                <span class="ntop-row-label">Screw Head Diameter:</span>
+                                <span class="ntop-row-value" data-value>10</span>
+                                <span class="ntop-row-unit">mm</span>
+                                <span class="ntop-row-caret" aria-hidden="true">&#9662;</span>
+                            </button>
+                            <div class="ntop-expand" data-expand="screw-head-diameter"><div class="ntop-expand-inner"><div class="ntop-expand-body"></div></div></div>
+                            <button type="button" class="ntop-block-row" data-key="screw-head-height">
+                                <span class="ntop-row-badge" aria-hidden="true">0.1</span>
+                                <span class="ntop-row-label">Screw Head Height:</span>
+                                <span class="ntop-row-value" data-value>10</span>
+                                <span class="ntop-row-unit">mm</span>
+                                <span class="ntop-row-caret" aria-hidden="true">&#9662;</span>
+                            </button>
+                            <div class="ntop-expand" data-expand="screw-head-height"><div class="ntop-expand-inner"><div class="ntop-expand-body"></div></div></div>
+                            <button type="button" class="ntop-block-row" data-key="screw-shaft-diameter">
+                                <span class="ntop-row-badge" aria-hidden="true">0.1</span>
+                                <span class="ntop-row-label">Screw Shaft Diameter:</span>
+                                <span class="ntop-row-value" data-value>10</span>
+                                <span class="ntop-row-unit">mm</span>
+                                <span class="ntop-row-caret" aria-hidden="true">&#9662;</span>
+                            </button>
+                            <div class="ntop-expand" data-expand="screw-shaft-diameter"><div class="ntop-expand-inner"><div class="ntop-expand-body"></div></div></div>
+                            <button type="button" class="ntop-block-row" data-key="hole-blend-radius">
+                                <span class="ntop-row-badge" aria-hidden="true">0.1</span>
+                                <span class="ntop-row-label">Hole Blend Radius:</span>
+                                <span class="ntop-row-value" data-value>10</span>
+                                <span class="ntop-row-unit">mm</span>
+                                <span class="ntop-row-caret" aria-hidden="true">&#9662;</span>
+                            </button>
+                            <div class="ntop-expand" data-expand="hole-blend-radius"><div class="ntop-expand-inner"><div class="ntop-expand-body"></div></div></div>
+                            <button type="button" class="ntop-block-row" data-key="nozzle-diameter">
+                                <span class="ntop-row-badge" aria-hidden="true">0.1</span>
+                                <span class="ntop-row-label">Nozzle Diameter:</span>
+                                <span class="ntop-row-value" data-value>10</span>
+                                <span class="ntop-row-unit">mm</span>
+                                <span class="ntop-row-caret" aria-hidden="true">&#9662;</span>
+                            </button>
+                            <div class="ntop-expand" data-expand="nozzle-diameter"><div class="ntop-expand-inner"><div class="ntop-expand-body"></div></div></div>
+                            <button type="button" class="ntop-block-row" data-key="hole-cut-depth">
+                                <span class="ntop-row-badge" aria-hidden="true">0.1</span>
+                                <span class="ntop-row-label">Hole Cut Depth:</span>
+                                <span class="ntop-row-value" data-value>10</span>
+                                <span class="ntop-row-unit">mm</span>
+                                <span class="ntop-row-caret" aria-hidden="true">&#9662;</span>
+                            </button>
+                            <div class="ntop-expand" data-expand="hole-cut-depth"><div class="ntop-expand-inner"><div class="ntop-expand-body"></div></div></div>
                         </div>
                     </div>
                 </section>
@@ -204,6 +391,6 @@
         <span></span>
         <span></span>
     </button>
-    <script src="script.js?v=20"></script>
+    <script src="script.js?v=21"></script>
 </body>
 </html>

@@ -1269,6 +1269,17 @@ blockquote footer {
 .accordion-wrap .ntop-row-badge { font-size: 0.72rem; flex: 0 0 2.6em; }
 .accordion-wrap .ntop-row-value { font-size: 0.92rem; }
 
+/* Structural inputs shown for context (block chaining, fixed points):
+   same look as a row, but not clickable */
+.ntop-block-row-static {
+    cursor: default;
+    opacity: 0.75;
+}
+
+.ntop-block-row-static:hover {
+    background: transparent;
+}
+
 .ntop-block-row .ntop-row-caret {
     flex: 0 0 auto;
     color: #8b8b93;

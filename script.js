@@ -123,17 +123,20 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
     const THICK_STEPS = Array.from({ length: 21 }, (_, i) => i * 2);
     const PELVIC_STEPS = Array.from({ length: 11 }, (_, i) => i * 2);
 
+    // Thickest Lattice Point sweep (Chihuahua): X and Z are fixed at
+    // -58.106 / 155.02 mm; the slider moves Y. -113.08 is the design
+    // baseline and sits off the 10 mm grid, so it is spliced into the
+    // values array.
+    const TLP_YS = [-200, -190, -180, -170, -160, -150, -140, -130, -120,
+        -113.08, -110, -100, -90, -80, -70, -60, -50, -40, -30, -20, -10, 0];
+
     const SOCKET_VARS = {
         'thickest-point': {
             title: 'Thickest Lattice Point',
-            type: 'grid',
-            desc: 'Sets the location where the socket wall is at its thickest; on this socket the point is (-137.5, -451, -29.83) mm. The sliders offset the point in Y and Z in 5 mm steps. Demo models for this input are still being exported.',
-            axes: [
-                { key: 'Y', label: 'Y offset', min: -30, max: 30, step: 5, def: 0, unit: 'mm' },
-                { key: 'Z', label: 'Z offset', min: -30, max: 30, step: 5, def: 0, unit: 'mm' },
-            ],
-            file: (y, z) => 'ntop-thickpoint-y' + y + '-z' + z + '.glb',
-            rowValue: (y, z) => '-137.5, ' + (-451 + y) + ', ' + (-29.83 + z).toFixed(2),
+            type: 'slider',
+            values: TLP_YS, def: -113.08, unit: 'mm',
+            file: v => 'ntop-tlp-y' + v + '.glb',
+            desc: 'Sets the location where the socket wall is at its thickest. X and Z are fixed at -58.106 and 155.02 mm; the slider moves the Y coordinate. Toggle the Lattice Point Sphere to see the point itself.',
         },
         'max-thickness': {
             title: 'Max Socket Thickness',
@@ -155,6 +158,15 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
             min: 0, max: 20, step: 2, def: 10, unit: 'mm',
             file: v => 'ntop-pelvic-' + pad2(v) + '.glb',
             desc: 'Sets the lattice thickness in the pelvic region of the socket.',
+        },
+        'pelvic-distance': {
+            title: 'Pelvic Thicken Distance',
+            type: 'slider',
+            values: [1, 5, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100,
+                110, 120, 130, 140, 150, 160, 170, 180, 190, 200],
+            def: 50, unit: 'mm',
+            file: v => 'ntop-pelvicdist-' + String(v).padStart(3, '0') + '.glb',
+            desc: 'Sets how far the pelvic thickening extends from the pelvic plane into the socket.',
         },
         'boundary-thickness': {
             title: 'Boundary Lattice Thickness',
@@ -202,8 +214,10 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
         fov: '20.1deg',
         orient: '90.00deg -88.05deg -88.05deg',
     };
+    // The TLP and pelvic-distance demos are Chihuahua exports in a
+    // different coordinate space, so they auto-frame until a view is
+    // captured for them with ?dev=1.
     const DEFAULT_VIEWS = {
-        'thickest-point': SOCKET_VIEW,
         'max-thickness': SOCKET_VIEW,
         'min-thickness': SOCKET_VIEW,
         'pelvic-thickness': SOCKET_VIEW,
@@ -218,7 +232,7 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
         { name: 'overlay-dog', label: 'Full Dog' },
         { name: 'overlay-surface', label: 'Attachment Surface' },
         { name: 'overlay-sphere', label: 'Lattice Point Sphere',
-          onlyFor: ['min-thickness', 'max-thickness'] },
+          onlyFor: ['thickest-point', 'min-thickness', 'max-thickness'] },
     ];
 
     // ---- Quaternion helpers ----
@@ -913,10 +927,13 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
     });
     PELVIC_STEPS.forEach(mm =>
         socketPreload.push(SOCKET_VARS['pelvic-thickness'].file(mm)));
+    TLP_YS.forEach(y =>
+        socketPreload.push(SOCKET_VARS['thickest-point'].file(y)));
+    SOCKET_VARS['pelvic-distance'].values.forEach(v =>
+        socketPreload.push(SOCKET_VARS['pelvic-distance'].file(v)));
     // The Solid Animal and Socket Attachment Surface rows are removed from
-    // the block (and Thickest Lattice Point is temporarily hidden in the
-    // HTML), so SOCKET_MESH_VARS is not passed and the Billie meshes are
-    // not preloaded. Restore by passing meshVars: SOCKET_MESH_VARS and
+    // the block, so SOCKET_MESH_VARS is not passed and the Billie meshes
+    // are not preloaded. Restore by passing meshVars: SOCKET_MESH_VARS and
     // re-adding the rows in ntop-socket-creation.html.
     initBlock({
         blockId: 'socket-lattice-block',
@@ -925,6 +942,157 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
         defaultViews: DEFAULT_VIEWS,
         sphereColor: SPHERE_COLOR,
         preloadUrls: socketPreload,
+    });
+
+    // ---- Socket & Interface Cap block ----
+    // The Interface Cap joins the lattice socket to the mechanical socket.
+    // Slider ranges are provisional until the sweep exports arrive; every
+    // step shows the not-uploaded note until its GLB lands.
+    const INTERFACE_VARS = {
+        'lateral-angle': {
+            title: 'Lateral Angle',
+            type: 'slider',
+            min: -30, max: 30, step: 5, def: 0, unit: 'deg',
+            file: v => 'ntop-interface-lateralangle-' + v + '.glb',
+            desc: 'Rotates the interface cap about the lateral rotation axis.',
+        },
+        'medial-angle': {
+            title: 'Medial Angle',
+            type: 'slider',
+            min: -30, max: 30, step: 5, def: 0, unit: 'deg',
+            file: v => 'ntop-interface-medialangle-' + v + '.glb',
+            desc: 'Rotates the interface cap about the medial direction.',
+        },
+        'interface-rotation': {
+            title: 'Interface Rotation',
+            type: 'slider',
+            min: 0, max: 90, step: 10, def: 0, unit: 'deg',
+            file: v => 'ntop-interface-rotation-' + pad2(v) + '.glb',
+            desc: 'Spins the interface cap about its own axis.',
+        },
+        'interface-x': {
+            title: 'Interface X Adjust',
+            type: 'slider',
+            min: -20, max: 20, step: 5, def: 0, unit: 'mm',
+            file: v => 'ntop-interface-xadjust-' + v + '.glb',
+            desc: 'Shifts the interface cap along the X axis.',
+        },
+        'interface-y': {
+            title: 'Interface Y Adjust',
+            type: 'slider',
+            min: -20, max: 20, step: 5, def: 0, unit: 'mm',
+            file: v => 'ntop-interface-yadjust-' + v + '.glb',
+            desc: 'Shifts the interface cap along the Y axis.',
+        },
+        'interface-z': {
+            title: 'Interface Z Adjust',
+            type: 'slider',
+            min: -20, max: 20, step: 5, def: 0, unit: 'mm',
+            file: v => 'ntop-interface-zadjust-' + v + '.glb',
+            desc: 'Shifts the interface cap along the Z axis.',
+        },
+        'max-blend-radius': {
+            title: 'Max Blend Radius',
+            type: 'slider',
+            min: 0, max: 20, step: 2, def: 10, unit: 'mm',
+            file: v => 'ntop-interface-maxblend-' + pad2(v) + '.glb',
+            desc: 'Sets the largest fillet radius where the cap meets the socket.',
+        },
+        'min-blend-radius': {
+            title: 'Min Blend Radius',
+            type: 'slider',
+            min: 0, max: 20, step: 2, def: 4, unit: 'mm',
+            file: v => 'ntop-interface-minblend-' + pad2(v) + '.glb',
+            desc: 'Sets the smallest fillet radius where the cap meets the socket.',
+        },
+    };
+    const interfacePreload = [];
+    Object.values(INTERFACE_VARS).forEach(cfg => {
+        for (let v = cfg.min; v <= cfg.max; v += cfg.step) {
+            interfacePreload.push(cfg.file(v));
+        }
+    });
+    initBlock({
+        blockId: 'interface-cap-block',
+        vars: INTERFACE_VARS,
+        overlays: [],
+        defaultViews: {},
+        preloadUrls: interfacePreload,
+    });
+
+    // ---- Attachment block ----
+    // Screws the finished socket to the animal. Same provisional-range
+    // treatment until the sweep exports arrive.
+    const ATTACH_VARS = {
+        'attach-diameter': {
+            title: 'Attach Diameter',
+            type: 'slider',
+            min: 2, max: 20, step: 2, def: 10, unit: 'mm',
+            file: v => 'ntop-attach-diameter-' + pad2(v) + '.glb',
+            desc: 'Sets the diameter of each attachment pad.',
+        },
+        'normal-wall': {
+            title: 'Normal Wall Distance',
+            type: 'slider',
+            min: 0, max: 20, step: 2, def: 10, unit: 'mm',
+            file: v => 'ntop-attach-normalwall-' + pad2(v) + '.glb',
+            desc: 'Sets how far the attachment wall extends along the surface normal.',
+        },
+        'screw-head-diameter': {
+            title: 'Screw Head Diameter',
+            type: 'slider',
+            min: 2, max: 20, step: 2, def: 10, unit: 'mm',
+            file: v => 'ntop-attach-screwheadd-' + pad2(v) + '.glb',
+            desc: 'Sets the countersink diameter for the screw head.',
+        },
+        'screw-head-height': {
+            title: 'Screw Head Height',
+            type: 'slider',
+            min: 0, max: 20, step: 2, def: 10, unit: 'mm',
+            file: v => 'ntop-attach-screwheadh-' + pad2(v) + '.glb',
+            desc: 'Sets the countersink depth for the screw head.',
+        },
+        'screw-shaft-diameter': {
+            title: 'Screw Shaft Diameter',
+            type: 'slider',
+            min: 2, max: 20, step: 2, def: 10, unit: 'mm',
+            file: v => 'ntop-attach-screwshaft-' + pad2(v) + '.glb',
+            desc: 'Sets the clearance hole diameter for the screw shaft.',
+        },
+        'hole-blend-radius': {
+            title: 'Hole Blend Radius',
+            type: 'slider',
+            min: 0, max: 20, step: 2, def: 10, unit: 'mm',
+            file: v => 'ntop-attach-holeblend-' + pad2(v) + '.glb',
+            desc: 'Sets the fillet radius around each screw hole.',
+        },
+        'nozzle-diameter': {
+            title: 'Nozzle Diameter',
+            type: 'slider',
+            min: 0, max: 20, step: 2, def: 10, unit: 'mm',
+            file: v => 'ntop-attach-nozzle-' + pad2(v) + '.glb',
+            desc: 'Sets the nozzle diameter used for the attachment geometry.',
+        },
+        'hole-cut-depth': {
+            title: 'Hole Cut Depth',
+            type: 'slider',
+            min: 0, max: 20, step: 2, def: 10, unit: 'mm',
+            file: v => 'ntop-attach-holecut-' + pad2(v) + '.glb',
+            desc: 'Sets how deep each screw hole is cut into the socket.',
+        },
+    };
+    const attachPreload = [];
+    Object.values(ATTACH_VARS).forEach(cfg => {
+        for (let v = cfg.min; v <= cfg.max; v += cfg.step) {
+            attachPreload.push(cfg.file(v));
+        }
+    });
+    initBlock({
+        blockId: 'attachment-block',
+        vars: ATTACH_VARS,
+        overlays: [],
+        defaultViews: {},
+        preloadUrls: attachPreload,
     });
 
     // Paw lattice page. Sweeps from the July 9 exports; the baseline is
