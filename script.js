@@ -229,14 +229,14 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
     };
 
     // Default camera view per variable key, captured with the ?dev=1 panel.
-    // '*' is the fallback for keys without a captured view. Keys without an
-    // entry auto-frame: model-viewer centers the camera target on the
-    // model's bounding box, so rotation pivots around the model's center.
-    // Views are in the CENTERED model space (origin = model center, since
-    // commit 470e4bf) - captures made before that are invalid.
-    const DEFAULT_VIEWS = {
-        'max-thickness': { orbit: '-90.4deg 90.0deg 418.3m', target: '0.0m 0.0m 0.0m', fov: '30.0deg', orient: '-90.00deg -89.56deg 89.56deg' },
-    };
+    // '*' is the fallback for keys without a captured view. Views are in
+    // the CENTERED model space (origin = model center, since commit
+    // 470e4bf) - captures made before that are invalid. All Chihuahua
+    // models share that space, so one captured view works for every demo
+    // in the socket, interface, and attachment blocks; capture a per-key
+    // view to override an individual row.
+    const CHI_VIEW = { orbit: '-90.4deg 90.0deg 418.3m', target: '0.0m 0.0m 0.0m', fov: '30.0deg', orient: '-90.00deg -89.56deg 89.56deg' };
+    const DEFAULT_VIEWS = { '*': CHI_VIEW };
     // Default color of the Thickest Lattice Point sphere overlay (hex),
     // set with the ?dev=1 panel.
     const SPHERE_COLOR = '#ff3b30';
@@ -1079,7 +1079,7 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
         blockId: 'interface-cap-block',
         vars: INTERFACE_VARS,
         overlays: [],
-        defaultViews: {},
+        defaultViews: { '*': CHI_VIEW },
         preloadUrls: interfacePreload,
     });
 
@@ -1165,7 +1165,7 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
         overlays: [
             { name: 'overlay-sphere', label: 'Attachment Point Spheres' },
         ],
-        defaultViews: {},
+        defaultViews: { '*': CHI_VIEW },
         preloadUrls: attachPreload,
     });
 
