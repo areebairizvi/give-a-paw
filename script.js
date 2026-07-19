@@ -477,7 +477,12 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
             // unconditionally would kill model-viewer's smooth
             // interpolation and make every snap a hard jump.
             if (viewer.getAttribute('camera-orbit') === value) {
+                // Two ticks: LitElement drops a same-tick remove+set of an
+                // identical value as a no-op, so the repeated snap would
+                // never reach the camera.
                 viewer.removeAttribute('camera-orbit');
+                setTimeout(() => viewer.setAttribute('camera-orbit', value), 50);
+                return;
             }
             viewer.setAttribute('camera-orbit', value);
         };
@@ -574,6 +579,57 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
             const h = hex.replace('#', '');
             return [0, 2, 4].map(i => parseInt(h.slice(i, i + 2), 16) / 255);
         };
+        // model-viewer computes camera framing (minimum orbit radius, max
+        // field of view) from EVERY mesh in the scene, visible or not. The
+        // bundled full-dog overlay is ~3x the socket, so with it counted
+        // the camera can never get near the socket and captured views
+        // silently fail to apply. Fix: mirror overlay on/off state onto
+        // the three.js meshes' `visible` flag (which updateFraming DOES
+        // respect) and reframe against only what is shown. The scene is
+        // reached through model-viewer's internal symbol - if a future
+        // library update renames it, everything still works minus the
+        // reframe.
+        const getThreeScene = viewer => {
+            try {
+                const sym = Object.getOwnPropertySymbols(viewer)
+                    .find(s => String(s.description || '') === 'scene');
+                return sym ? viewer[sym] : null;
+            } catch (e) { return null; }
+        };
+        const syncOverlayMeshVisibility = () => {
+            if (!current) return;
+            const scene = getThreeScene(current.viewer);
+            if (!scene) return;
+            scene.traverse(o => {
+                if (!o.isMesh || o.name.indexOf('overlay-') !== 0) return;
+                const cfg = OVERLAYS.find(c => c.name === o.name);
+                const allowed = !cfg || !cfg.onlyFor ||
+                    cfg.onlyFor.indexOf(openKey) !== -1;
+                o.visible = allowed && !!overlayState[o.name];
+            });
+        };
+        const reframeAndApplyView = (key, token) => {
+            if (!current || typeof current.viewer.updateFraming !== 'function') return;
+            const viewer = current.viewer;
+            viewer.updateFraming().then(() => {
+                if (token !== loadPollToken || !current) return;
+                const view = views[key] || (VARS[key] ? views['*'] : null);
+                if (!view) return;
+                // Force re-application. The attributes may already hold
+                // these exact values while the camera goals were clamped
+                // under the pre-reframe bounds. Remove and re-set must be
+                // in SEPARATE ticks: LitElement batches same-tick attribute
+                // mutations and drops the pair as a no-op change.
+                const attrs = [['camera-orbit', view.orbit],
+                    ['camera-target', view.target],
+                    ['field-of-view', view.fov]].filter(p => p[1]);
+                attrs.forEach(p => viewer.removeAttribute(p[0]));
+                setTimeout(() => {
+                    if (token !== loadPollToken || !current) return;
+                    attrs.forEach(p => viewer.setAttribute(p[0], p[1]));
+                }, 50);
+            }).catch(() => {});
+        };
         // Matte plus overlay visibility for the current viewer. The global
         // matte pass only sees viewers that exist at page load, so the
         // dynamically created expansion viewers are handled here.
@@ -600,6 +656,7 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
                     pbr.setBaseColorFactor([rgb[0], rgb[1], rgb[2], on ? 1 : 0]);
                 } catch (e) {}
             });
+            syncOverlayMeshVisibility();
         };
         const updateToggleBar = () => {
             if (!current || !current.bar) return;
@@ -628,6 +685,7 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
                     (sawUnloaded || Date.now() - t0 > 450)) {
                     applyMatteAndOverlays();
                     updateToggleBar();
+                    reframeAndApplyView(current ? current.key : null, token);
                     return;
                 }
                 setTimeout(poll, 100);
@@ -649,7 +707,10 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
             mv.setAttribute('ar', '');
             // Allow zooming out well past the auto-framed distance
             // (model-viewer's default max radius clamps close to it).
-            mv.setAttribute('max-camera-orbit', 'auto auto 500%');
+            // MUST be an absolute length: a percentage here fails to parse
+            // and WEDGES the camera - orbit writes, captured views, fov,
+            // and wheel zoom all silently stop applying.
+            mv.setAttribute('max-camera-orbit', 'auto auto 2500m');
             // Without this, every quick click re-targets the camera to the
             // clicked surface point (and a click on the background resets
             // the target and zooms fully out) - which makes the rotation
@@ -718,6 +779,32 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
                     overlayState[o.name] = !overlayState[o.name];
                     btn.classList.toggle('active', !!overlayState[o.name]);
                     applyMatteAndOverlays();
+                    // The full-dog mesh is ~3x taller than the socket the
+                    // default views frame, so at socket-framing distance it
+                    // fills the frustum as a featureless wall. Zoom out to
+                    // fit the dog when shown; restore the prior distance
+                    // when hidden.
+                    if (o.name === 'overlay-dog' && current) {
+                        const viewer = current.viewer;
+                        const orbit = viewer.getCameraOrbit();
+                        const DOG_RADIUS = 1100; // dog bound ~280mm / sin(fov/2)
+                        const deg = r => r * 180 / Math.PI;
+                        if (overlayState[o.name]) {
+                            if (orbit.radius < DOG_RADIUS) {
+                                current.preDogRadius = orbit.radius;
+                                viewer.setAttribute('camera-orbit',
+                                    deg(orbit.theta).toFixed(1) + 'deg ' +
+                                    deg(orbit.phi).toFixed(1) + 'deg ' +
+                                    DOG_RADIUS + 'm');
+                            }
+                        } else if (current.preDogRadius) {
+                            viewer.setAttribute('camera-orbit',
+                                deg(orbit.theta).toFixed(1) + 'deg ' +
+                                deg(orbit.phi).toFixed(1) + 'deg ' +
+                                current.preDogRadius.toFixed(1) + 'm');
+                            current.preDogRadius = null;
+                        }
+                    }
                 });
                 bar.appendChild(btn);
             });
