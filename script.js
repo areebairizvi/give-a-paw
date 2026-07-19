@@ -232,11 +232,11 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
     // '*' is the fallback for keys without a captured view. Keys without an
     // entry auto-frame: model-viewer centers the camera target on the
     // model's bounding box, so rotation pivots around the model's center.
-    // The old Example Dog captures were removed with that model set - their
-    // targets pointed at coordinates the Chihuahua models don't occupy,
-    // which made rotation orbit a point far off the socket. Capture fresh
-    // Chihuahua views with ?dev=1 and paste the generated block here.
-    const DEFAULT_VIEWS = {};
+    // Views are in the CENTERED model space (origin = model center, since
+    // commit 470e4bf) - captures made before that are invalid.
+    const DEFAULT_VIEWS = {
+        'max-thickness': { orbit: '-90.4deg 90.0deg 418.3m', target: '0.0m 0.0m 0.0m', fov: '30.0deg', orient: '-90.00deg -89.56deg 89.56deg' },
+    };
     // Default color of the Thickest Lattice Point sphere overlay (hex),
     // set with the ?dev=1 panel.
     const SPHERE_COLOR = '#ff3b30';
