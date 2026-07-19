@@ -467,12 +467,18 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
         };
 
         const setOrbit = (thetaDeg, phiDeg, radius) => {
-            // Remove first: re-setting an identical attribute value is a
-            // no-op, which would break repeating the same snap.
-            viewer.removeAttribute('camera-orbit');
-            viewer.setAttribute('camera-orbit',
+            const value =
                 thetaDeg.toFixed(1) + 'deg ' + phiDeg.toFixed(1) + 'deg ' +
-                radius.toFixed(1) + 'm');
+                radius.toFixed(1) + 'm';
+            // Re-setting an identical attribute value is a no-op, which
+            // would break repeating the same snap after the user orbits
+            // away - remove first ONLY in that case. Removing
+            // unconditionally would kill model-viewer's smooth
+            // interpolation and make every snap a hard jump.
+            if (viewer.getAttribute('camera-orbit') === value) {
+                viewer.removeAttribute('camera-orbit');
+            }
+            viewer.setAttribute('camera-orbit', value);
         };
 
         const setOrientation = (q, animate) => {
