@@ -245,7 +245,8 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
         { name: 'overlay-dog', label: 'Full Dog' },
         { name: 'overlay-surface', label: 'Attachment Surface' },
         { name: 'overlay-sphere', label: 'Lattice Point Sphere',
-          onlyFor: ['thickest-point', 'min-thickness', 'max-thickness'] },
+          onlyFor: ['thickest-point', 'min-thickness', 'max-thickness'],
+          defaultOn: ['thickest-point'] },
     ];
 
     // ---- Quaternion helpers ----
@@ -696,6 +697,15 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
             const bar = document.createElement('div');
             bar.className = 'overlay-toggles';
             OVERLAYS.forEach(o => {
+                // Overlays with a defaultOn list reset to their per-row
+                // default each time a dropdown opens (on for listed keys,
+                // off elsewhere). Overlays without one keep whatever the
+                // user last toggled.
+                if (o.defaultOn) {
+                    overlayState[o.name] = o.defaultOn.indexOf(key) !== -1;
+                }
+            });
+            OVERLAYS.forEach(o => {
                 if (o.onlyFor && o.onlyFor.indexOf(key) === -1) return;
                 const btn = document.createElement('button');
                 btn.type = 'button';
@@ -1078,7 +1088,10 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
     const interfaceBlockHandle = initBlock({
         blockId: 'interface-cap-block',
         vars: INTERFACE_VARS,
-        overlays: [],
+        overlays: [
+            { name: 'overlay-dog', label: 'Full Dog' },
+            { name: 'overlay-surface', label: 'Attachment Surface' },
+        ],
         defaultViews: { '*': CHI_VIEW },
         preloadUrls: interfacePreload,
     });
@@ -1163,7 +1176,10 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
         blockId: 'attachment-block',
         vars: ATTACH_VARS,
         overlays: [
-            { name: 'overlay-sphere', label: 'Attachment Point Spheres' },
+            { name: 'overlay-dog', label: 'Full Dog' },
+            { name: 'overlay-surface', label: 'Attachment Surface' },
+            { name: 'overlay-sphere', label: 'Attachment Point Spheres',
+              defaultOn: ['attach-points-drop'] },
         ],
         defaultViews: { '*': CHI_VIEW },
         preloadUrls: attachPreload,
