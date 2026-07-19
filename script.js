@@ -137,6 +137,49 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
     };
     let activeAnimal = 'chi';
     const AP = () => ANIMALS[activeAnimal].prefix;
+
+    // ---- Background model warmer ----
+    // One hidden viewer walks a queue of GLB urls, warming model-viewer's
+    // parsed-model cache so slider scrubbing is instant. Each opened
+    // dropdown queues its full sweep (nearest-to-current values first);
+    // starting a new walk cancels the previous one. Missing files (HEAD
+    // failure) are skipped and remembered.
+    const warmedUrls = new Set();
+    let warmToken = 0;
+    let warmViewer = null;
+    const cancelWarm = () => { warmToken++; };
+    const warmModels = async urls => {
+        const token = ++warmToken;
+        const MV = customElements.get('model-viewer');
+        if (!MV) return;
+        MV.modelCacheSize = Math.max(MV.modelCacheSize || 0, 600);
+        if (!warmViewer) {
+            warmViewer = document.createElement('model-viewer');
+            warmViewer.setAttribute('loading', 'eager');
+            warmViewer.setAttribute('aria-hidden', 'true');
+            warmViewer.style.cssText = 'position:fixed;left:-9999px;top:0;' +
+                'width:2px;height:2px;pointer-events:none;';
+            document.body.appendChild(warmViewer);
+        }
+        for (const url of urls) {
+            if (token !== warmToken) return;
+            if (warmedUrls.has(url)) continue;
+            try {
+                const r = await fetch(url, { method: 'HEAD' });
+                if (!r.ok) { warmedUrls.add(url); continue; }
+            } catch (e) { continue; }
+            if (token !== warmToken) return;
+            warmViewer.setAttribute('src', url);
+            const t0 = Date.now();
+            // `load` never fires for offscreen viewers; poll `loaded`.
+            await new Promise(r => setTimeout(r, 150));
+            while (!warmViewer.loaded && Date.now() - t0 < 20000) {
+                if (token !== warmToken) return;
+                await new Promise(r => setTimeout(r, 100));
+            }
+            warmedUrls.add(url);
+        }
+    };
     // Signed mm values (adjust sliders): n50..n05, 000, p05..p50 keeps
     // filenames fixed-width where a bare minus sign could not.
     const signed2 = v => v < 0 ? 'n' + pad2(-v) : v > 0 ? 'p' + pad2(v) : '000';
@@ -813,6 +856,7 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
 
         const closeAll = () => {
             loadPollToken++;
+            cancelWarm();
             block.querySelectorAll('.ntop-expand.open').forEach(p =>
                 p.classList.remove('open'));
             rows.forEach(r => r.classList.remove('open', 'active'));
@@ -859,6 +903,7 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
                     choices.appendChild(btn);
                 });
                 body.appendChild(choices);
+                warmModels(cfg.options.filter(o => o.file).map(o => o.file));
             } else if (cfg.type === 'grid') {
                 const state = {};
                 cfg.axes.forEach(axis => {
@@ -880,6 +925,12 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
                     Array.from({ length: (cfg.max - cfg.min) / cfg.step + 1 },
                         (_, i) => cfg.min + i * cfg.step);
                 const defIdx = Math.max(0, values.indexOf(cfg.def));
+                // Load this dropdown's whole sweep in the background,
+                // nearest values first, so scrubbing is instant.
+                const warmStart = values[defIdx];
+                warmModels(values.slice()
+                    .sort((x, y) => Math.abs(x - warmStart) - Math.abs(y - warmStart))
+                    .map(cfg.file));
                 const s = makeSlider(cfg.title, 0, values.length - 1, 1,
                     defIdx, cfg.unit, values);
                 const cur = parseInt(rowValueEl.textContent, 10);
@@ -1381,36 +1432,10 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
         referencedUrls.add(mv.getAttribute('src'));
     });
     if (referencedUrls.size < 2) return;
-    customElements.whenDefined('model-viewer').then(async () => {
-        const checks = await Promise.allSettled([...referencedUrls].map(url =>
-            fetch(url, { method: 'HEAD' }).then(r => ({ url, ok: r.ok }))
-        ));
-        const urls = checks
-            .filter(c => c.status === 'fulfilled' && c.value.ok)
-            .map(c => c.value.url);
-        if (urls.length === 0) return;
-        const MV = customElements.get('model-viewer');
-        // Roomy cache so models fetched on demand during slider scrubbing
-        // stay parsed instead of evicting each other.
-        MV.modelCacheSize = Math.max(MV.modelCacheSize || 0, 600);
-        const preloader = document.createElement('model-viewer');
-        preloader.setAttribute('loading', 'eager');
-        preloader.setAttribute('aria-hidden', 'true');
-        preloader.style.cssText =
-            'position:fixed;left:-9999px;top:0;width:2px;height:2px;pointer-events:none;';
-        document.body.appendChild(preloader);
-        // The `load` event never fires for offscreen viewers (it waits for
-        // reveal), so poll the `loaded` property instead.
-        for (const url of urls) {
-            preloader.setAttribute('src', url);
-            const t0 = Date.now();
-            // let the element register the src change before polling
-            await new Promise(r => setTimeout(r, 150));
-            while (!preloader.loaded && Date.now() - t0 < 20000) {
-                await new Promise(r => setTimeout(r, 100));
-            }
-        }
-        preloader.remove();
+    // Warm the per-block default models through the shared warmer; an
+    // opened dropdown's sweep walk supersedes (cancels) this initial pass.
+    customElements.whenDefined('model-viewer').then(() => {
+        warmModels([...referencedUrls]);
     });
 })();
 
