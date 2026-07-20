@@ -648,7 +648,16 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
                 const cfg = OVERLAYS.find(c => c.name === o.name);
                 const allowed = !cfg || !cfg.onlyFor ||
                     cfg.onlyFor.indexOf(openKey) !== -1;
-                o.visible = allowed && !!overlayState[o.name];
+                const on = allowed && !!overlayState[o.name];
+                o.visible = on;
+                // The dog/surface nodes are stored at near-zero scale in
+                // the GLBs so model-viewer's per-load framing ignores them
+                // (full-size hidden meshes made every model swap zoom out
+                // and back). Restore full size while shown, shrink again
+                // when hidden. The sphere is small and stays at scale 1.
+                if (o.name === 'overlay-dog' || o.name === 'overlay-surface') {
+                    o.scale.setScalar(on ? 1 : 1e-6);
+                }
             });
         };
         const reframeAndApplyView = (key, token) => {
