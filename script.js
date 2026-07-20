@@ -898,6 +898,8 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
             // reset. Both are absolute-length format; percentages wedge
             // the camera (see max-camera-orbit note).
             mv.setAttribute('min-camera-orbit', 'auto auto 20m');
+            // Halve wheel/pinch zoom speed (default sensitivity is 1).
+            mv.setAttribute('zoom-sensitivity', '0.5');
             // Without this, every quick click re-targets the camera to the
             // clicked surface point (and a click on the background resets
             // the target and zooms fully out) - which makes the rotation
