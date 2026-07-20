@@ -823,7 +823,17 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
             if (viewer.loaded && current.viewApplied &&
                 typeof viewer.getCameraOrbit === 'function') {
                 try {
-                    const o = viewer.getCameraOrbit();
+                    // Prefer the camera GOAL over the rendered position:
+                    // the rendered camera lags the goal while easing, so
+                    // snapshotting it mid-animation would freeze the view
+                    // a few mm short of where the user is headed.
+                    let o = viewer.getCameraOrbit();
+                    try {
+                        const sym = Object.getOwnPropertySymbols(viewer)
+                            .find(x => String(x.description || '') === 'controls');
+                        const goal = sym && viewer[sym].goalSpherical;
+                        if (goal) o = goal;
+                    } catch (e2) {}
                     const t = viewer.getCameraTarget();
                     const deg = r => r * 180 / Math.PI;
                     viewer.setAttribute('camera-orbit',
@@ -877,6 +887,14 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
             // and WEDGES the camera - orbit writes, captured views, fov,
             // and wheel zoom all silently stop applying.
             mv.setAttribute('max-camera-orbit', 'auto auto 2500m');
+            // Explicit small minimum radius. The 'auto' minimum is
+            // recomputed from each loaded model's bounds, so scrubbing a
+            // slider while zoomed in close could clamp the camera outward
+            // on bigger-bounded steps (an intermittent zoom jump), and
+            // hitting the auto minimum engages fov-zoom, which swaps
+            // reset. Both are absolute-length format; percentages wedge
+            // the camera (see max-camera-orbit note).
+            mv.setAttribute('min-camera-orbit', 'auto auto 20m');
             // Without this, every quick click re-targets the camera to the
             // clicked surface point (and a click on the background resets
             // the target and zooms fully out) - which makes the rotation
