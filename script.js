@@ -674,6 +674,18 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
                 clone.material.transparent = false;
                 clone.material.opacity = 1;
                 clone.material.depthWrite = true;
+                if (name === 'overlay-surface') {
+                    // The surface is an open sheet lying directly on the
+                    // dog's skin: render both faces (visible from inside
+                    // the socket too) and pull it slightly toward the
+                    // camera in depth so it wins cleanly over the
+                    // coplanar dog instead of z-fighting (gray/blue
+                    // shimmer). side 2 = THREE.DoubleSide.
+                    clone.material.side = 2;
+                    clone.material.polygonOffset = true;
+                    clone.material.polygonOffsetFactor = -2;
+                    clone.material.polygonOffsetUnits = -2;
+                }
                 clone.scale.setScalar(1);
                 if (src.parent && src.parent.parent) {
                     clone.quaternion.copy(src.parent.parent.quaternion);
