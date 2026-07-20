@@ -418,7 +418,7 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
     ];
     const dot3 = (a, b) => a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
 
-    const attachGizmo = (viewer, wrapEl, initialOrient) => {
+    const attachGizmo = (viewer, wrapEl, initialOrient, onOrientation) => {
         let qModel = initialOrient ? qFromOrientation(initialOrient) : QID.slice();
         let orientTimer = null;
         const holder = document.createElement('div');
@@ -539,6 +539,7 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
             qModel = q.slice();
             const write = qq => {
                 viewer.setAttribute('orientation', qToOrientation(qq));
+                if (onOrientation) onOrientation(qq);
                 queueGizmo();
             };
             if (!animate) {
@@ -639,31 +640,104 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
                 return sym ? viewer[sym] : null;
             } catch (e) { return null; }
         };
+        // The dog and surface overlays are identical in every GLB, so they
+        // are rendered from ONE persistent clone parented to the scene's
+        // Target container, which survives model swaps - the per-file
+        // copies stay hidden forever. This is what stops the overlay from
+        // blinking during slider scrubs: there is nothing to re-show after
+        // a swap. The Target does not receive the `orientation` attribute
+        // (the swapped model Group does), so the gizmo mirrors its
+        // quaternion onto the clones (syncPersistentOrientation).
+        const PERSIST_OVERLAYS = ['overlay-dog', 'overlay-surface'];
+        const ensurePersistentOverlays = () => {
+            if (!current) return;
+            const scene = getThreeScene(current.viewer);
+            if (!scene) return;
+            const target = scene.getObjectByName('Target');
+            if (!target) return;
+            if (!current.persist) current.persist = {};
+            PERSIST_OVERLAYS.forEach(name => {
+                let src = null;
+                scene.traverse(o => { if (o.isMesh && o.name === name) src = o; });
+                if (current.persist[name]) {
+                    // keep tracking the live model's orientation
+                    if (src && src.parent && src.parent.parent) {
+                        current.persist[name].quaternion.copy(
+                            src.parent.parent.quaternion);
+                    }
+                    return;
+                }
+                if (!src) return;
+                const clone = src.clone();
+                clone.name = 'persist-' + name;
+                clone.material = src.material.clone();
+                clone.material.transparent = false;
+                clone.material.opacity = 1;
+                clone.material.depthWrite = true;
+                clone.scale.setScalar(1);
+                if (src.parent && src.parent.parent) {
+                    clone.quaternion.copy(src.parent.parent.quaternion);
+                }
+                clone.visible = false;
+                target.add(clone);
+                current.persist[name] = clone;
+            });
+        };
+        const syncPersistentOrientation = q => {
+            // q is [w, x, y, z] (the gizmo's model quaternion)
+            if (!current || !current.persist) return;
+            PERSIST_OVERLAYS.forEach(name => {
+                const c = current.persist[name];
+                if (c) c.quaternion.set(q[1], q[2], q[3], q[0]);
+            });
+        };
+        const setPersistentVisibility = hidden => {
+            if (!current || !current.persist) return {};
+            const prev = {};
+            PERSIST_OVERLAYS.forEach(name => {
+                const c = current.persist[name];
+                if (c) { prev[name] = c.visible; if (hidden) c.visible = false; }
+            });
+            return prev;
+        };
         const syncOverlayMeshVisibility = () => {
             if (!current) return;
             const scene = getThreeScene(current.viewer);
             if (!scene) return;
             scene.traverse(o => {
-                if (!o.isMesh || o.name.indexOf('overlay-') !== 0) return;
+                if (!o.isMesh) return;
+                if (o.name.indexOf('persist-overlay-') === 0) {
+                    const name = o.name.replace('persist-', '');
+                    const cfg = OVERLAYS.find(c => c.name === name);
+                    const allowed = !cfg || !cfg.onlyFor ||
+                        cfg.onlyFor.indexOf(openKey) !== -1;
+                    o.visible = allowed && !!overlayState[name];
+                    return;
+                }
+                if (o.name.indexOf('overlay-') !== 0) return;
+                if (PERSIST_OVERLAYS.indexOf(o.name) !== -1) {
+                    // rendered via the persistent clone; the file copy
+                    // stays hidden and tiny so framing ignores it
+                    o.visible = false;
+                    o.scale.setScalar(1e-6);
+                    return;
+                }
                 const cfg = OVERLAYS.find(c => c.name === o.name);
                 const allowed = !cfg || !cfg.onlyFor ||
                     cfg.onlyFor.indexOf(openKey) !== -1;
-                const on = allowed && !!overlayState[o.name];
-                o.visible = on;
-                // The dog/surface nodes are stored at near-zero scale in
-                // the GLBs so model-viewer's per-load framing ignores them
-                // (full-size hidden meshes made every model swap zoom out
-                // and back). Restore full size while shown, shrink again
-                // when hidden. The sphere is small and stays at scale 1.
-                if (o.name === 'overlay-dog' || o.name === 'overlay-surface') {
-                    o.scale.setScalar(on ? 1 : 1e-6);
-                }
+                o.visible = allowed && !!overlayState[o.name];
             });
         };
         const reframeAndApplyView = (key, token) => {
             if (!current || typeof current.viewer.updateFraming !== 'function') return;
             const viewer = current.viewer;
+            const prevVis = setPersistentVisibility(true);
             viewer.updateFraming().then(() => {
+                Object.keys(prevVis).forEach(n => {
+                    if (current && current.persist && current.persist[n]) {
+                        current.persist[n].visible = prevVis[n];
+                    }
+                });
                 if (token !== loadPollToken || !current) return;
                 // Apply the captured view only on the dropdown's FIRST
                 // load. On later loads (slider moves) the user may have
@@ -743,6 +817,7 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
                 if (!viewer.loaded) sawUnloaded = true;
                 if (viewer.loaded && viewer.model &&
                     (sawUnloaded || Date.now() - t0 > 450)) {
+                    ensurePersistentOverlays();
                     applyMatteAndOverlays();
                     updateToggleBar();
                     reframeAndApplyView(current ? current.key : null, token);
@@ -783,6 +858,7 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
             // poll catches up.
             mv.addEventListener('load', () => {
                 if (current && current.viewer === mv) {
+                    ensurePersistentOverlays();
                     applyMatteAndOverlays();
                     updateToggleBar();
                 }
@@ -987,7 +1063,8 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
             wrap.appendChild(viewer);
             body.appendChild(wrap);
             const view = views[key] || (VARS[key] ? views['*'] : null);
-            current.gizmo = attachGizmo(viewer, wrap, view && view.orient);
+            current.gizmo = attachGizmo(viewer, wrap, view && view.orient,
+                syncPersistentOrientation);
 
             const missing = document.createElement('p');
             missing.className = 'ntop-demo-missing';
