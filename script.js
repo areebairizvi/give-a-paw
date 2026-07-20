@@ -776,6 +776,17 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
             // the target and zooms fully out) - which makes the rotation
             // pivot wander and fights shift-drag panning.
             mv.setAttribute('disable-tap', '');
+            // Sync overlay state the moment each model finishes loading -
+            // the 'load' event fires before the new model's first paint,
+            // so a toggled-on overlay (e.g. the full dog) carries across
+            // slider swaps without blinking off while the slower fallback
+            // poll catches up.
+            mv.addEventListener('load', () => {
+                if (current && current.viewer === mv) {
+                    applyMatteAndOverlays();
+                    updateToggleBar();
+                }
+            });
             const view = views[key] || (VARS[key] ? views['*'] : null);
             if (view) {
                 mv.setAttribute('camera-orbit', view.orbit);
