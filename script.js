@@ -812,11 +812,12 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
                     // snapshotting it mid-animation would freeze the view
                     // a few mm short of where the user is headed.
                     let o = viewer.getCameraOrbit();
+                    let ctrls = null;
                     try {
                         const sym = Object.getOwnPropertySymbols(viewer)
                             .find(x => String(x.description || '') === 'controls');
-                        const goal = sym && viewer[sym].goalSpherical;
-                        if (goal) o = goal;
+                        ctrls = sym && viewer[sym];
+                        if (ctrls && ctrls.goalSpherical) o = ctrls.goalSpherical;
                     } catch (e2) {}
                     const t = viewer.getCameraTarget();
                     const deg = r => r * 180 / Math.PI;
@@ -827,6 +828,24 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
                     viewer.setAttribute('camera-target',
                         t.x.toFixed(2) + 'm ' + t.y.toFixed(2) + 'm ' +
                         t.z.toFixed(2) + 'm');
+                    // Wheel zoom changes radius AND field-of-view together
+                    // (SmoothControls.adjustOrbit), so the fov must be
+                    // snapshotted too or a swap re-applies the default fov
+                    // and the view blows back out after zooming in. The
+                    // attribute holds the FRAMING fov; the live goal is the
+                    // aspect-ADJUSTED fov, so invert the adjustment.
+                    try {
+                        const goalFov = Math.exp(ctrls.goalLogFov);
+                        const sc = ctrls.scene;
+                        const k = Math.max(1, sc.idealAspect / sc.aspect);
+                        const D = Math.PI / 180;
+                        const framed = 2 * Math.atan(
+                            Math.tan(goalFov * D / 2) / k) / D;
+                        if (isFinite(framed) && framed > 1) {
+                            viewer.setAttribute('field-of-view',
+                                framed.toFixed(2) + 'deg');
+                        }
+                    } catch (e3) {}
                 } catch (e) {}
             }
             if (viewer.getAttribute('src') !== src) viewer.setAttribute('src', src);
@@ -870,7 +889,7 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
             // MUST be an absolute length: a percentage here fails to parse
             // and WEDGES the camera - orbit writes, captured views, fov,
             // and wheel zoom all silently stop applying.
-            mv.setAttribute('max-camera-orbit', 'auto auto 2500m');
+            mv.setAttribute('max-camera-orbit', 'auto auto 1600m');
             // Explicit small minimum radius. The 'auto' minimum is
             // recomputed from each loaded model's bounds, so scrubbing a
             // slider while zoomed in close could clamp the camera outward
