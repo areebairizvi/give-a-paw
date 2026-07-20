@@ -727,6 +727,12 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
                     cfg.onlyFor.indexOf(openKey) !== -1;
                 o.visible = allowed && !!overlayState[o.name];
             });
+            // The contact shadow's ground plane sits at the bottom of the
+            // LOADED model (the socket), so with the full dog shown it
+            // hovers mid-air halfway up the dog - fade it out while the
+            // dog overlay is visible.
+            current.viewer.setAttribute('shadow-intensity',
+                overlayState['overlay-dog'] ? '0' : '1');
         };
         const reframeAndApplyView = (key, token) => {
             if (!current || typeof current.viewer.updateFraming !== 'function') return;
