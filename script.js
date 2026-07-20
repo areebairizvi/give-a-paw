@@ -742,6 +742,14 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
             // (e.g. Pelvic Thickness).
             if (current.viewApplied) return;
             const viewer = current.viewer;
+            current.viewApplied = true;
+            // The captured view is set as attributes at viewer creation and
+            // applies cleanly at load now that overlay meshes no longer
+            // inflate the file's framing bounds - re-applying it here (the
+            // old remove-then-set dance) showed the default camera for a
+            // visible instant on every dropdown open. Only refresh the
+            // framing itself, with the persistent overlay clones hidden so
+            // they never enter the bounds.
             const prevVis = setPersistentVisibility(true);
             viewer.updateFraming().then(() => {
                 Object.keys(prevVis).forEach(n => {
@@ -749,30 +757,6 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
                         current.persist[n].visible = prevVis[n];
                     }
                 });
-                if (token !== loadPollToken || !current) return;
-                // Apply the captured view only on the dropdown's FIRST
-                // load. On later loads (slider moves) the user may have
-                // rotated/zoomed, and the camera state persists across src
-                // swaps on the same viewer - rewriting the attributes here
-                // would snap their view back (a visible twitch after every
-                // slider step).
-                if (current.viewApplied) return;
-                current.viewApplied = true;
-                const view = views[key] || (VARS[key] ? views['*'] : null);
-                if (!view) return;
-                // Force re-application. The attributes may already hold
-                // these exact values while the camera goals were clamped
-                // under the pre-reframe bounds. Remove and re-set must be
-                // in SEPARATE ticks: LitElement batches same-tick attribute
-                // mutations and drops the pair as a no-op change.
-                const attrs = [['camera-orbit', view.orbit],
-                    ['camera-target', view.target],
-                    ['field-of-view', view.fov]].filter(p => p[1]);
-                attrs.forEach(p => viewer.removeAttribute(p[0]));
-                setTimeout(() => {
-                    if (token !== loadPollToken || !current) return;
-                    attrs.forEach(p => viewer.setAttribute(p[0], p[1]));
-                }, 50);
             }).catch(() => {});
         };
         // Matte plus overlay visibility for the current viewer. The global
