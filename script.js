@@ -730,6 +730,11 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
         };
         const reframeAndApplyView = (key, token) => {
             if (!current || typeof current.viewer.updateFraming !== 'function') return;
+            // Only on the dropdown's first load. Re-running per slider step
+            // rescales fov/limits against each step's bounds, which shows
+            // up as a zoom shift on sweeps whose geometry changes size
+            // (e.g. Pelvic Thickness).
+            if (current.viewApplied) return;
             const viewer = current.viewer;
             const prevVis = setPersistentVisibility(true);
             viewer.updateFraming().then(() => {
@@ -804,6 +809,26 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
             if (!current) return;
             const viewer = current.viewer;
             if (current.missing) current.missing.hidden = true;
+            // model-viewer re-evaluates the camera ATTRIBUTES on every
+            // model load, but interactive orbit/zoom lives only in internal
+            // state - so a swap would snap the camera back to the stale
+            // attribute values. Write the live camera into the attributes
+            // first, so the re-application lands exactly where the user is.
+            if (viewer.loaded && current.viewApplied &&
+                typeof viewer.getCameraOrbit === 'function') {
+                try {
+                    const o = viewer.getCameraOrbit();
+                    const t = viewer.getCameraTarget();
+                    const deg = r => r * 180 / Math.PI;
+                    viewer.setAttribute('camera-orbit',
+                        deg(o.theta).toFixed(2) + 'deg ' +
+                        deg(o.phi).toFixed(2) + 'deg ' +
+                        o.radius.toFixed(1) + 'm');
+                    viewer.setAttribute('camera-target',
+                        t.x.toFixed(2) + 'm ' + t.y.toFixed(2) + 'm ' +
+                        t.z.toFixed(2) + 'm');
+                } catch (e) {}
+            }
             if (viewer.getAttribute('src') !== src) viewer.setAttribute('src', src);
             // Two-phase wait: `loaded` can still be true for the OLD model
             // right after a src change, so wait to observe it drop before
