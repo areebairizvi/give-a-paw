@@ -656,6 +656,14 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
             const viewer = current.viewer;
             viewer.updateFraming().then(() => {
                 if (token !== loadPollToken || !current) return;
+                // Apply the captured view only on the dropdown's FIRST
+                // load. On later loads (slider moves) the user may have
+                // rotated/zoomed, and the camera state persists across src
+                // swaps on the same viewer - rewriting the attributes here
+                // would snap their view back (a visible twitch after every
+                // slider step).
+                if (current.viewApplied) return;
+                current.viewApplied = true;
                 const view = views[key] || (VARS[key] ? views['*'] : null);
                 if (!view) return;
                 // Force re-application. The attributes may already hold
@@ -882,7 +890,7 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
             body.appendChild(desc);
 
             const viewer = makeViewer(key);
-            current = { key, viewer, bar: null, missing: null, gizmo: null };
+            current = { key, viewer, bar: null, missing: null, gizmo: null, viewApplied: false };
 
             if (MESH_VARS[key]) {
                 const choices = document.createElement('div');
