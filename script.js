@@ -1565,7 +1565,7 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
             title: 'Current Design',
             desc: 'The July 2026 state of the design: the generated socket, with toggles to layer the cleaned solid scan and the mapped attachment area.',
             options: [
-                { label: 'July 2026', file: 'ollie-progress.glb' },
+                { label: 'Prosthetic Socket', file: 'ollie-progress.glb' },
             ],
         },
         'ollie-paw': {
@@ -1581,10 +1581,16 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
         vars: {},
         meshVars: OLLIE_MESH_VARS,
         overlays: [
-            { name: 'overlay-dog', label: 'Solid Animal' },
-            { name: 'overlay-surface', label: 'Attachment Area' },
+            { name: 'overlay-socket', label: 'Prosthetic Socket',
+              onlyFor: ['ollie-progress'], defaultOn: ['ollie-progress'] },
+            { name: 'overlay-dog', label: 'Solid Animal',
+              onlyFor: ['ollie-progress'] },
+            { name: 'overlay-surface', label: 'Attachment Area',
+              onlyFor: ['ollie-progress'] },
         ],
-        defaultViews: {},
+        defaultViews: {
+            'ollie-progress': { orbit: '2.6deg 177.4deg 491.9m', target: '0.0m -0.0m 0.0m', fov: '30.0deg', orient: '179.99deg -0.23deg 2.60deg' },
+        },
         autoOpen: 'ollie-progress',
         preloadUrls: ['ollie-progress.glb'],
     });
