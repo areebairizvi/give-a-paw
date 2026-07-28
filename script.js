@@ -1555,6 +1555,40 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
         preloadUrls: pawPreload,
     });
 
+    // ---- Ollie progress block (ollie-case-study.html) ----
+    // Single bundled model: the socket as the base mesh with the solid
+    // animal scan and attachment area as overlays, so they can be layered
+    // together like the socket-creation demos. Capture a default view with
+    // ollie-case-study.html?dev=1 and paste it into defaultViews here.
+    const OLLIE_MESH_VARS = {
+        'ollie-progress': {
+            title: 'Current Design',
+            desc: 'The July 2026 state of the design: the generated socket, with toggles to layer the cleaned solid scan and the mapped attachment area.',
+            options: [
+                { label: 'July 2026', file: 'ollie-progress.glb' },
+            ],
+        },
+        'ollie-paw': {
+            title: 'Paw Lattice',
+            desc: 'The hexagonal honeycomb paw generated for Ollie (July 4 export), preserved at a higher face budget so the fine lattice detail survives.',
+            options: [
+                { label: 'Hexagonal Honeycomb', file: 'ollie-paw.glb' },
+            ],
+        },
+    };
+    initBlock({
+        blockId: 'ollie-progress-block',
+        vars: {},
+        meshVars: OLLIE_MESH_VARS,
+        overlays: [
+            { name: 'overlay-dog', label: 'Solid Animal' },
+            { name: 'overlay-surface', label: 'Attachment Area' },
+        ],
+        defaultViews: {},
+        autoOpen: 'ollie-progress',
+        preloadUrls: ['ollie-progress.glb'],
+    });
+
     // ---- Animal selector wiring ----
     // Buttons live in #animal-select on the socket-creation page. Switching
     // animals closes every open dropdown (so the next open rebuilds its

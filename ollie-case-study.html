@@ -85,25 +85,31 @@
                 </section>
                 <section id="progress-update">
                     <h2>Progress Update<a class="headerlink" href="#progress-update" title="Permalink to this heading">¶</a></h2>
-                    <p><em>July 2026.</em> The design has reached the socket stage: Ollie's residual limb has been scanned and cleaned, the attachment area on the chest and leg has been mapped, and the first socket has been generated around the scan. The three current components are shown below; tap a tab to swap between them.</p>
-                    <figure class="model-viewer-figure">
-                        <div class="model-toggle" role="tablist" aria-label="Progress update component">
-                            <button type="button" class="model-toggle-btn active" data-model="ollie-socket.glb">Socket</button>
-                            <button type="button" class="model-toggle-btn" data-model="ollie-solid-animal.glb">Solid Animal</button>
-                            <button type="button" class="model-toggle-btn" data-model="ollie-attachment-surface.glb">Attachment Area</button>
+                    <p><em>July 2026.</em> The design has reached the socket stage: Ollie's residual limb has been scanned and cleaned, the attachment area on the chest and leg has been mapped, and the first socket has been generated around the scan. Use the toggles to layer the solid animal scan and the attachment area over the socket; drag to rotate, scroll to zoom, and use the view cube to snap the orientation.</p>
+                    <div class="accordion-wrap">
+                        <div class="ntop-block" id="ollie-progress-block">
+                            <div class="ntop-block-title">
+                                <span class="ntop-block-arrow" aria-hidden="true">&#9662;</span>
+                                <span class="ntop-block-name">Ollie - Current Design</span>
+                            </div>
+                            <button type="button" class="ntop-block-row" data-key="ollie-progress">
+                                <span class="ntop-row-badge" aria-hidden="true">mesh</span>
+                                <span class="ntop-row-label">Progress:</span>
+                                <span class="ntop-row-value" data-value>July 2026</span>
+                                <span class="ntop-row-unit"></span>
+                                <span class="ntop-row-caret" aria-hidden="true">&#9662;</span>
+                            </button>
+                            <div class="ntop-expand" data-expand="ollie-progress"><div class="ntop-expand-inner"><div class="ntop-expand-body"></div></div></div>
+                            <button type="button" class="ntop-block-row" data-key="ollie-paw">
+                                <span class="ntop-row-badge" aria-hidden="true">mesh</span>
+                                <span class="ntop-row-label">Paw Lattice:</span>
+                                <span class="ntop-row-value" data-value>Hexagonal Honeycomb</span>
+                                <span class="ntop-row-unit"></span>
+                                <span class="ntop-row-caret" aria-hidden="true">&#9662;</span>
+                            </button>
+                            <div class="ntop-expand" data-expand="ollie-paw"><div class="ntop-expand-inner"><div class="ntop-expand-body"></div></div></div>
                         </div>
-                        <model-viewer src="ollie-socket.glb"
-                                      alt="Interactive 3D model of Ollie's current design progress"
-                                      camera-controls
-                                      touch-action="pan-y"
-                                      shadow-intensity="1"
-                                      shadow-softness="0.7"
-                                      exposure="0.85"
-                                      tone-mapping="neutral"
-                                      environment-image="model-env.png"
-                                      ar></model-viewer>
-                        <figcaption>Interactive 3D model &mdash; tap a tab to swap component, drag to rotate, scroll to zoom.</figcaption>
-                    </figure>
+                    </div>
                 </section>
                 <section id="files">
                     <h2>Files<a class="headerlink" href="#files" title="Permalink to this heading">¶</a></h2>
@@ -234,6 +240,6 @@
         <span></span>
         <span></span>
     </button>
-    <script src="script.js"></script>
+    <script src="script.js?v=45"></script>
 </body>
 </html>
