@@ -1825,9 +1825,21 @@ body.wide .content {
     border-color: #002676;
 }
 
+/* The quiz is a diagram-first page rather than a reading page, so on large
+   monitors it keeps growing past the 1200px prose cap the rest of the site
+   uses. Scoped to pages that actually contain a quiz so nothing else moves. */
+@media (min-width: 1500px) {
+    body.wide .content:has(.anatomy-quiz) {
+        max-width: 1440px;
+    }
+}
+
+/* The skeleton is the point of the page, so the figure takes every pixel
+   the answer panel does not need: the panel is capped at a comfortable
+   reading width and the figure absorbs the rest. */
 .anatomy-quiz {
     display: grid;
-    grid-template-columns: 1.3fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
     gap: 1.5rem;
     align-items: start;
     border: 1px solid var(--color-border);
@@ -1871,10 +1883,16 @@ body.wide .content {
     user-select: none;
 }
 
+/* width:auto/height:auto keeps the browser's aspect-preserving fit, which
+   matters because the three quiz images differ wildly in shape (the dog is
+   landscape, the limb and human skeletons are tall). Whichever of the two
+   maxima binds, the frame still shrink-wraps the rendered image exactly -
+   the overlay is inset:0 on that frame and markers are percentages of it,
+   so any letterboxing here would misplace every highlight and pin. */
 .quiz-figure-frame img {
     display: block;
     max-width: 100%;
-    max-height: 68vh;
+    max-height: 78vh;
     width: auto;
     height: auto;
 }
@@ -1951,6 +1969,13 @@ body.wide .content {
 #quiz-hover[d=""] { display: none; }
 
 /* ---- Type mode ---- */
+/* `display` on an id selector outranks the UA rule for [hidden], so these
+   panels must opt out explicitly or they show in every mode. */
+#quiz-answer-form[hidden],
+#quiz-match[hidden] {
+    display: none;
+}
+
 #quiz-answer-form {
     display: flex;
     gap: 0.5rem;
@@ -2435,6 +2460,80 @@ body.wide .content {
 
 @media (max-width: 768px) {
     .anatomy-quiz {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+        padding: 0.75rem;
+    }
+
+    /* Reclaim the page gutters: on a phone the skeleton needs every pixel,
+       and the quiz is the whole reason for the page. */
+    body.wide .content {
+        padding-left: 0.85rem;
+        padding-right: 0.85rem;
+    }
+
+    /* Full-bleed the figure to the card edges: the dog is a landscape image
+       on a portrait screen, so width is the binding constraint and every
+       gutter pixel is one the skeleton does not get. */
+    .quiz-figure {
+        margin-left: -0.75rem;
+        margin-right: -0.75rem;
+        border-radius: 0;
+    }
+
+    .quiz-figure-frame img {
+        max-height: 58vh;
+    }
+
+    .quiz-tabs {
+        gap: 0.35rem;
+        margin-bottom: 0.9rem;
+    }
+
+    .quiz-tab {
+        padding: 0.45rem 0.7rem;
+        font-size: 0.82rem;
+    }
+
+    .quiz-modes .quiz-tab {
+        font-size: 0.82rem;
+    }
+
+    /* the row labels would eat a whole line on a narrow screen */
+    .quiz-bar-label {
+        flex-basis: 100%;
+        min-width: 0;
+        margin-bottom: 0.1rem;
+    }
+
+    .quiz-parts {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.3rem 0.6rem;
+    }
+
+    .quiz-part {
+        font-size: 0.85rem;
+    }
+
+    .quiz-custom-help,
+    .quiz-custom-actions,
+    .quiz-parts,
+    .quiz-link-row {
+        margin-left: 0.85rem;
+        margin-right: 0.85rem;
+    }
+
+    .quiz-link-row {
+        flex-wrap: wrap;
+    }
+
+    #quiz-link {
+        flex-basis: 100%;
+    }
+}
+
+@media (max-width: 420px) {
+    .quiz-parts {
         grid-template-columns: 1fr;
     }
 }
