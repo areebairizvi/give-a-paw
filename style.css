@@ -332,6 +332,82 @@ footer {
     margin-bottom: 0.5rem;
 }
 
+.footer-attrib {
+    max-width: 62ch;
+    margin: 0.75rem auto 0;
+    font-size: 0.82rem;
+    line-height: 1.55;
+    color: #7a8592;
+}
+
+/* Shown in place of a 3D figure whose component meshes are not exported yet */
+.model-pending-note {
+    background: #f8f9fa;
+    border: 1px dashed var(--color-border);
+    border-radius: 6px;
+    padding: 1.5rem;
+    text-align: center;
+    color: var(--color-text-light);
+    font-size: 0.95rem;
+    margin: 1.5rem 0 2rem;
+}
+
+/* Download entries whose file is not published yet */
+.download-files li.pending {
+    color: var(--color-text-light);
+    font-style: italic;
+}
+
+.download-files li.pending::after {
+    content: "coming soon";
+    display: inline-block;
+    margin-left: 0.5rem;
+    padding: 0.05rem 0.4rem;
+    border: 1px solid var(--color-border);
+    border-radius: 3px;
+    background: #f8f9fa;
+    color: #7a8592;
+    font-style: normal;
+    font-size: 0.72rem;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    vertical-align: 1px;
+}
+
+/* ===== CREDITS PAGE ===== */
+.credit-entry {
+    border-left: 3px solid var(--color-primary);
+    background: #f8f9fa;
+    border-radius: 0 6px 6px 0;
+    padding: 1.25rem 1.5rem;
+    margin-bottom: 1.75rem;
+}
+
+.credit-entry h3 {
+    margin-top: 0;
+    margin-bottom: 0.5rem;
+}
+
+.credit-use,
+.credit-license {
+    margin-bottom: 0.75rem;
+}
+
+.credit-string {
+    margin: 0;
+    padding: 0.85rem 1rem;
+    background: #fff;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    font-size: 0.88rem;
+    line-height: 1.6;
+    word-break: break-word;
+}
+
+.credit-string p {
+    margin: 0;
+}
+
 /* ===== MOBILE MENU ===== */
 .mobile-toggle {
     display: flex;
@@ -579,6 +655,32 @@ blockquote footer {
     text-decoration: none;
 }
 
+.hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1.25rem;
+}
+
+.hero-cta-secondary {
+    display: inline-block;
+    color: #fff;
+    font-weight: 700;
+    padding: 0.85rem 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    border-radius: 4px;
+    text-decoration: none;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.hero-cta-secondary:hover,
+.hero-cta-secondary:focus-visible {
+    background: rgba(255, 255, 255, 0.14);
+    border-color: #fff;
+    color: #fff;
+    text-decoration: none;
+}
+
 /* ---- Patient conveyor ---- */
 .patients {
     padding: 4rem 0;
@@ -652,6 +754,62 @@ blockquote footer {
 .patient-card:hover .patient-cta,
 .patient-card:focus-visible .patient-cta {
     opacity: 1;
+}
+
+.patient-badge {
+    position: absolute;
+    top: 0.5rem;
+    left: 0.5rem;
+    z-index: 1;
+    background: var(--color-primary);
+    color: #003262;
+    font-family: var(--font-heading);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.5rem;
+    border-radius: 3px;
+    box-shadow: 0 1px 4px rgba(1, 1, 51, 0.25);
+}
+
+/* ---- Design playground teaser ---- */
+.playground {
+    background: #eef2f6;
+    padding: 4rem 0;
+}
+
+.playground .accordion-wrap {
+    margin-top: 0;
+}
+
+.playground-cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.5rem 1rem;
+    margin-top: 1.5rem;
+}
+
+.playground-cta {
+    font-family: var(--font-heading);
+    font-weight: 700;
+    color: #002676;
+    text-decoration: none;
+    border-bottom: 2px solid var(--color-primary);
+    padding-bottom: 1px;
+}
+
+.playground-cta:hover,
+.playground-cta:focus-visible {
+    color: #003262;
+    border-bottom-color: #003262;
+    text-decoration: none;
+}
+
+.playground-note {
+    color: var(--color-text-light);
+    font-size: 0.95rem;
 }
 
 /* ---- Process 3-column ---- */
@@ -1745,6 +1903,208 @@ body.wide .content {
 @keyframes quiz-hl-pulse {
     0%, 100% { fill-opacity: 0.22; }
     50% { fill-opacity: 0.44; }
+}
+
+/* Answer-state recolors of the highlight (type and click modes) */
+#quiz-highlight.quiz-hl-correct {
+    fill: rgba(46, 125, 50, 0.30);
+    stroke: #2e7d32;
+    animation: none;
+}
+
+#quiz-highlight.quiz-hl-wrong {
+    fill: rgba(176, 32, 32, 0.26);
+    stroke: #b02020;
+    animation: none;
+}
+
+/* ---- Mode bar ---- */
+.quiz-modes { margin-top: -0.5rem; }
+
+.quiz-modes .quiz-tab { font-size: 0.88rem; }
+
+.quiz-bar-label {
+    align-self: center;
+    min-width: 3.2rem;
+    font-family: var(--font-heading);
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-text-light);
+}
+
+/* ---- Find & click mode ---- */
+.quiz-figure-frame.quiz-clickable { cursor: crosshair; }
+
+/* Hover preview of the part under the cursor (find & click mode) */
+#quiz-hover {
+    fill: rgba(0, 38, 118, 0.13);
+    stroke: rgba(0, 38, 118, 0.55);
+    stroke-width: 1.5;
+    stroke-dasharray: 4 3;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+    pointer-events: none;
+}
+
+#quiz-hover[d=""] { display: none; }
+
+/* ---- Type mode ---- */
+#quiz-answer-form {
+    display: flex;
+    gap: 0.5rem;
+    margin: 0.75rem 0;
+}
+
+#quiz-answer-input {
+    flex: 1;
+    min-width: 0;
+    padding: 0.6rem 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    font: inherit;
+}
+
+#quiz-answer-input:focus-visible {
+    outline: 2px solid #002676;
+    outline-offset: 1px;
+}
+
+/* ---- Match mode ---- */
+#quiz-pins {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.quiz-pin {
+    position: absolute;
+    transform: translate(-50%, -50%);
+    width: 1.7rem;
+    height: 1.7rem;
+    border-radius: 50%;
+    border: 2px solid #002676;
+    background: #fff;
+    color: #002676;
+    font-family: var(--font-heading);
+    font-weight: 700;
+    font-size: 0.85rem;
+    line-height: 1;
+    cursor: pointer;
+    pointer-events: auto;
+    box-shadow: 0 1px 5px rgba(1, 1, 51, 0.35);
+}
+
+.quiz-pin:hover { background: #eef2fb; }
+
+.quiz-pin.sel {
+    background: #002676;
+    color: #fff;
+}
+
+.quiz-pin.paired { border-style: dashed; }
+
+.quiz-pin.ok {
+    background: #2e7d32;
+    border-color: #2e7d32;
+    color: #fff;
+}
+
+.quiz-pin.bad {
+    background: #b02020;
+    border-color: #b02020;
+    color: #fff;
+}
+
+#quiz-match {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+.quiz-match-name { text-align: left; }
+
+.quiz-match-name.sel { outline: 2px solid #002676; }
+
+.quiz-match-slot {
+    display: inline-block;
+    min-width: 1.5rem;
+    padding: 0.05rem 0.2rem;
+    margin-right: 0.5rem;
+    border: 1px dashed var(--color-border);
+    border-radius: 4px;
+    text-align: center;
+    font-family: var(--font-heading);
+    font-weight: 700;
+    color: #002676;
+}
+
+/* ---- Customize panel ---- */
+.quiz-custom {
+    max-width: 1100px;
+    margin: 1.5rem 0;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    background: #f8f9fa;
+    padding: 0;
+}
+
+.quiz-custom summary {
+    cursor: pointer;
+    padding: 0.9rem 1.25rem;
+    font-family: var(--font-heading);
+    font-weight: 700;
+    color: #002676;
+}
+
+.quiz-custom[open] summary { border-bottom: 1px solid var(--color-border); }
+
+.quiz-custom-help,
+.quiz-custom-actions,
+.quiz-parts,
+.quiz-link-row { margin: 0.9rem 1.25rem; }
+
+.quiz-custom-help {
+    color: var(--color-text-light);
+    font-size: 0.92rem;
+}
+
+.quiz-custom-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.quiz-parts {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 0.35rem 1rem;
+}
+
+.quiz-part {
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    font-size: 0.92rem;
+    cursor: pointer;
+}
+
+.quiz-link-row {
+    display: flex;
+    gap: 0.5rem;
+}
+
+#quiz-link {
+    flex: 1;
+    min-width: 0;
+    padding: 0.5rem 0.7rem;
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    font-family: 'Consolas', monospace;
+    font-size: 0.8rem;
+    color: var(--color-text-light);
+    background: #fff;
 }
 
 /* Shape tracing editor (?dev=1) */

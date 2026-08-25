@@ -91,12 +91,20 @@ document.querySelectorAll('.carousel').forEach(carousel => {
     goTo(0);
 });
 
-// 3D model variant toggle
+// 3D model variant toggle.
+// Component GLBs are exported per animal over the course of a build, so a
+// case study routinely lists components whose mesh has not been converted
+// yet. Rather than render a dead viewer, each button's file is HEAD-checked
+// once on load: unavailable components are removed from the tab strip, the
+// viewer opens on the first component that does exist, and a figure with
+// nothing available collapses to a short note. New GLBs therefore light up
+// their tabs the moment they are committed, with no HTML edit.
 document.querySelectorAll('.model-toggle').forEach(toggle => {
     const figure = toggle.closest('.model-viewer-figure');
     const viewer = figure && figure.querySelector('model-viewer');
     if (!viewer) return;
     const buttons = [...toggle.querySelectorAll('.model-toggle-btn')];
+
     buttons.forEach(btn => {
         btn.addEventListener('click', () => {
             const src = btn.getAttribute('data-model');
@@ -105,6 +113,35 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
             buttons.forEach(b => b.classList.toggle('active', b === btn));
         });
     });
+
+    const exists = url => fetch(url, { method: 'HEAD' })
+        .then(r => r.ok).catch(() => false);
+
+    Promise.all(buttons.map(btn => exists(btn.getAttribute('data-model'))))
+        .then(results => {
+            const available = buttons.filter((btn, i) => results[i]);
+            buttons.forEach((btn, i) => {
+                if (!results[i]) btn.remove();
+            });
+            if (!available.length) {
+                // Nothing to show: drop the viewer rather than leave an
+                // empty canvas, and say plainly what is missing.
+                const note = document.createElement('p');
+                note.className = 'model-pending-note';
+                note.textContent = 'Interactive models for this build are ' +
+                    'still being prepared and will appear here once they ' +
+                    'are exported.';
+                figure.replaceChildren(note);
+                return;
+            }
+            if (available.length === 1) toggle.hidden = true;
+            const currentSrc = viewer.getAttribute('src');
+            if (!available.some(b => b.getAttribute('data-model') === currentSrc)) {
+                const first = available[0];
+                viewer.setAttribute('src', first.getAttribute('data-model'));
+                available.forEach(b => b.classList.toggle('active', b === first));
+            }
+        });
 });
 
 // Interactive nTop block accordions (socket creation and paw pages): the
@@ -1595,6 +1632,37 @@ document.querySelectorAll('.model-toggle').forEach(toggle => {
         preloadUrls: ['ollie-progress.glb'],
     });
 
+    // ---- Home page teaser block (index.html) ----
+    // A two-row taste of the socket-creation page. Deliberately pinned to
+    // the Chihuahua namespace rather than AP(): the home page has no animal
+    // selector, so the filenames must not depend on selector state. Nothing
+    // is preloaded beyond the auto-opened row's default model - the home
+    // page budget is the hero viewer plus this one.
+    const HOME_VARS = {
+        'home-point-count': {
+            title: 'Lattice Point Count',
+            type: 'slider',
+            values: POINT_COUNTS, def: 100, unit: '',
+            file: v => 'ntop-chi-pointcount-' + pad3(v) + '.glb',
+            desc: 'Controls how densely the lattice is sampled across the socket. A low count gives a sparse, open structure that flexes freely; a high count gives a finer, stiffer mesh that spreads load over more contact area.',
+        },
+        'home-max-thickness': {
+            title: 'Max Socket Thickness',
+            type: 'slider',
+            min: 0, max: 20, step: 2, def: 8, unit: 'mm',
+            file: v => 'ntop-chi-maxthick-' + pad2(v) + '.glb',
+            desc: 'Sets the upper limit on the socket wall thickness. Thicker walls are stronger and heavier; the design balances the two against the weight of the animal.',
+        },
+    };
+    initBlock({
+        blockId: 'home-demo-block',
+        vars: HOME_VARS,
+        overlays: [],
+        defaultViews: { '*': CHI_VIEW },
+        autoOpen: 'home-point-count',
+        preloadUrls: [],
+    });
+
     // ---- Animal selector wiring ----
     // Buttons live in #animal-select on the socket-creation page. Switching
     // animals closes every open dropdown (so the next open rebuilds its
@@ -1682,21 +1750,33 @@ document.querySelectorAll('model-viewer').forEach(mv => {
         'bones': {
             image: 'anatomy-dog-skeleton.svg', noun: 'bone',
             items: [
-                { name: 'Cranium (skull)', x: 20.5, y: 27.5 },
-                { name: 'Mandible', x: 18.5, y: 35.0 },
-                { name: 'Atlas', x: 28.5, y: 33.0 },
-                { name: 'Scapula', x: 39.0, y: 38.0 },
-                { name: 'Humerus', x: 41.0, y: 46.5 },
-                { name: 'Radius', x: 40.5, y: 66.0 },
-                { name: 'Carpal bones', x: 36.0, y: 81.0 },
-                { name: 'Ribs', x: 52.0, y: 44.0 },
-                { name: 'Sternum', x: 44.5, y: 59.0 },
-                { name: 'Pelvis', x: 72.0, y: 42.0 },
-                { name: 'Femur', x: 71.0, y: 52.0 },
-                { name: 'Patella', x: 69.0, y: 57.5 },
-                { name: 'Tibia', x: 76.0, y: 62.0 },
-                { name: 'Calcaneus', x: 80.0, y: 73.0 },
-                { name: 'Caudal vertebrae (tail)', x: 88.0, y: 18.0 },
+                { name: 'Cranium (skull)', x: 20.5, y: 27.5, smooth: 0.55, points: [[25.1, 30.3], [23.9, 30.9], [24, 29.5], [21.7, 28.5], [20.2, 32], [15.3, 31.8], [13.9, 32.4], [15.1, 29.2], [17.8, 26.9], [20.7, 22.8], [24.5, 22.1], [27.6, 23.5], [26.5, 30.2], [24.8, 30.5]] },
+                { name: 'Mandible', x: 18.5, y: 35, smooth: 0.55, points: [[22.1, 27.3], [22.6, 26.8], [23.1, 27.5], [22.1, 27.3], [20.5, 32.8], [14.5, 34.5], [17.3, 36], [20.9, 35.7], [24.4, 32.3], [23.6, 31.1], [24, 29.6], [21.9, 28.5], [21.6, 29.8]] },
+                { name: 'Atlas', x: 27.5, y: 30.5, smooth: 0.55, points: [[27, 32.1], [26.8, 28.5], [27.2, 32.7], [28.3, 32.5], [28.6, 30.8], [27.7, 28.4], [27, 28.3]] },
+                { name: 'Axis', x: 29.2, y: 31.2, smooth: 0.55, points: [[28.2, 29.3], [29, 30.7], [28.2, 29.2], [28.8, 28.8], [31.4, 32], [30.6, 34.4], [29.6, 34.1], [28.4, 32.5], [28.2, 29.4]] },
+                { name: 'Cervical vertebrae', x: 32.8, y: 36.7, smooth: 0.65, points: [[26.6, 32.7], [28.5, 34.3], [30.1, 36.2], [31.6, 38.3], [33.2, 40.2], [34.8, 41.7], [36.4, 42.6], [37.6, 38.1], [36.4, 37.4], [35.2, 36.4], [33.9, 34.8], [32.4, 32.6], [30.4, 30.3], [28.3, 28.6]] },
+                { name: 'Scapula', x: 39, y: 38, smooth: 0.55, points: [[37.7, 46.6], [36.4, 46.7], [37.3, 39.1], [39.9, 35.1], [41.6, 34.8], [43.6, 40.5], [40.3, 43.6], [39, 47]] },
+                { name: 'Humerus', x: 38.8, y: 54.2, smooth: 0.55, points: [[40.1, 59.2], [39.2, 59.5], [39.4, 61], [41, 61.4], [41.4, 57.4], [38.1, 51], [37.9, 49], [38.8, 47.2], [36.3, 46.6], [35.6, 49.7]] },
+                { name: 'Radius', x: 39.1, y: 69.2, smooth: 0.55, points: [[38, 74.6], [38.3, 75.4], [38.9, 75.1], [39.4, 66.4], [40.5, 62.5], [39.5, 61.3]] },
+                { name: 'Ulna', x: 40.7, y: 65.2, smooth: 0.55, points: [[38.9, 75.3], [39.7, 75.2], [39.7, 69.9], [42.8, 59.2], [42.5, 57.8], [41, 58.1], [41.4, 60.4], [39.5, 65.8]] },
+                { name: 'Carpal bones', x: 38.9, y: 76.1, smooth: 0.5, points: [[37.4, 76.8], [37.9, 75.1], [39.9, 74.7], [40.6, 75.5], [39.7, 77.2], [37.9, 77.3]] },
+                { name: 'Metacarpal bones', x: 38.2, y: 79.3, smooth: 0.5, points: [[36.3, 82.9], [37.6, 76.7], [39.2, 76.4], [39.7, 77], [38.4, 83.3]] },
+                { name: 'Phalanges (front paw)', x: 35.3, y: 84.8, smooth: 0.5, points: [[32.7, 84.9], [33.2, 84.2], [35.5, 82.9], [38.3, 82.9], [38.4, 83.2], [36.9, 86.6], [34.4, 87], [32.8, 86.3]] },
+                { name: 'Thoracic vertebrae', x: 53.1, y: 37.1, smooth: 0.65, points: [[42.3, 38.4], [44.8, 40.3], [46.4, 40.6], [60.1, 38.5], [59.6, 37.9], [59.5, 36.6], [62.2, 38.7], [62.4, 35.9], [61.2, 34.4], [59.8, 34.1], [46.5, 36.2], [45.6, 36.1], [44.1, 34.8]] },
+                { name: 'Lumbar vertebrae', x: 63.9, y: 38.2, smooth: 0.65, points: [[62.8, 39.9], [63.6, 38.9], [64, 38.5], [63.7, 37.8], [64.1, 36.1], [63.5, 36.3], [64.3, 40.1], [65.5, 39.5], [66.4, 36.6], [65, 34.7], [63.3, 34.6], [61.9, 35.6], [60.9, 36.9]] },
+                { name: 'Ribs', x: 52, y: 44, smooth: 0.5, points: [[37.6, 49.7], [40.4, 43], [44.6, 39.7], [49.4, 38.1], [54.6, 37.6], [57.3, 40.2], [58.7, 44.3], [58.2, 46.3], [54.5, 51.6], [50.6, 55.3], [47.4, 56.4], [44.4, 56.6], [40.8, 55], [38.7, 52.8]] },
+                { name: 'Sternum', x: 42.4, y: 55.3, smooth: 0.65, points: [[34.9, 48.7], [37.2, 51.4], [39, 53.5], [40.6, 55], [42.3, 56.1], [44.3, 56.8], [46.5, 56.8], [48.8, 56.4], [50.9, 55.7], [50.6, 53.6], [48.5, 54.2], [46.4, 54.6], [44.5, 54.6], [42.8, 54.1], [41.4, 53.1], [40, 51.8], [38.2, 49.7], [35.9, 47]] },
+                { name: 'Sacrum', x: 72.9, y: 35.3, smooth: 0.65, points: [[74.6, 32.8], [72.6, 33.4], [70.6, 33.9], [71.1, 37.6], [73.2, 37.1], [75.2, 36.5]] },
+                { name: 'Pelvis', x: 71, y: 39.6, smooth: 0.55, points: [[71.9, 43.6], [69.1, 39.4], [66.6, 38.2], [66.5, 35.1], [67.8, 33.7], [69, 34], [71.8, 38.9], [75.8, 41.7], [75.5, 43], [73.3, 44.2], [73.1, 41.3], [71.8, 40.6], [71.2, 41.7]] },
+                { name: 'Femur', x: 71, y: 52, smooth: 0.55, points: [[72.8, 45.2], [73.1, 41.2], [72, 40.5], [71.2, 41.5], [71.9, 43.9], [69.8, 55], [71.2, 57.6], [73.5, 56.7], [71.6, 52.1]] },
+                { name: 'Patella', x: 69.8, y: 56, smooth: 0.55, points: [[70.4, 56.8], [69.8, 57.1], [69.4, 55.3], [69.8, 54.7]] },
+                { name: 'Tibia', x: 73.7, y: 60.5, smooth: 0.55, points: [[73.8, 58.5], [74, 57.3], [72.6, 56.7], [71.4, 58.6], [71.6, 60.3], [78.7, 71.7]] },
+                { name: 'Fibula', x: 76.9, y: 65, smooth: 0.55, points: [[78.8, 71.2], [79.4, 71.6], [79.6, 70.6], [75.4, 59.4], [74.1, 57.8], [73.9, 59.3]] },
+                { name: 'Calcaneus', x: 80, y: 73, smooth: 0.55, points: [[79.9, 68.9], [79, 71.8], [79.9, 73.7], [81.1, 70]] },
+                { name: 'Tarsal bones', x: 79.3, y: 73.3, smooth: 0.5, points: [[78.1, 71.8], [78.8, 71], [81, 74.3], [80.8, 75], [78.9, 75.8], [78.1, 71.9]] },
+                { name: 'Metatarsal bones', x: 79.9, y: 79.9, smooth: 0.5, points: [[78.8, 82.1], [79.1, 75.5], [80.3, 74.6], [80.8, 75.2], [81, 81.7], [80.8, 82.4], [80, 82.8], [79.2, 82.8], [78.8, 82.2]] },
+                { name: 'Phalanges (hind paw)', x: 78.2, y: 84.6, smooth: 0.5, points: [[75.8, 85.4], [76.4, 84.1], [78.3, 82.3], [80.9, 82.1], [81, 82.5], [79.2, 86.5], [78.1, 87.1], [76.3, 86.6]] },
+                { name: 'Caudal vertebrae (tail)', x: 84.6, y: 18.5, smooth: 0.65, points: [[79.2, 33.6], [82.5, 29.7], [83.9, 27.2], [85.4, 21.4], [85.1, 15.4], [83.1, 9.9], [81.6, 7.9], [78.3, 5.5], [77.4, 8.2], [80.3, 10.3], [81.5, 11.9], [82.4, 13.9], [83.3, 18.6], [82.9, 23.4], [82.1, 25.6], [81, 27.6], [77.9, 31.2]] },
             ],
         },
         'joints': {
@@ -2248,8 +2328,58 @@ document.querySelectorAll('model-viewer').forEach(mv => {
         return;
     }
 
-    let currentKey = 'bones', pool = [], noun = 'bone';
+    // ---- Gameplay ----
+    // Four modes over the same item pools. Custom quizzes are addressed by
+    // URL (?quiz=bones&mode=click&parts=slug,slug) so any selection of
+    // parts and mode is shareable as a link; the customize panel below the
+    // quiz builds those URLs. Slugs derive from item names, so links keep
+    // working when items are reordered (renaming a bone breaks its links).
+    const MODES = {
+        identify: 'Multiple choice',
+        click: 'Find it',
+        type: 'Type the name',
+        match: 'Matching',
+    };
+    // The skeleton images are wider than tall; percent coordinates are
+    // anisotropic, so x distances are stretched before comparing lengths.
+    const XSCALE = 1.41;
+    const MATCH_SIZE = 5;
+    const MATCH_LETTERS = 'ABCDE';
+
+    // Accepted answers in type mode beyond the display name (the
+    // parenthetical part of a name is always accepted on its own).
+    const ALIASES = {
+        'Cranium (skull)': ['head bone'],
+        'Mandible': ['lower jaw', 'jaw', 'jaw bone', 'jawbone'],
+        'Scapula': ['shoulder blade', 'shoulderblade'],
+        'Patella': ['kneecap', 'knee cap'],
+        'Pelvis': ['hip bone', 'hipbone', 'pelvic bone'],
+        'Sternum': ['breastbone', 'breast bone'],
+        'Tibia': ['shinbone', 'shin bone'],
+        'Femur': ['thigh bone', 'thighbone'],
+        'Calcaneus': ['heel bone', 'heelbone'],
+        'Ribs': ['rib', 'ribcage', 'rib cage'],
+        'Carpal bones': ['carpals', 'carpus', 'wrist bones'],
+        'Tarsal bones': ['tarsals', 'tarsus', 'ankle bones'],
+        'Metacarpal bones': ['metacarpals'],
+        'Metatarsal bones': ['metatarsals'],
+        'Phalanges (front paw)': ['phalanges', 'toes', 'digits', 'toe bones'],
+        'Phalanges (hind paw)': ['phalanges', 'toes', 'digits', 'toe bones'],
+        'Caudal vertebrae (tail)': ['tail bones', 'coccygeal vertebrae'],
+        'Cervical vertebrae': ['cervical', 'neck vertebrae', 'neck bones'],
+        'Thoracic vertebrae': ['thoracic'],
+        'Lumbar vertebrae': ['lumbar'],
+        'Temporomandibular joint': ['tmj', 'jaw joint'],
+        'Metacarpophalangeal joint': ['mcp joint', 'knuckle'],
+    };
+
+    const slug = name => name.toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+
+    let currentKey = 'bones', mode = 'identify', partsFilter = null;
+    let pool = [], noun = 'bone';
     let order = [], idx = 0, score = 0, answered = false;
+    let matchPairs = {}, matchSel = null;
 
     const shuffle = (arr) => {
         const a = arr.slice();
@@ -2260,29 +2390,185 @@ document.querySelectorAll('model-viewer').forEach(mv => {
         return a;
     };
 
-    function start(quiz) {
-        const cfg = QUIZZES[quiz] || QUIZZES['bones'];
-        currentKey = QUIZZES[quiz] ? quiz : 'bones';
-        pool = cfg.items;
-        noun = cfg.noun;
-        if (imageEl.getAttribute('src') !== cfg.image) {
-            imageEl.setAttribute('src', cfg.image);
+    // Sampled points along the same curve smoothPath renders, for hit
+    // testing and area comparison. Cached per item.
+    const outlineCache = new WeakMap();
+    function sampledOutline(item) {
+        if (!item.points || item.points.length < 3) return null;
+        let pts = outlineCache.get(item);
+        if (pts) return pts;
+        const src = item.points;
+        const s = Math.max(0, Math.min(1, item.smooth == null ? 0.6 : item.smooth)) / 6 * 4;
+        const n = src.length;
+        const at = i => src[(i + n) % n];
+        pts = [];
+        for (let i = 0; i < n; i++) {
+            const p0 = at(i - 1), p1 = at(i), p2 = at(i + 1), p3 = at(i + 2);
+            const c1x = p1[0] + (p2[0] - p0[0]) * s / 4;
+            const c1y = p1[1] + (p2[1] - p0[1]) * s / 4;
+            const c2x = p2[0] - (p3[0] - p1[0]) * s / 4;
+            const c2y = p2[1] - (p3[1] - p1[1]) * s / 4;
+            for (let k = 0; k < 8; k++) {
+                const u = k / 8, v = 1 - u;
+                pts.push([
+                    v * v * v * p1[0] + 3 * v * v * u * c1x + 3 * v * u * u * c2x + u * u * u * p2[0],
+                    v * v * v * p1[1] + 3 * v * v * u * c1y + 3 * v * u * u * c2y + u * u * u * p2[1],
+                ]);
+            }
         }
-        order = shuffle(pool);
-        idx = 0;
-        score = 0;
-        scoreEl.textContent = '0';
-        totalEl.textContent = String(order.length);
-        resultEl.hidden = true;
-        marker.hidden = false;
-        showQuestion();
+        outlineCache.set(item, pts);
+        return pts;
     }
 
-    // A question is highlighted either by a traced shape (3+ points, drawn
-    // as a smoothed closed curve) or the ellipse/dot marker (x, y, w, h, rot).
-    function renderShape(q) {
+    function pointInOutline(pts, x, y) {
+        let inside = false;
+        for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+            const [xi, yi] = pts[i], [xj, yj] = pts[j];
+            if ((yi > y) !== (yj > y) &&
+                x < (xj - xi) * (y - yi) / (yj - yi) + xi) {
+                inside = !inside;
+            }
+        }
+        return inside;
+    }
+
+    function outlineArea(pts) {
+        let a = 0;
+        for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) {
+            a += (pts[j][0] + pts[i][0]) * (pts[j][1] - pts[i][1]);
+        }
+        return Math.abs(a / 2);
+    }
+
+    // Which item does a click at (x, y) land on? Traced shapes win over
+    // marker dots, and the smallest containing shape wins so small bones
+    // are clickable inside larger neighbours.
+    function hitItem(items, x, y) {
+        let best = null, bestArea = Infinity;
+        items.forEach(item => {
+            const pts = sampledOutline(item);
+            if (pts) {
+                if (pointInOutline(pts, x, y)) {
+                    const a = outlineArea(pts);
+                    if (a < bestArea) { best = item; bestArea = a; }
+                }
+            }
+        });
+        if (best) return best;
+        let bestD = Infinity;
+        items.forEach(item => {
+            if (sampledOutline(item)) return;
+            const d = Math.hypot((x - item.x) * XSCALE, y - item.y);
+            if (d < 6 && d < bestD) { best = item; bestD = d; }
+        });
+        return best;
+    }
+
+    // ---- type-mode answer matching ----
+    const normalize = s => s.toLowerCase()
+        .replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
+    const depluralize = s => s.split(' ')
+        .map(w => w.length > 3 ? w.replace(/s$/, '') : w).join(' ');
+
+    function editDistance(a, b) {
+        if (Math.abs(a.length - b.length) > 2) return 99;
+        const dp = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+        for (let j = 1; j <= b.length; j++) dp[0][j] = j;
+        for (let i = 1; i <= a.length; i++) {
+            for (let j = 1; j <= b.length; j++) {
+                dp[i][j] = Math.min(
+                    dp[i - 1][j] + 1, dp[i][j - 1] + 1,
+                    dp[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+            }
+        }
+        return dp[a.length][b.length];
+    }
+
+    function acceptedAnswers(item) {
+        const out = [normalize(item.name)];
+        const par = item.name.match(/\(([^)]+)\)/);
+        if (par) {
+            out.push(normalize(item.name.replace(/\([^)]*\)/g, '')));
+            out.push(normalize(par[1]));
+        }
+        (ALIASES[item.name] || []).forEach(a => out.push(normalize(a)));
+        return out.filter(Boolean);
+    }
+
+    function answerMatches(input, item) {
+        const guess = normalize(input);
+        if (!guess) return false;
+        const guessDe = depluralize(guess);
+        return acceptedAnswers(item).some(t => {
+            if (guess === t || guessDe === depluralize(t)) return true;
+            const tol = t.length >= 10 ? 2 : (t.length >= 6 ? 1 : 0);
+            return tol > 0 && editDistance(guessDe, depluralize(t)) <= tol;
+        });
+    }
+
+    // ---- extra UI the modes need (built once, plain DOM) ----
+    const figureFrame = imageEl.parentElement;
+    const pinsLayer = document.createElement('div');
+    pinsLayer.id = 'quiz-pins';
+    figureFrame.appendChild(pinsLayer);
+
+    const answerForm = document.createElement('form');
+    answerForm.id = 'quiz-answer-form';
+    answerForm.hidden = true;
+    answerForm.innerHTML =
+        '<input type="text" id="quiz-answer-input" autocomplete="off" ' +
+        'autocapitalize="off" spellcheck="false" placeholder="Name the ' +
+        'highlighted part">' +
+        '<button type="submit" class="quiz-next">Answer</button>';
+    optionsEl.after(answerForm);
+    const answerInput = answerForm.querySelector('input');
+
+    const matchList = document.createElement('div');
+    matchList.id = 'quiz-match';
+    matchList.hidden = true;
+    answerForm.after(matchList);
+
+    const modeBar = document.createElement('div');
+    modeBar.className = 'quiz-tabs quiz-modes';
+    modeBar.setAttribute('role', 'tablist');
+    modeBar.setAttribute('aria-label', 'Quiz mode');
+    const modeLabel = document.createElement('span');
+    modeLabel.className = 'quiz-bar-label';
+    modeLabel.textContent = 'Mode';
+    modeBar.appendChild(modeLabel);
+    Object.keys(MODES).forEach(m => {
+        const b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'quiz-tab quiz-mode-btn' + (m === mode ? ' active' : '');
+        b.dataset.mode = m;
+        b.textContent = MODES[m];
+        b.addEventListener('click', () => {
+            mode = m;
+            syncModeBar();
+            start(currentKey);
+        });
+        modeBar.appendChild(b);
+    });
+    const tabBar = document.querySelector('.quiz-tabs');
+    tabBar.after(modeBar);
+    function syncModeBar() {
+        [...modeBar.children].forEach(b =>
+            b.classList.toggle('active', b.dataset.mode === mode));
+    }
+
+    function clearMarks() {
+        highlight.setAttribute('d', '');
+        highlight.className.baseVal = '';
+        marker.hidden = true;
+        pinsLayer.innerHTML = '';
+        figureFrame.classList.remove('quiz-clickable');
+        if (typeof clearHover === 'function') clearHover();
+    }
+
+    function renderShape(q, cls) {
         if (q.points && q.points.length >= 3) {
             highlight.setAttribute('d', smoothPath(q.points, q.smooth));
+            highlight.className.baseVal = cls || '';
             marker.hidden = true;
         } else {
             highlight.setAttribute('d', '');
@@ -2295,62 +2581,341 @@ document.querySelectorAll('model-viewer').forEach(mv => {
         }
     }
 
-    function showQuestion() {
+    function start(quiz) {
+        const cfg = QUIZZES[quiz] || QUIZZES['bones'];
+        currentKey = QUIZZES[quiz] ? quiz : 'bones';
+        noun = cfg.noun;
+        pool = cfg.items;
+        if (partsFilter && partsFilter.length) {
+            const wanted = new Set(partsFilter);
+            const filtered = cfg.items.filter(it => wanted.has(slug(it.name)));
+            if (filtered.length) pool = filtered;
+        } else if (partsFilter && !partsFilter.length) {
+            pool = [];
+        }
+        if (imageEl.getAttribute('src') !== cfg.image) {
+            imageEl.setAttribute('src', cfg.image);
+        }
+        idx = 0;
+        score = 0;
+        scoreEl.textContent = '0';
+        resultEl.hidden = true;
+        updateUrl();
+        renderCustomPanel();
+        if (!pool.length) {
+            // "Select none" state: parked until a part is ticked
+            order = [];
+            resetQuestionUI();
+            setProgress('Question', 0, 0);
+            promptEl.textContent =
+                'Select at least one part in Customize below to start.';
+            return;
+        }
+        if (mode === 'match' && pool.length < 2) {
+            mode = 'identify';
+            syncModeBar();
+        }
+        order = shuffle(pool);
+        totalEl.textContent = String(order.length);
+        showQuestion();
+    }
+
+    const progressLabelEl = document.getElementById('quiz-progress-label');
+    function setProgress(label, num, total) {
+        if (progressLabelEl) progressLabelEl.textContent = label;
+        numEl.textContent = String(num);
+        totalEl.textContent = String(total);
+    }
+
+    function resetQuestionUI() {
         answered = false;
         feedbackEl.textContent = '';
         feedbackEl.className = 'quiz-feedback';
         nextBtn.hidden = true;
-        const q = order[idx];
-        numEl.textContent = String(idx + 1);
-        renderShape(q);
-        promptEl.textContent = 'Which ' + noun + ' is marked?';
-
-        // Build 4 options: the answer plus 3 random distractors from the pool.
-        const distractors = shuffle(pool.filter(o => o.name !== q.name)).slice(0, 3);
-        const choices = shuffle([q, ...distractors]).map(o => o.name);
-
         optionsEl.innerHTML = '';
-        choices.forEach(name => {
-            const btn = document.createElement('button');
-            btn.type = 'button';
-            btn.className = 'quiz-option';
-            btn.textContent = name;
-            btn.addEventListener('click', () => choose(btn, name, q.name));
-            optionsEl.appendChild(btn);
-        });
+        answerForm.hidden = true;
+        matchList.hidden = true;
+        matchList.innerHTML = '';
+        clearMarks();
     }
 
-    function choose(btn, picked, correct) {
-        if (answered) return;
+    function showQuestion() {
+        resetQuestionUI();
+        const q = order[idx];
+        setProgress('Question', idx + 1, order.length);
+        if (mode === 'identify') {
+            renderShape(q);
+            promptEl.textContent = 'Which ' + noun + ' is marked?';
+            const distractors = shuffle(QUIZZES[currentKey].items
+                .filter(o => o.name !== q.name)).slice(0, 3);
+            shuffle([q, ...distractors]).forEach(o => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = 'quiz-option';
+                btn.textContent = o.name;
+                btn.addEventListener('click', () => chooseOption(btn, o.name, q.name));
+                optionsEl.appendChild(btn);
+            });
+        } else if (mode === 'type') {
+            renderShape(q);
+            promptEl.textContent = 'Name the highlighted ' + noun + '.';
+            answerForm.hidden = false;
+            answerInput.disabled = false;
+            answerInput.value = '';
+            answerForm.querySelector('button').disabled = false;
+            answerInput.focus();
+        } else if (mode === 'click') {
+            promptEl.textContent = 'Click the ' + q.name + '.';
+            figureFrame.classList.add('quiz-clickable');
+        } else if (mode === 'match') {
+            showMatchRound();
+        }
+    }
+
+    function afterAnswer(correct, message) {
         answered = true;
-        const buttons = [...optionsEl.querySelectorAll('.quiz-option')];
-        buttons.forEach(b => {
+        if (correct) {
+            score++;
+            scoreEl.textContent = String(score);
+        }
+        feedbackEl.textContent = message;
+        feedbackEl.className = 'quiz-feedback ' + (correct ? 'correct' : 'wrong');
+        nextBtn.hidden = false;
+        nextBtn.focus({ preventScroll: true });
+    }
+
+    function chooseOption(btn, picked, correct) {
+        if (answered) return;
+        [...optionsEl.querySelectorAll('.quiz-option')].forEach(b => {
             b.disabled = true;
             if (b.textContent === correct) b.classList.add('correct');
         });
-        if (picked === correct) {
-            score++;
-            scoreEl.textContent = String(score);
-            feedbackEl.textContent = 'Correct!';
-            feedbackEl.className = 'quiz-feedback correct';
-        } else {
-            btn.classList.add('wrong');
-            feedbackEl.textContent = 'Not quite — it is the ' + correct + '.';
-            feedbackEl.className = 'quiz-feedback wrong';
+        if (picked !== correct) btn.classList.add('wrong');
+        afterAnswer(picked === correct,
+            picked === correct ? 'Correct!' : 'Not quite. It is the ' + correct + '.');
+    }
+
+    answerForm.addEventListener('submit', e => {
+        e.preventDefault();
+        if (answered || answerForm.hidden) return;
+        const q = order[idx];
+        const ok = answerMatches(answerInput.value, q);
+        answerInput.disabled = true;
+        answerForm.querySelector('button').disabled = true;
+        renderShape(q, ok ? 'quiz-hl-correct' : 'quiz-hl-wrong');
+        afterAnswer(ok, ok
+            ? 'Correct! ' + q.name + '.'
+            : 'Not quite. It is the ' + q.name + '.');
+    });
+
+    figureFrame.addEventListener('click', e => {
+        if (mode !== 'click' || answered || !order.length) return;
+        const rect = imageEl.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width * 100;
+        const y = (e.clientY - rect.top) / rect.height * 100;
+        if (x < 0 || x > 100 || y < 0 || y > 100) return;
+        const q = order[idx];
+        const hit = hitItem(QUIZZES[currentKey].items, x, y);
+        const ok = !!hit && hit.name === q.name;
+        clearHover();
+        renderShape(q, ok ? 'quiz-hl-correct' : 'quiz-hl-wrong');
+        figureFrame.classList.remove('quiz-clickable');
+        afterAnswer(ok, ok
+            ? 'Correct! That is the ' + q.name + '.'
+            : (hit ? 'That is the ' + hit.name + '. The ' + q.name +
+                     ' is highlighted now.'
+                   : 'Not quite. The ' + q.name + ' is highlighted now.'));
+    });
+
+    // Hover preview in find-and-click mode: outline whatever part is under
+    // the cursor so clusters (carpals, sesamoids, overlapping tibia/fibula)
+    // are aimable. Shows the shape only, never the name, so it aids the
+    // hand without answering the question. Marker-only items (the joint
+    // quizzes) preview as their true clickable ellipse.
+    const hoverPath = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    hoverPath.id = 'quiz-hover';
+    const overlayEl = document.getElementById('quiz-overlay');
+    overlayEl.insertBefore(hoverPath, overlayEl.firstChild);
+    let hoverItem = null, hoverRaf = 0, hoverEvent = null;
+
+    function clearHover() {
+        hoverItem = null;
+        hoverPath.setAttribute('d', '');
+    }
+
+    function markerEllipsePath(item) {
+        const rx = 6 / XSCALE, ry = 6;
+        return 'M ' + (item.x - rx) + ' ' + item.y +
+            ' a ' + rx + ' ' + ry + ' 0 1 0 ' + (rx * 2) + ' 0' +
+            ' a ' + rx + ' ' + ry + ' 0 1 0 ' + (-rx * 2) + ' 0 Z';
+    }
+
+    figureFrame.addEventListener('mousemove', e => {
+        hoverEvent = e;
+        if (mode !== 'click' || answered) {
+            if (hoverItem) clearHover();
+            return;
         }
+        if (hoverRaf) return;
+        hoverRaf = requestAnimationFrame(() => {
+            hoverRaf = 0;
+            const ev = hoverEvent;
+            const rect = imageEl.getBoundingClientRect();
+            if (!rect.width || !rect.height) return;
+            const x = (ev.clientX - rect.left) / rect.width * 100;
+            const y = (ev.clientY - rect.top) / rect.height * 100;
+            const hit = (x < 0 || x > 100 || y < 0 || y > 100)
+                ? null : hitItem(QUIZZES[currentKey].items, x, y);
+            if (hit === hoverItem) return;
+            hoverItem = hit;
+            if (!hit) {
+                hoverPath.setAttribute('d', '');
+            } else if (hit.points && hit.points.length >= 3) {
+                hoverPath.setAttribute('d', smoothPath(hit.points, hit.smooth));
+            } else {
+                hoverPath.setAttribute('d', markerEllipsePath(hit));
+            }
+        });
+    });
+
+    figureFrame.addEventListener('mouseleave', clearHover);
+
+    // ---- match mode ----
+    function currentRound() {
+        return order.slice(idx, idx + MATCH_SIZE);
+    }
+
+    function showMatchRound() {
+        const round = currentRound();
+        matchPairs = {};
+        matchSel = null;
+        const rounds = Math.ceil(order.length / MATCH_SIZE);
+        const roundNo = Math.floor(idx / MATCH_SIZE) + 1;
+        setProgress('Round', roundNo, rounds);
+        promptEl.textContent = 'Match each letter to its ' + noun + '.';
+        round.forEach((item, i) => {
+            const pin = document.createElement('button');
+            pin.type = 'button';
+            pin.className = 'quiz-pin';
+            pin.textContent = MATCH_LETTERS[i];
+            pin.dataset.letter = MATCH_LETTERS[i];
+            pin.style.left = item.x + '%';
+            pin.style.top = item.y + '%';
+            pin.addEventListener('click', () => selectPin(pin, item));
+            pinsLayer.appendChild(pin);
+        });
+        matchList.hidden = false;
+        shuffle(round).forEach(item => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'quiz-option quiz-match-name';
+            btn.dataset.name = item.name;
+            btn.innerHTML = '<span class="quiz-match-slot"></span>' + item.name;
+            btn.addEventListener('click', () => selectName(btn));
+            matchList.appendChild(btn);
+        });
+        const check = document.createElement('button');
+        check.type = 'button';
+        check.className = 'quiz-next';
+        check.id = 'quiz-match-check';
+        check.textContent = 'Check answers';
+        check.disabled = true;
+        check.addEventListener('click', checkMatchRound);
+        matchList.appendChild(check);
+    }
+
+    function pairUp(letter, nameBtn) {
+        // undo any existing use of this letter or this name
+        Object.keys(matchPairs).forEach(l => {
+            if (matchPairs[l] === nameBtn.dataset.name) delete matchPairs[l];
+        });
+        delete matchPairs[letter];
+        matchPairs[letter] = nameBtn.dataset.name;
+        renderMatchState();
+    }
+
+    function selectPin(pin, item) {
+        if (answered) return;
+        if (matchSel && matchSel.kind === 'name') {
+            pairUp(pin.dataset.letter, matchSel.el);
+            matchSel = null;
+        } else {
+            matchSel = { kind: 'pin', el: pin };
+            renderShape(item);
+        }
+        renderMatchState();
+    }
+
+    function selectName(btn) {
+        if (answered) return;
+        if (matchSel && matchSel.kind === 'pin') {
+            pairUp(matchSel.el.dataset.letter, btn);
+            matchSel = null;
+        } else {
+            matchSel = { kind: 'name', el: btn };
+        }
+        renderMatchState();
+    }
+
+    function renderMatchState() {
+        const nameOf = {};
+        Object.keys(matchPairs).forEach(l => { nameOf[matchPairs[l]] = l; });
+        [...pinsLayer.children].forEach(pin => {
+            pin.classList.toggle('sel',
+                !!matchSel && matchSel.kind === 'pin' && matchSel.el === pin);
+            pin.classList.toggle('paired', pin.dataset.letter in matchPairs);
+        });
+        [...matchList.querySelectorAll('.quiz-match-name')].forEach(btn => {
+            btn.classList.toggle('sel',
+                !!matchSel && matchSel.kind === 'name' && matchSel.el === btn);
+            const slot = btn.querySelector('.quiz-match-slot');
+            slot.textContent = nameOf[btn.dataset.name] || '';
+            btn.classList.toggle('paired', btn.dataset.name in nameOf);
+        });
+        const check = document.getElementById('quiz-match-check');
+        if (check) {
+            check.disabled =
+                Object.keys(matchPairs).length !== currentRound().length;
+        }
+    }
+
+    function checkMatchRound() {
+        if (answered) return;
+        const round = currentRound();
+        let right = 0;
+        round.forEach((item, i) => {
+            const letter = MATCH_LETTERS[i];
+            const ok = matchPairs[letter] === item.name;
+            if (ok) right++;
+            const pin = pinsLayer.querySelector('[data-letter="' + letter + '"]');
+            if (pin) pin.classList.add(ok ? 'ok' : 'bad');
+            const btn = matchList.querySelector(
+                '.quiz-match-name[data-name="' + CSS.escape(matchPairs[letter] || '') + '"]');
+            if (btn) btn.classList.add(ok ? 'correct' : 'wrong');
+        });
+        answered = true;
+        score += right;
+        scoreEl.textContent = String(score);
+        feedbackEl.textContent = right === round.length
+            ? 'All ' + round.length + ' correct!'
+            : right + ' of ' + round.length + ' correct. Wrong pairs show the letter they were given.';
+        feedbackEl.className = 'quiz-feedback ' +
+            (right === round.length ? 'correct' : 'wrong');
+        const check = document.getElementById('quiz-match-check');
+        if (check) check.hidden = true;
         nextBtn.hidden = false;
+        nextBtn.textContent = idx + MATCH_SIZE >= order.length
+            ? 'See result' : 'Next round';
     }
 
     function next() {
-        idx++;
+        idx += (mode === 'match') ? MATCH_SIZE : 1;
+        nextBtn.textContent = 'Next →';
         if (idx >= order.length) {
-            marker.hidden = true;
-            highlight.setAttribute('d', '');
+            resetQuestionUI();
             promptEl.textContent = '';
-            optionsEl.innerHTML = '';
-            feedbackEl.textContent = '';
-            nextBtn.hidden = true;
-            resultScoreEl.textContent = 'You scored ' + score + ' / ' + order.length + '.';
+            resultScoreEl.textContent =
+                'You scored ' + score + ' / ' + order.length + '.';
             resultEl.hidden = false;
         } else {
             showQuestion();
@@ -2362,9 +2927,102 @@ document.querySelectorAll('model-viewer').forEach(mv => {
     tabs.forEach(tab => {
         tab.addEventListener('click', () => {
             tabs.forEach(t => t.classList.toggle('active', t === tab));
+            partsFilter = null;
             start(tab.dataset.quiz);
         });
     });
 
-    start('bones');
+    // ---- custom quiz builder ----
+    const customWrap = document.getElementById('quiz-custom');
+    const partsBox = customWrap && customWrap.querySelector('#quiz-parts');
+    const linkBox = customWrap && customWrap.querySelector('#quiz-link');
+    const copyLinkBtn = customWrap && customWrap.querySelector('#quiz-copy-link');
+
+    function updateUrl() {
+        const p = new URLSearchParams();
+        if (currentKey !== 'bones') p.set('quiz', currentKey);
+        if (mode !== 'identify') p.set('mode', mode);
+        if (partsFilter && partsFilter.length &&
+            partsFilter.length < QUIZZES[currentKey].items.length) {
+            p.set('parts', partsFilter.join(','));
+        }
+        const qs = p.toString();
+        const url = location.pathname + (qs ? '?' + qs : '') + location.hash;
+        history.replaceState(null, '', url);
+        if (linkBox) linkBox.value = location.origin + url;
+    }
+
+    function renderCustomPanel() {
+        if (!partsBox) return;
+        const cfg = QUIZZES[currentKey];
+        const active = new Set(pool.map(it => slug(it.name)));
+        const summary = customWrap.querySelector('summary');
+        if (summary) {
+            summary.textContent = 'Customize this quiz' +
+                (partsFilter === null || pool.length === cfg.items.length
+                    ? '' : ' (' + pool.length + ' of ' + cfg.items.length +
+                      ' parts selected)');
+        }
+        partsBox.innerHTML = '';
+        cfg.items.forEach(item => {
+            const id = 'part-' + slug(item.name);
+            const label = document.createElement('label');
+            label.className = 'quiz-part';
+            label.innerHTML = '<input type="checkbox" id="' + id + '" value="' +
+                slug(item.name) + '"' +
+                (active.has(slug(item.name)) ? ' checked' : '') + '> ' + item.name;
+            label.querySelector('input').addEventListener('change', () => {
+                const checked = [...partsBox.querySelectorAll('input:checked')]
+                    .map(i => i.value);
+                partsFilter = checked.length === cfg.items.length ? null : checked;
+                start(currentKey);
+            });
+            partsBox.appendChild(label);
+        });
+    }
+
+    if (customWrap) {
+        customWrap.querySelector('#quiz-parts-all').addEventListener('click', () => {
+            partsFilter = null;
+            start(currentKey);
+        });
+        customWrap.querySelector('#quiz-parts-none').addEventListener('click', () => {
+            partsFilter = [];
+            start(currentKey);
+        });
+        if (copyLinkBtn) {
+            copyLinkBtn.addEventListener('click', () => {
+                const done = () => {
+                    copyLinkBtn.textContent = 'Copied!';
+                    setTimeout(() => { copyLinkBtn.textContent = 'Copy link'; }, 1500);
+                };
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(linkBox.value).then(done);
+                } else {
+                    linkBox.select();
+                    document.execCommand('copy');
+                    done();
+                }
+            });
+        }
+    }
+
+    // ---- boot from URL ----
+    (() => {
+        const p = new URLSearchParams(location.search);
+        const q = p.get('quiz');
+        if (q && QUIZZES[q]) currentKey = q;
+        const m = p.get('mode');
+        if (m && MODES[m]) mode = m;
+        const parts = (p.get('parts') || '').split(',').map(s => s.trim())
+            .filter(Boolean);
+        if (parts.length) partsFilter = parts;
+        tabs.forEach(t => t.classList.toggle('active', t.dataset.quiz === currentKey));
+        syncModeBar();
+        if (customWrap && (partsFilter || (m && m !== 'identify'))) {
+            customWrap.open = true;
+        }
+    })();
+
+    start(currentKey);
 })();

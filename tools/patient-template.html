@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{NAME}} Case Study - Give a Paw</title>
+    <link rel="stylesheet" href="style.css?v=18">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <script type="module" src="https://unpkg.com/@google/model-viewer@4.1.0/dist/model-viewer.min.js"></script>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <a href="index.html" class="sidebar-logo-link">
+                <img src="logo.jpg" alt="Give a Paw Logo" class="sidebar-logo">
+            </a>
+        </div>
+        <nav class="sidebar-nav">
+        </nav>
+    </aside>
+    <div class="page">
+        <div class="content">
+            <article>
+                <section id="{{SLUG}}-case-study">
+                    <h1>{{NAME}} Case Study<a class="headerlink" href="#{{SLUG}}-case-study" title="Permalink to this heading">&para;</a></h1>
+                    <!-- TODO: uncomment the carousel once gallery photos are
+                         committed as {{SLUG}}-gallery-01.jpg .. -04.jpg
+                         (recompress first: max edge ~1280, JPEG quality 85).
+                    <div class="carousel" id="{{SLUG}}-carousel">
+                        <div class="carousel-viewport">
+                            <div class="carousel-track">
+                                <div class="carousel-slide"><img src="{{SLUG}}-gallery-01.jpg" alt="{{NAME}}" loading="lazy"></div>
+                                <div class="carousel-slide"><img src="{{SLUG}}-gallery-02.jpg" alt="{{NAME}}" loading="lazy"></div>
+                                <div class="carousel-slide"><img src="{{SLUG}}-gallery-03.jpg" alt="{{NAME}}" loading="lazy"></div>
+                                <div class="carousel-slide"><img src="{{SLUG}}-gallery-04.jpg" alt="{{NAME}}" loading="lazy"></div>
+                            </div>
+                            <button class="carousel-arrow carousel-prev" type="button" aria-label="Previous">&#8249;</button>
+                            <button class="carousel-arrow carousel-next" type="button" aria-label="Next">&#8250;</button>
+                        </div>
+                        <div class="carousel-dots"></div>
+                    </div>
+                    -->
+                    <ul>
+                        <li><strong>Age:</strong> TODO</li>
+                        <li><strong>Weight:</strong> TODO</li>
+                        <li><strong>Prosthetic:</strong> TODO (limb, side)</li>
+                        <li><strong>Amputation:</strong> TODO</li>
+                        <li><strong>Reason:</strong> TODO</li>
+                        <li><strong>Goals:</strong> TODO</li>
+                    </ul>
+                </section>
+                <section id="brief-summary">
+                    <h2>Brief Summary of Animal Goals<a class="headerlink" href="#brief-summary" title="Permalink to this heading">&para;</a></h2>
+                    <p>TODO: one paragraph on {{NAME}}'s history, what the device needs to achieve, and any constraints the team is designing around.</p>
+                </section>
+                <section id="materials">
+                    <h2>Materials<a class="headerlink" href="#materials" title="Permalink to this heading">&para;</a></h2>
+                    <ul>
+                        <li><strong>TODO component: material</strong> &mdash; why it was chosen.</li>
+                    </ul>
+                </section>
+                <section id="files">
+                    <h2>Files<a class="headerlink" href="#files" title="Permalink to this heading">&para;</a></h2>
+                    <figure class="model-viewer-figure">
+                        <div class="model-toggle" role="tablist" aria-label="Prosthetic component">
+                            <button type="button" class="model-toggle-btn active" data-model="{{SLUG}}-full-prosthetic.glb">Full Prosthetic</button>
+                            <button type="button" class="model-toggle-btn" data-model="{{SLUG}}-solid-animal.glb">Solid Animal</button>
+                            <button type="button" class="model-toggle-btn" data-model="{{SLUG}}-attachment-surface.glb">Attachment Surface</button>
+                            <button type="button" class="model-toggle-btn" data-model="{{SLUG}}-mechanical-interface.glb">Mechanical Interface</button>
+                            <button type="button" class="model-toggle-btn" data-model="{{SLUG}}-solid-interface.glb">Solid Interface</button>
+                        </div>
+                        <model-viewer src="{{SLUG}}-full-prosthetic.glb"
+                                      alt="Interactive 3D model of {{NAME}}'s prosthetic component"
+                                      camera-controls
+                                      touch-action="pan-y"
+                                      shadow-intensity="1"
+                                      shadow-softness="0.7"
+                                      exposure="0.85"
+                                      tone-mapping="neutral"
+                                      environment-image="model-env.png"
+                                      ar></model-viewer>
+                        <figcaption>Interactive 3D model &mdash; tap a tab to swap component, drag to rotate, scroll to zoom. Tabs appear automatically as each component's GLB is committed.</figcaption>
+                    </figure>
+                    <details class="download-category">
+                        <summary>3D Scan Files</summary>
+                        <ul class="download-files">
+                            <li class="pending">Example scan.stl</li>
+                        </ul>
+                    </details>
+                    <details class="download-category">
+                        <summary>Measurement Photos</summary>
+                        <ul class="download-files">
+                            <li class="pending">Example measurement.jpg</li>
+                        </ul>
+                    </details>
+                    <details class="download-category">
+                        <summary>CAD Files</summary>
+                        <ul class="download-files">
+                            <li class="pending">Example file.sldprt</li>
+                        </ul>
+                    </details>
+                </section>
+            </article>
+            <footer>
+                <div class="footer-credits">
+                </div>
+            </footer>
+        </div>
+    </div>
+    <button class="mobile-toggle" id="mobile-toggle">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+    <script src="script.js?v=49"></script>
+</body>
+</html>

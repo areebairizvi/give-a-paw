@@ -4,10 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Give a Paw - Home</title>
-    <link rel="stylesheet" href="style.css">
+    <!-- meta:start -->
+    <meta name="description" content="No-cost, custom 3D-printed prosthetics for shelter animals in the Bay Area. Explore the patients, the build process, and interactive 3D socket models you can shape in your browser.">
+    <link rel="icon" href="favicon.ico" sizes="any">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Give a Paw">
+    <meta property="og:title" content="Give a Paw">
+    <meta property="og:description" content="No-cost, custom 3D-printed prosthetics for shelter animals in the Bay Area. Explore the patients, the build process, and interactive 3D socket models you can shape in your browser.">
+    <meta property="og:image" content="https://areebairizvi.github.io/give-a-paw/social-card.jpg">
+    <meta property="og:url" content="https://areebairizvi.github.io/give-a-paw/">
+    <meta name="twitter:card" content="summary_large_image">
+    <!-- meta:end -->
+    <link rel="stylesheet" href="style.css?v=18">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <script type="module" src="https://unpkg.com/@google/model-viewer@4.1.0/dist/model-viewer.min.js"></script>
 </head>
 <body>
     <aside class="sidebar">
@@ -16,36 +29,38 @@
                 <img src="logo.jpg" alt="Give a Paw Logo" class="sidebar-logo">
             </a>
         </div>
-
         <nav class="sidebar-nav">
-            <p class="sidebar-nav-title">Program</p>
+            <p class="sidebar-nav-title">Our Patients</p>
             <ul>
-                <li><a href="meet-the-team.html">Meet the Team</a></li>
-                <li><a href="downloads.html">Downloads</a></li>
-                <li><a href="anatomy-quiz.html">Canine Anatomy Quiz</a></li>
-                <li><a href="human-anatomy-quiz.html">Human Anatomy Quiz</a></li>
+                <li><a href="max-case-study.html">Max</a></li>
+                <li><a href="billie-case-study.html">Billie</a></li>
+                <li><a href="yana-case-study.html">Yana</a></li>
+                <li><a href="ollie-case-study.html">Ollie</a></li>
+                <li><a href="kiki-case-study.html">Kiki</a></li>
             </ul>
-            <p class="sidebar-nav-title">Case Studies</p>
+            <p class="sidebar-nav-title">Earlier Projects</p>
             <ul>
                 <li><a href="full-limb.html">Full Limb</a></li>
                 <li><a href="wheel-chair.html">Wheel Chair</a></li>
             </ul>
-
-            <p class="sidebar-nav-title">Socket Creation</p>
+            <p class="sidebar-nav-title">How We Build</p>
             <ul>
+                <li><a href="3d-scanning.html">3D Scanning</a></li>
                 <li><a href="preparing-ntop-input.html">Preparing nTop Input</a></li>
                 <li><a href="ntop-socket-creation.html">nTop Socket Creation</a></li>
-            </ul>
-
-            <p class="sidebar-nav-title">Manufacturing Considerations</p>
-            <ul>
                 <li><a href="materials.html">Materials</a></li>
                 <li><a href="3d-printing.html">3D Printing</a></li>
             </ul>
-
-            <p class="sidebar-nav-title">3D-scanning</p>
+            <p class="sidebar-nav-title">Learn &amp; Try</p>
             <ul>
-                <li><a href="3d-scanning.html">3D-scanning</a></li>
+                <li><a href="anatomy-quiz.html">Canine Anatomy Quiz</a></li>
+                <li><a href="human-anatomy-quiz.html">Human Anatomy Quiz</a></li>
+                <li><a href="downloads.html">Downloads</a></li>
+            </ul>
+            <p class="sidebar-nav-title">About</p>
+            <ul>
+                <li><a href="meet-the-team.html">Meet the Team</a></li>
+                <li><a href="credits.html">Credits</a></li>
             </ul>
         </nav>
     </aside>
@@ -54,21 +69,29 @@
         <div class="content home">
             <article>
                 <section class="hero" id="hero">
-                    <!--
-                      To use a real rotating 3D model instead of the static render:
-                      1. Add to <head>:
-                         <script type="module" src="https://unpkg.com/@google/model-viewer/dist/model-viewer.min.js"></script>
-                      2. Replace the <img> in .hero-model with:
-                         <model-viewer src="prosthetic.glb" camera-controls
-                           disable-zoom interaction-prompt="none" style="width:100%;height:100%;"></model-viewer>
-                    -->
                     <div class="hero-model">
-                        <img src="yana-harness-lattice.png" alt="3D model of an animal prosthetic">
+                        <model-viewer src="billie-full-prosthetic.glb"
+                                      alt="Rotating 3D model of a finished 3D-printed dog prosthetic"
+                                      camera-controls
+                                      auto-rotate
+                                      auto-rotate-delay="600"
+                                      rotation-per-second="16deg"
+                                      interaction-prompt="none"
+                                      touch-action="pan-y"
+                                      shadow-intensity="1"
+                                      shadow-softness="0.7"
+                                      exposure="0.9"
+                                      tone-mapping="neutral"
+                                      environment-image="model-env.png"
+                                      loading="eager"></model-viewer>
                     </div>
                     <div class="hero-inner">
                         <h1>Give a Paw</h1>
                         <p class="hero-tagline">No-cost, custom 3D-printed prosthetics for shelter animals in the Bay Area.</p>
-                        <a href="#patients" class="hero-cta">Meet our 2026 patients</a>
+                        <div class="hero-actions">
+                            <a href="#patients" class="hero-cta">Meet our 2026 patients</a>
+                            <a href="#playground" class="hero-cta-secondary">Design a socket in your browser</a>
+                        </div>
                     </div>
                 </section>
 
@@ -87,6 +110,7 @@
                                 </span>
                             </a>
                             <a class="patient-card" href="billie-case-study.html">
+                                <span class="patient-badge">Interactive 3D</span>
                                 <img src="billie-photo.jpg" alt="Billie">
                                 <span class="patient-caption">
                                     <span class="patient-name">Billie</span>
@@ -101,6 +125,7 @@
                                 </span>
                             </a>
                             <a class="patient-card" href="ollie-case-study.html">
+                                <span class="patient-badge">Interactive 3D</span>
                                 <img src="ollie-photo.jpg" alt="Ollie">
                                 <span class="patient-caption">
                                     <span class="patient-name">Ollie</span>
@@ -118,16 +143,38 @@
                     </div>
                 </section>
 
-                <section class="about" id="about">
+                <section class="playground" id="playground">
                     <div class="section-inner">
-                        <h2>About the Program</h2>
-                        <p>Give a Paw is a UC Berkeley program committed to designing and manufacturing no-cost prosthetics for animals in the Bay Area. In the personalized healthcare field, there are not enough trained professionals to deliver personalized care to all the patients in need.</p>
-                        <blockquote>
-                            <p>"Only 1 in 10 people in need has access to assistive products, including prostheses and orthoses, because of their high cost and because of lack of awareness, availability, and trained personnel."</p>
-                            <footer>&mdash; World Health Organization</footer>
-                        </blockquote>
-                        <p>The Give a Paw Program is committed to addressing these obstacles of high cost, lack of awareness, and most importantly, trained personnel. At the University of California, Berkeley, Bioprinting@Berkeley runs a 2-unit Canine Prosthetics DeCal. The course covers the fundamentals of additive manufacturing and design considerations for prosthetics, and includes a hands-on project for student teams to make prosthetics for shelter animals in the Bay Area.</p>
-                        <p>Special thanks to Max, Billie, Yana, Ollie, and Kiki for participating in our program!</p>
+                        <h2>Design a Socket in Your Browser</h2>
+                        <p class="section-sub">Every socket we build starts as a set of numbers. Move a slider and the model below is replaced by a real design generated from that value, the same way we generate them for our patients.</p>
+                        <div class="accordion-wrap">
+                            <div class="ntop-block" id="home-demo-block">
+                                <div class="ntop-block-title">
+                                    <span class="ntop-block-arrow" aria-hidden="true">&#9662;</span>
+                                    <span class="ntop-block-name">Try It - Socket Lattice</span>
+                                </div>
+                                <button type="button" class="ntop-block-row" data-key="home-point-count">
+                                    <span class="ntop-row-badge" aria-hidden="true">var</span>
+                                    <span class="ntop-row-label">Lattice Point Count:</span>
+                                    <span class="ntop-row-value" data-value>100</span>
+                                    <span class="ntop-row-unit"></span>
+                                    <span class="ntop-row-caret" aria-hidden="true">&#9662;</span>
+                                </button>
+                                <div class="ntop-expand" data-expand="home-point-count"><div class="ntop-expand-inner"><div class="ntop-expand-body"></div></div></div>
+                                <button type="button" class="ntop-block-row" data-key="home-max-thickness">
+                                    <span class="ntop-row-badge" aria-hidden="true">var</span>
+                                    <span class="ntop-row-label">Max Socket Thickness:</span>
+                                    <span class="ntop-row-value" data-value>8</span>
+                                    <span class="ntop-row-unit">mm</span>
+                                    <span class="ntop-row-caret" aria-hidden="true">&#9662;</span>
+                                </button>
+                                <div class="ntop-expand" data-expand="home-max-thickness"><div class="ntop-expand-inner"><div class="ntop-expand-body"></div></div></div>
+                            </div>
+                        </div>
+                        <p class="playground-cta-row">
+                            <a href="ntop-socket-creation.html" class="playground-cta">Open the full design tool &rarr;</a>
+                            <span class="playground-note">Over 40 live parameters across the socket, interface, attachment, and paw.</span>
+                        </p>
                     </div>
                 </section>
 
@@ -166,12 +213,26 @@
                         </div>
                     </div>
                 </section>
+
+                <section class="about" id="about">
+                    <div class="section-inner">
+                        <h2>About the Program</h2>
+                        <p>Give a Paw is a UC Berkeley program designing and manufacturing no-cost prosthetics for animals in the Bay Area. Personalized healthcare depends on trained specialists, and there are not enough of them to reach everyone who needs care.</p>
+                        <blockquote>
+                            <p>"Only 1 in 10 people in need has access to assistive products, including prostheses and orthoses, because of their high cost and because of lack of awareness, availability, and trained personnel."</p>
+                            <footer>&mdash; World Health Organization</footer>
+                        </blockquote>
+                        <p>We work on all three of those obstacles at once: the designs are generated rather than hand-sculpted, the documentation on this site is public, and the program itself trains new people every semester through the Canine Prosthetics DeCal run by Bioprinting@Berkeley. <a href="meet-the-team.html">Meet the team</a> behind the work.</p>
+                        <p>Special thanks to Max, Billie, Yana, Ollie, and Kiki for participating in our program.</p>
+                    </div>
+                </section>
             </article>
 
             <footer>
                 <div class="footer-credits">
-                    <p>© 2026 Give a Paw</p>
-                    <p>Animal Prosthetics Documentation</p>
+                    <p>&copy; 2026 Give a Paw &middot; Bioprinting@Berkeley</p>
+                    <p>Animal prosthetics documentation and open design records.</p>
+                    <p class="footer-attrib">Canine reference meshes by kenchoo and Gert-Jan van den Boom, used under Creative Commons. <a href="credits.html">Full credits and licenses</a>.</p>
                 </div>
             </footer>
         </div>
@@ -183,6 +244,6 @@
         <span></span>
     </button>
 
-    <script src="script.js"></script>
+    <script src="script.js?v=49"></script>
 </body>
 </html>

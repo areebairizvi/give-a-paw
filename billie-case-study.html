@@ -4,7 +4,19 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Billie Case Study - Give a Paw</title>
-    <link rel="stylesheet" href="style.css">
+    <!-- meta:start -->
+    <meta name="description" content="Billie's custom prosthetic: scan cleanup, socket generation, paw lattice design, and the printed device, with interactive 3D models.">
+    <link rel="icon" href="favicon.ico" sizes="any">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Give a Paw">
+    <meta property="og:title" content="Billie Case Study">
+    <meta property="og:description" content="Billie's custom prosthetic: scan cleanup, socket generation, paw lattice design, and the printed device, with interactive 3D models.">
+    <meta property="og:image" content="https://areebairizvi.github.io/give-a-paw/social-card.jpg">
+    <meta property="og:url" content="https://areebairizvi.github.io/give-a-paw/billie-case-study.html">
+    <meta name="twitter:card" content="summary_large_image">
+    <!-- meta:end -->
+    <link rel="stylesheet" href="style.css?v=18">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
@@ -18,29 +30,38 @@
             </a>
         </div>
         <nav class="sidebar-nav">
-            <p class="sidebar-nav-title">Program</p>
+            <p class="sidebar-nav-title">Our Patients</p>
             <ul>
-                <li><a href="meet-the-team.html">Meet the Team</a></li>
-                <li><a href="downloads.html">Downloads</a></li>
-                <li><a href="anatomy-quiz.html">Canine Anatomy Quiz</a></li>
-                <li><a href="human-anatomy-quiz.html">Human Anatomy Quiz</a></li>
+                <li><a href="max-case-study.html">Max</a></li>
+                <li class="active"><a href="billie-case-study.html">Billie</a></li>
+                <li><a href="yana-case-study.html">Yana</a></li>
+                <li><a href="ollie-case-study.html">Ollie</a></li>
+                <li><a href="kiki-case-study.html">Kiki</a></li>
             </ul>
-            <p class="sidebar-nav-title">Case Studies</p>
+            <p class="sidebar-nav-title">Earlier Projects</p>
             <ul>
                 <li><a href="full-limb.html">Full Limb</a></li>
                 <li><a href="wheel-chair.html">Wheel Chair</a></li>
             </ul>
-            <p class="sidebar-nav-title">Socket Creation</p>
+            <p class="sidebar-nav-title">How We Build</p>
             <ul>
+                <li><a href="3d-scanning.html">3D Scanning</a></li>
                 <li><a href="preparing-ntop-input.html">Preparing nTop Input</a></li>
                 <li><a href="ntop-socket-creation.html">nTop Socket Creation</a></li>
-            </ul>
-            <p class="sidebar-nav-title">Manufacturing Considerations</p>
-            <ul>
                 <li><a href="materials.html">Materials</a></li>
                 <li><a href="3d-printing.html">3D Printing</a></li>
             </ul>
-            <p class="sidebar-nav-title">3D Scanning</p>
+            <p class="sidebar-nav-title">Learn &amp; Try</p>
+            <ul>
+                <li><a href="anatomy-quiz.html">Canine Anatomy Quiz</a></li>
+                <li><a href="human-anatomy-quiz.html">Human Anatomy Quiz</a></li>
+                <li><a href="downloads.html">Downloads</a></li>
+            </ul>
+            <p class="sidebar-nav-title">About</p>
+            <ul>
+                <li><a href="meet-the-team.html">Meet the Team</a></li>
+                <li><a href="credits.html">Credits</a></li>
+            </ul>
         </nav>
     </aside>
     <div class="page">
@@ -132,31 +153,31 @@
                     <details class="download-category">
                         <summary>3D Scan Files</summary>
                         <ul class="download-files">
-                            <li><a href="#">Example scan.stl</a></li>
+                            <li class="pending">Example scan.stl</li>
                         </ul>
                     </details>
                     <details class="download-category">
                         <summary>Measurement Photos</summary>
                         <ul class="download-files">
-                            <li><a href="#">Example measurement.jpg</a></li>
+                            <li class="pending">Example measurement.jpg</li>
                         </ul>
                     </details>
                     <details class="download-category">
                         <summary>MeshMixer Files</summary>
                         <ul class="download-files">
-                            <li><a href="#">Example file.mix</a></li>
+                            <li class="pending">Example file.mix</li>
                         </ul>
                     </details>
                     <details class="download-category">
                         <summary>CAD Files</summary>
                         <ul class="download-files">
-                            <li><a href="#">Example file.sldprt</a></li>
+                            <li class="pending">Example file.sldprt</li>
                         </ul>
                     </details>
                     <details class="download-category">
                         <summary>nTop Files</summary>
                         <ul class="download-files">
-                            <li><a href="#">Example file.ntop</a></li>
+                            <li class="pending">Example file.ntop</li>
                         </ul>
                     </details>
                     <p>The attachment for the socket was made in Onshape. Given that the socket material is PETG, we used a clearance of 0.5-0.7 mm (0.014") for a tube with a 1" external diameter and 0.065" wall thickness, and 8 mm screws (holes with a 7.8 mm diameter for self-tapping).</p>
@@ -286,8 +307,9 @@
             </article>
             <footer>
                 <div class="footer-credits">
-                    <p>© 2026 Give a Paw</p>
-                    <p>Animal Prosthetics Documentation</p>
+                    <p>&copy; 2026 Give a Paw &middot; Bioprinting@Berkeley</p>
+                    <p>Animal prosthetics documentation and open design records.</p>
+                    <p class="footer-attrib">Canine reference meshes by kenchoo and Gert-Jan van den Boom, used under Creative Commons. <a href="credits.html">Full credits and licenses</a>.</p>
                 </div>
             </footer>
         </div>
@@ -297,6 +319,6 @@
         <span></span>
         <span></span>
     </button>
-    <script src="script.js"></script>
+    <script src="script.js?v=49"></script>
 </body>
 </html>
