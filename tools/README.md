@@ -64,12 +64,36 @@ prints the full asset checklist.
 
 ## Anatomy quiz data
 
-The canine quiz (`anatomy-quiz.html`) has four modes (multiple choice,
-find-and-click, typed answers, matching) over item pools defined in
-`script.js` (`QUIZZES`). All 27 full-skeleton bone items carry traced
-outlines generated from the skeleton SVG's own paths; refine any outline by
-hand in the `?dev=1` editor and paste the updated block over the matching
-`items:` entry. Custom quizzes are plain URLs
-(`anatomy-quiz.html?quiz=bones&mode=click&parts=scapula,femur`) built by the
-Customize panel on the page; slugs derive from item names, so renaming an
-item breaks existing links to it.
+Both quizzes run the same engine, `quiz-engine.js`, in four modes (multiple
+choice, find-and-click with hover preview, typed answers, matching) with
+URL-shareable custom part selections. Each page supplies its own data file
+before loading the engine:
+
+- `anatomy-quiz.html` -> `quiz-data-canine.js` (27 bones, 4 quiz sets)
+- `human-anatomy-quiz.html` -> `quiz-data-human.js` (22 bones, 2 quiz sets)
+
+A data file sets `window.QUIZ_CONFIG = {appId, quizzes, aliases}`. To add a
+quiz page, write a third data file and load it before the engine; nothing in
+the engine needs to change.
+
+Bone outlines were generated from each skeleton drawing's own vector
+geometry rather than traced by hand. The two drawings are built differently:
+the canine SVG has one path per bone in labelled layers, while the human SVG
+is a single path holding 328 closed subpaths. Either way the workflow was the
+same - sample every path, render numbered contact sheets to identify each
+one, then emit `points` arrays (single paths simplified, bone clusters
+hulled, curved runs outlined as thick polylines). Refine any outline by hand
+in the `?dev=1` shape editor and paste the block back over the matching
+`items:` entry.
+
+Two things the generator guarantees, both of which the modes depend on:
+every item's marker sits inside its own outline, and never inside a smaller
+sibling's (otherwise a matching pin would appear on the wrong bone).
+
+Custom quiz links encode slugs derived from item names
+(`?quiz=bones&mode=click&parts=femur,patella`), so renaming an item breaks
+existing links to it.
+
+The human quiz has no Mandible item: that drawing merges the jaw into the
+cranium contour, so there is no honest outline for it. Trace one in the
+`?dev=1` editor if it is wanted.

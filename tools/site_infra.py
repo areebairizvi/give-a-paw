@@ -113,7 +113,7 @@ META = {
         "Quiz yourself on canine skeletal anatomy in four modes: multiple choice, find-and-click, typed answers, and matching. Build a custom quiz from 27 traced bones and share it as a link."),
     "human-anatomy-quiz.html": (
         "Human Anatomy Quiz",
-        "Test your knowledge of human skeletal anatomy with an interactive labeling quiz."),
+        "Quiz yourself on human skeletal anatomy in four modes: multiple choice, find-and-click, typed answers, and matching. Build a custom quiz from 22 traced bones and share it as a link."),
     "downloads.html": (
         "Downloads",
         "Reference files from the Give a Paw program: example scans, measurements, and CAD source for each build."),
