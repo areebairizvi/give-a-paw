@@ -16,7 +16,7 @@
     <meta property="og:url" content="https://areebairizvi.github.io/give-a-paw/">
     <meta name="twitter:card" content="summary_large_image">
     <!-- meta:end -->
-    <link rel="stylesheet" href="style.css?v=21">
+    <link rel="stylesheet" href="style.css?v=22">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
@@ -70,7 +70,8 @@
             <article>
                 <section class="hero" id="hero">
                     <div class="hero-model">
-                        <model-viewer src="billie-full-prosthetic.glb"
+                        <model-viewer id="hero-viewer"
+                                      src="billie-full-prosthetic.glb"
                                       alt="Rotating 3D model of a finished 3D-printed dog prosthetic"
                                       camera-controls
                                       auto-rotate
@@ -92,6 +93,7 @@
                             <a href="#patients" class="hero-cta">Meet our 2026 patients</a>
                             <a href="#playground" class="hero-cta-secondary">Design a socket in your browser</a>
                         </div>
+                        <div class="hero-model-toggle" id="hero-toggle" role="group" aria-label="Featured 3D model" hidden></div>
                     </div>
                 </section>
 
@@ -244,6 +246,6 @@
         <span></span>
     </button>
 
-    <script src="script.js?v=52"></script>
+    <script src="script.js?v=57"></script>
 </body>
 </html>

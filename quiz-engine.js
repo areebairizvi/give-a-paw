@@ -1182,6 +1182,18 @@
                     ? '' : ' (' + pool.length + ' of ' + cfg.items.length +
                       ' parts selected)');
         }
+        // Ticking a box re-runs start(), which lands here. Rebuilding the
+        // list would destroy the checkbox the user just clicked; focus then
+        // falls back to <body> and the browser jumps to the top of the page.
+        // The list only needs rebuilding when the quiz set itself changed,
+        // so otherwise just sync the checked state in place.
+        const existing = [...partsBox.querySelectorAll('input')];
+        const sameSet = existing.length === cfg.items.length &&
+            existing.every((inp, i) => inp.value === slug(cfg.items[i].name));
+        if (sameSet) {
+            existing.forEach(inp => { inp.checked = active.has(inp.value); });
+            return;
+        }
         partsBox.innerHTML = '';
         cfg.items.forEach(item => {
             const id = 'part-' + slug(item.name);

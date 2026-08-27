@@ -681,6 +681,76 @@ blockquote footer {
     text-decoration: none;
 }
 
+/* ---- Hero model switcher ---- */
+.hero-model-toggle {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin-top: 1.75rem;
+}
+
+.hero-model-toggle[hidden] { display: none; }
+
+.hero-model-btn {
+    padding: 0.35rem 0.8rem;
+    background: rgba(255, 255, 255, 0.10);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    border-radius: 999px;
+    color: rgba(255, 255, 255, 0.88);
+    font-family: var(--font-heading);
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.hero-model-btn:hover {
+    background: rgba(255, 255, 255, 0.2);
+    color: #fff;
+}
+
+.hero-model-btn:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+.hero-model-btn.active {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: #003262;
+}
+
+/* ---- Hero camera positioner (index.html?dev=1) ---- */
+.hero-dev-panel {
+    max-width: 1100px;
+    margin: 1.5rem auto;
+    padding: 1.25rem 1.5rem;
+    background: #f8f9fa;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+}
+
+.hero-dev-help {
+    margin-top: 0;
+    font-size: 0.92rem;
+    color: var(--color-text-light);
+    max-width: 70ch;
+}
+
+.hero-dev-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin: 0.75rem 0;
+}
+
+.hero-dev-status {
+    font-family: 'Consolas', monospace;
+    font-size: 0.82rem;
+    color: #002676;
+    margin: 0 0 0.5rem;
+}
+
 /* ---- Patient conveyor ---- */
 .patients {
     padding: 4rem 0;

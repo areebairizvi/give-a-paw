@@ -121,3 +121,27 @@ you split them, check interior coverage, not just the markers.
 The human quiz has no Mandible item: that drawing merges the jaw into the
 cranium contour, so there is no honest outline for it. Trace one in the
 `?dev=1` editor if it is wanted.
+
+## Home page hero
+
+The hero model switcher is driven by `HERO_MODELS` at the bottom of
+`script.js`. Adding a model is one entry there and nothing else: the buttons
+are generated, and each file is HEAD-checked on load, so an entry whose GLB
+is not committed yet simply does not appear (and the strip hides itself
+entirely if fewer than two models resolve). Only the first model's geometry
+is downloaded; the rest are fetched when clicked, which keeps the home page
+near 0.8 MB of 3D.
+
+Per-model camera framing lives in `HERO_VIEWS`. To set it, open
+`index.html?dev=1`: auto-rotate is suspended, and a panel below the hero lets
+you orbit each model into place, capture it, and copy a `HERO_VIEWS` block to
+paste back over the one in `script.js`. A model with no entry uses
+model-viewer's automatic framing, which is the shipped default.
+
+Two things in that code look like fussiness and are not. The capture reads
+the field of view from the controls' `goalLogFov` (a natural log) rather than
+`getFieldOfView()`, which reports the framing value and never moves when the
+user zooms. And the view is applied on a `setTimeout`, not a
+`requestAnimationFrame`, because rAF does not fire in a background tab -
+which would leave the hero on automatic framing for anyone opening the page
+in one.

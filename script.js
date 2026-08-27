@@ -1738,3 +1738,198 @@ document.querySelectorAll('model-viewer').forEach(mv => {
     };
     mv.addEventListener('load', applyMatte);
 });
+
+// ---- Home page hero: model switcher + camera positioner ----
+// The hero shows one model at a time from HERO_MODELS. Adding a model is one
+// entry here and nothing else: the buttons are generated, each file is
+// HEAD-checked so an entry whose GLB is not committed yet simply does not
+// appear, and per-model camera framing lives in HERO_VIEWS.
+//
+// Capture those views by opening index.html?dev=1, orbiting each model into
+// place, and pasting the generated block over HERO_VIEWS below. A model with
+// no entry there just uses model-viewer's automatic framing.
+(() => {
+    const viewer = document.getElementById('hero-viewer');
+    const bar = document.getElementById('hero-toggle');
+    if (!viewer || !bar) return;
+
+    const HERO_MODELS = [
+        { label: 'Finished prosthetic', file: 'billie-full-prosthetic.glb',
+          alt: 'A finished 3D-printed prosthetic leg for a dog' },
+        { label: 'Generated socket', file: 'ollie-progress.glb',
+          alt: 'A socket generated around a scan of a residual limb' },
+        { label: 'Paw lattice', file: 'ntop-paw-unitcell-hex.glb',
+          alt: 'A honeycomb lattice paw that cushions each step' },
+        { label: 'Socket lattice', file: 'ntop-chi-maxthick-08.glb',
+          alt: 'A lattice socket generated from a Chihuahua scan' },
+    ];
+
+    // Paste captured views here (index.html?dev=1 generates the block).
+    const HERO_VIEWS = {
+    };
+
+    const deg = r => r * 180 / Math.PI;
+
+    // model-viewer re-reads the camera attributes on every model load, so a
+    // view is applied by writing the attributes. Rewriting an attribute with
+    // an identical value is a no-op in LitElement, hence clear-then-set
+    // across two ticks (the same fix the socket-creation viewers need).
+    function applyView(file) {
+        const v = HERO_VIEWS[file];
+        ['camera-orbit', 'camera-target', 'field-of-view'].forEach(
+            a => viewer.removeAttribute(a));
+        if (!v) return;
+        // Deliberately setTimeout and not requestAnimationFrame: rAF does not
+        // fire while the tab is in the background, which would leave the hero
+        // on model-viewer's automatic framing instead of the captured view
+        // for anyone who opens the page in a background tab.
+        setTimeout(() => {
+            // a later swap may have won the race
+            if (viewer.getAttribute('src') !== file) return;
+            if (v.orbit) viewer.setAttribute('camera-orbit', v.orbit);
+            if (v.target) viewer.setAttribute('camera-target', v.target);
+            if (v.fov) viewer.setAttribute('field-of-view', v.fov);
+        }, 0);
+    }
+
+    // model-viewer re-frames the camera from scratch every time a model
+    // finishes loading, so the view has to be re-asserted then, not only at
+    // swap time.
+    viewer.addEventListener('load',
+        () => applyView(viewer.getAttribute('src')));
+
+    function show(model, btn) {
+        if (viewer.getAttribute('src') === model.file) return;
+        viewer.setAttribute('src', model.file);
+        viewer.setAttribute('alt', model.alt);
+        applyView(model.file);
+        [...bar.querySelectorAll('.hero-model-btn')].forEach(
+            b => b.classList.toggle('active', b === btn));
+    }
+
+    const exists = url => fetch(url, { method: 'HEAD' })
+        .then(r => r.ok).catch(() => false);
+
+    Promise.all(HERO_MODELS.map(m => exists(m.file))).then(ok => {
+        const available = HERO_MODELS.filter((m, i) => ok[i]);
+        if (available.length < 2) return;   // nothing to switch between
+        available.forEach((m, i) => {
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'hero-model-btn' + (i === 0 ? ' active' : '');
+            btn.textContent = m.label;
+            btn.addEventListener('click', () => show(m, btn));
+            bar.appendChild(btn);
+        });
+        bar.hidden = false;
+        const first = available[0];
+        if (viewer.getAttribute('src') !== first.file) {
+            viewer.setAttribute('src', first.file);
+            viewer.setAttribute('alt', first.alt);
+        }
+        applyView(first.file);
+        if (new URLSearchParams(location.search).has('dev')) {
+            buildDevPanel(available);
+        }
+    });
+
+    // ---- ?dev=1 camera positioner ----
+    function buildDevPanel(models) {
+        viewer.removeAttribute('auto-rotate');
+        const views = Object.assign({}, HERO_VIEWS);
+        const panel = document.createElement('div');
+        panel.className = 'hero-dev-panel';
+        panel.innerHTML =
+            '<p class="hero-dev-help"><strong>Hero camera positioner.</strong> ' +
+            'Pick a model in the hero, then drag to orbit and scroll to zoom ' +
+            'until it looks right. Press <em>Capture this view</em> for each ' +
+            'model, then paste the block below over <code>HERO_VIEWS</code> in ' +
+            '<code>script.js</code>. Auto-rotate is off here so the camera ' +
+            'holds still; visitors still get it.</p>' +
+            '<p class="hero-dev-actions">' +
+              '<button type="button" class="quiz-next" data-capture>Capture this view</button> ' +
+              '<button type="button" class="quiz-next" data-clear>Forget this model</button> ' +
+              '<button type="button" class="quiz-next" data-spin>Preview auto-rotate</button>' +
+            '</p>' +
+            '<p class="hero-dev-status"></p>' +
+            '<textarea class="quiz-dev-output" readonly spellcheck="false" rows="8"></textarea>' +
+            '<button type="button" class="quiz-dev-copy" data-copy>Copy code</button>' +
+            '<span class="quiz-dev-copied" hidden>Copied!</span>';
+        document.querySelector('.hero').after(panel);
+        const out = panel.querySelector('.quiz-dev-output');
+        const status = panel.querySelector('.hero-dev-status');
+
+        const serialize = () => {
+            const lines = Object.keys(views).sort().map(f =>
+                "        '" + f + "': { orbit: '" + views[f].orbit +
+                "', target: '" + views[f].target +
+                "', fov: '" + views[f].fov + "' },");
+            out.value = '    const HERO_VIEWS = {\n' + lines.join('\n') +
+                (lines.length ? '\n' : '') + '    };';
+            const cur = viewer.getAttribute('src');
+            const done = models.filter(m => views[m.file]).length;
+            status.textContent = 'Showing ' + cur + ' - ' + done + ' of ' +
+                models.length + ' models captured' +
+                (views[cur] ? '' : ' (this one not captured yet)');
+        };
+
+        panel.querySelector('[data-capture]').addEventListener('click', () => {
+            if (typeof viewer.getCameraOrbit !== 'function') return;
+            // Prefer the controls' goal over the rendered camera: mid-ease the
+            // rendered position lags where the user actually stopped dragging.
+            // The same applies to zoom, and more sharply - getFieldOfView()
+            // reports the FRAMING fov and never moves, while the fov the user
+            // is actually looking at lives in the controls as a natural log.
+            let o = viewer.getCameraOrbit();
+            let fov = viewer.getFieldOfView();
+            try {
+                const sym = Object.getOwnPropertySymbols(viewer)
+                    .find(x => String(x.description || '') === 'controls');
+                const ctrls = sym && viewer[sym];
+                if (ctrls && ctrls.goalSpherical) o = ctrls.goalSpherical;
+                if (ctrls && typeof ctrls.goalLogFov === 'number') {
+                    fov = Math.exp(ctrls.goalLogFov);
+                }
+            } catch (e) {}
+            const t = viewer.getCameraTarget();
+            views[viewer.getAttribute('src')] = {
+                orbit: deg(o.theta).toFixed(1) + 'deg ' +
+                    deg(o.phi).toFixed(1) + 'deg ' + o.radius.toFixed(1) + 'm',
+                target: t.x.toFixed(1) + 'm ' + t.y.toFixed(1) + 'm ' +
+                    t.z.toFixed(1) + 'm',
+                fov: fov.toFixed(1) + 'deg',
+            };
+            serialize();
+        });
+
+        panel.querySelector('[data-clear]').addEventListener('click', () => {
+            delete views[viewer.getAttribute('src')];
+            serialize();
+        });
+
+        panel.querySelector('[data-spin]').addEventListener('click', e => {
+            const on = viewer.hasAttribute('auto-rotate');
+            if (on) viewer.removeAttribute('auto-rotate');
+            else viewer.setAttribute('auto-rotate', '');
+            e.target.textContent = on ? 'Preview auto-rotate' : 'Stop auto-rotate';
+        });
+
+        panel.querySelector('[data-copy]').addEventListener('click', () => {
+            const note = panel.querySelector('.quiz-dev-copied');
+            const flash = () => {
+                note.hidden = false;
+                setTimeout(() => { note.hidden = true; }, 1500);
+            };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(out.value).then(flash);
+            } else {
+                out.select();
+                document.execCommand('copy');
+                flash();
+            }
+        });
+
+        bar.addEventListener('click', () => setTimeout(serialize, 0));
+        serialize();
+    }
+})();
