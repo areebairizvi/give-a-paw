@@ -69,8 +69,10 @@ choice, find-and-click with hover preview, typed answers, matching) with
 URL-shareable custom part selections. Each page supplies its own data file
 before loading the engine:
 
-- `anatomy-quiz.html` -> `quiz-data-canine.js` (27 bones, 4 quiz sets)
-- `human-anatomy-quiz.html` -> `quiz-data-human.js` (22 bones, 2 quiz sets)
+- `anatomy-quiz.html` -> `quiz-data-canine.js` (4 sets: full skeleton bones
+  and joints, thoracic limb bones and joints)
+- `human-anatomy-quiz.html` -> `quiz-data-human.js` (4 sets: full skeleton
+  bones and joints, upper limb bones and joints)
 
 A data file sets `window.QUIZ_CONFIG = {appId, quizzes, aliases}`. To add a
 quiz page, write a third data file and load it before the engine; nothing in
@@ -93,6 +95,17 @@ sibling's (otherwise a matching pin would appear on the wrong bone).
 Custom quiz links encode slugs derived from item names
 (`?quiz=bones&mode=click&parts=femur,patella`), so renaming an item breaks
 existing links to it.
+
+`human-upper-limb.svg` is the human skeleton drawing cropped by `viewBox` to
+the image-right arm, so the wrist and finger bones are big enough to quiz on.
+Cropping rather than sourcing a second drawing keeps one source of truth: the
+limb coordinates are the full-image percentages mapped through the crop box.
+
+Group items (ribs, carpals, a row of phalanges) are convex hulls over a
+cluster of subpaths, which is why the hand is one Phalanges item rather than
+three rows: the fingers fan out, so per-row hulls overlap enough that half of
+the distal row would resolve to the middle row under smallest-area-wins. If
+you split them, check interior coverage, not just the markers.
 
 The human quiz has no Mandible item: that drawing merges the jaw into the
 cranium contour, so there is no honest outline for it. Trace one in the

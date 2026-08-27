@@ -5,18 +5,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Human Anatomy Quiz - Give a Paw</title>
     <!-- meta:start -->
-    <meta name="description" content="Quiz yourself on human skeletal anatomy in four modes: multiple choice, find-and-click, typed answers, and matching. Build a custom quiz from 22 traced bones and share it as a link.">
+    <meta name="description" content="Quiz yourself on human skeletal anatomy in four modes: multiple choice, find-and-click, typed answers, and matching, across the full skeleton and a zoomed upper limb. Build a custom quiz and share it as a link.">
     <link rel="icon" href="favicon.ico" sizes="any">
     <link rel="apple-touch-icon" href="apple-touch-icon.png">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="Give a Paw">
     <meta property="og:title" content="Human Anatomy Quiz">
-    <meta property="og:description" content="Quiz yourself on human skeletal anatomy in four modes: multiple choice, find-and-click, typed answers, and matching. Build a custom quiz from 22 traced bones and share it as a link.">
+    <meta property="og:description" content="Quiz yourself on human skeletal anatomy in four modes: multiple choice, find-and-click, typed answers, and matching, across the full skeleton and a zoomed upper limb. Build a custom quiz and share it as a link.">
     <meta property="og:image" content="https://areebairizvi.github.io/give-a-paw/social-card.jpg">
     <meta property="og:url" content="https://areebairizvi.github.io/give-a-paw/human-anatomy-quiz.html">
     <meta name="twitter:card" content="summary_large_image">
     <!-- meta:end -->
-    <link rel="stylesheet" href="style.css?v=20">
+    <link rel="stylesheet" href="style.css?v=21">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
@@ -68,12 +68,14 @@
             <article>
                 <section id="human-anatomy-quiz">
                     <h1>Human Anatomy Quiz<a class="headerlink" href="#human-anatomy-quiz" title="Permalink to this heading">¶</a></h1>
-                    <p>Test your knowledge of the human skeleton in four modes: multiple choice, find-and-click, typed answers, and matching. Human anatomy is the reference point our animal prosthetic work builds on. Use <em>Customize</em> below the quiz to pick exactly which parts to study and share that quiz as a link.</p>
+                    <p>Test your knowledge of the human skeleton in four modes: multiple choice, find-and-click, typed answers, and matching. Human anatomy is the reference point our animal prosthetic work builds on. The upper limb sets zoom in on the arm and hand, where the wrist and finger bones are large enough to tell apart. Use <em>Customize</em> below the quiz to pick exactly which parts to study and share that quiz as a link.</p>
 
                     <div class="quiz-tabs" role="tablist" aria-label="Quiz type">
                         <span class="quiz-bar-label">Quiz</span>
-                        <button type="button" class="quiz-tab active" data-quiz="bones">Bones</button>
-                        <button type="button" class="quiz-tab" data-quiz="joints">Joints</button>
+                        <button type="button" class="quiz-tab active" data-quiz="bones">Full Skeleton - Bones</button>
+                        <button type="button" class="quiz-tab" data-quiz="joints">Full Skeleton - Joints</button>
+                        <button type="button" class="quiz-tab" data-quiz="upper-limb-bones">Upper Limb - Bones</button>
+                        <button type="button" class="quiz-tab" data-quiz="upper-limb-joints">Upper Limb - Joints</button>
                     </div>
 
                     <div class="anatomy-quiz" id="human-quiz-app">
@@ -138,8 +140,8 @@
         <span></span>
         <span></span>
     </button>
-    <script src="script.js?v=51"></script>
-    <script src="quiz-data-human.js?v=1"></script>
-    <script src="quiz-engine.js?v=1"></script>
+    <script src="script.js?v=52"></script>
+    <script src="quiz-data-human.js?v=2"></script>
+    <script src="quiz-engine.js?v=3"></script>
 </body>
 </html>

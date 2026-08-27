@@ -160,7 +160,11 @@
             applyView();
         });
 
-        let devKey = 'bones';
+        // Honour ?quiz= so a set can be opened straight into the editor;
+        // the editor's own tabs still switch sets from there.
+        const devParam = new URLSearchParams(window.location.search).get('quiz');
+        let devKey = (devParam && QUIZZES[devParam]) ? devParam : 'bones';
+        tabs.forEach(tb => tb.classList.toggle('active', tb.dataset.quiz === devKey));
         let selectedItem = null;
         let tracing = false;
 
