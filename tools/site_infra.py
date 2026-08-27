@@ -110,10 +110,10 @@ META = {
         "Printing considerations for animal prosthetics: materials, infill, orientation, and post-processing."),
     "anatomy-quiz.html": (
         "Canine Anatomy Quiz",
-        "Quiz yourself on canine skeletal anatomy in four modes: multiple choice, find-and-click, typed answers, and matching. Build a custom quiz from 27 traced bones and share it as a link."),
+        "Quiz yourself on canine skeletal anatomy in four modes: multiple choice, find-and-click, typed answers, and matching. Build a custom quiz from 28 traced bones and 16 joints and share it as a link."),
     "human-anatomy-quiz.html": (
         "Human Anatomy Quiz",
-        "Quiz yourself on human skeletal anatomy in four modes: multiple choice, find-and-click, typed answers, and matching, across the full skeleton and a zoomed upper limb. Build a custom quiz and share it as a link."),
+        "Quiz yourself on human skeletal anatomy in four modes: multiple choice, find-and-click, typed answers, and matching, across the full skeleton and a zoomed upper limb, covering 23 traced bones and 15 joints. Build a custom quiz and share it as a link."),
     "downloads.html": (
         "Downloads",
         "Reference files from the Give a Paw program: example scans, measurements, and CAD source for each build."),

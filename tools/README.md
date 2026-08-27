@@ -69,10 +69,10 @@ choice, find-and-click with hover preview, typed answers, matching) with
 URL-shareable custom part selections. Each page supplies its own data file
 before loading the engine:
 
-- `anatomy-quiz.html` -> `quiz-data-canine.js` (4 sets: full skeleton bones
-  and joints, thoracic limb bones and joints)
-- `human-anatomy-quiz.html` -> `quiz-data-human.js` (4 sets: full skeleton
-  bones and joints, upper limb bones and joints)
+- `anatomy-quiz.html` -> `quiz-data-canine.js` (28 bones / 16 joints on the
+  full skeleton, 7 / 8 on the thoracic limb)
+- `human-anatomy-quiz.html` -> `quiz-data-human.js` (23 bones / 15 joints on
+  the full skeleton, 8 / 10 on the upper limb)
 
 A data file sets `window.QUIZ_CONFIG = {appId, quizzes, aliases}`. To add a
 quiz page, write a third data file and load it before the engine; nothing in
@@ -91,6 +91,17 @@ in the `?dev=1` shape editor and paste the block back over the matching
 Two things the generator guarantees, both of which the modes depend on:
 every item's marker sits inside its own outline, and never inside a smaller
 sibling's (otherwise a matching pin would appear on the wrong bone).
+
+Joint markers are generated, not hand-placed: each sits at the midpoint of
+the closest pair of points between the two bones that articulate there. Two
+guards run afterwards. A new joint landing within 2.5 percent units of an
+existing one is dropped rather than shipped, because two markers that close
+cannot be told apart by clicking (this is what stopped Acromioclavicular,
+1.2 from Shoulder, and Radioulnar, 1.6 from Elbow, going into the human
+full-skeleton set; both survive in the zoomed limb set). And where one
+outline encloses another - the ribs hull around the sternum - a closest-pair
+midpoint is meaningless, so those joints step outward from the inner shape
+instead.
 
 Custom quiz links encode slugs derived from item names
 (`?quiz=bones&mode=click&parts=femur,patella`), so renaming an item breaks

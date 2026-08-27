@@ -574,6 +574,21 @@
         'Lumbar vertebrae': ['lumbar'],
         'Temporomandibular joint': ['tmj', 'jaw joint'],
         'Metacarpophalangeal joint': ['mcp joint', 'knuckle'],
+        'Teeth': ['tooth', 'dentition'],
+        'Manubrium': ['manubrium of sternum', 'sternal manubrium'],
+        'Atlanto-occipital joint': ['atlantooccipital joint', 'atlanto occipital'],
+        'Atlantoaxial joint': ['atlanto axial joint'],
+        'Costovertebral joints': ['costovertebral', 'rib vertebra joints'],
+        'Sternocostal joints': ['sternocostal', 'costosternal joints'],
+        'Lumbosacral joint': ['lumbosacral', 'l5 s1 joint'],
+        'Sacroiliac joint': ['sacroiliac', 'si joint'],
+        'Sternoclavicular joint': ['sternoclavicular', 'sc joint'],
+        'Acromioclavicular joint': ['acromioclavicular', 'ac joint'],
+        'Radioulnar joint': ['radioulnar', 'radio ulnar joint'],
+        'Proximal radioulnar joint': ['proximal radioulnar'],
+        'Distal radioulnar joint': ['distal radioulnar'],
+        'Carpometacarpal joint': ['carpometacarpal', 'cmc joint'],
+        'Metatarsophalangeal joint': ['metatarsophalangeal', 'mtp joint'],
     };
     const ALIASES = Object.assign({}, BASE_ALIASES, CONFIG.aliases || {});
 
