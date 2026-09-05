@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Implicit Field Viewer - Give a Paw</title>
+    <!-- meta:start -->
+    <meta name="description" content="Render nTop socket designs as signed distance fields in your browser: live wall offset, section cuts, a distance-field view, and in-shader lattices. No pre-baked mesh sweeps.">
+    <link rel="icon" href="favicon.ico" sizes="any">
+    <link rel="apple-touch-icon" href="apple-touch-icon.png">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Give a Paw">
+    <meta property="og:title" content="Implicit Field Viewer">
+    <meta property="og:description" content="Render nTop socket designs as signed distance fields in your browser: live wall offset, section cuts, a distance-field view, and in-shader lattices. No pre-baked mesh sweeps.">
+    <meta property="og:image" content="https://areebairizvi.github.io/give-a-paw/social-card.jpg">
+    <meta property="og:url" content="https://areebairizvi.github.io/give-a-paw/implicit-viewer.html">
+    <meta name="twitter:card" content="summary_large_image">
+    <!-- meta:end -->
+    <link rel="stylesheet" href="style.css?v=23">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+</head>
+<body class="wide">
+    <aside class="sidebar">
+        <div class="sidebar-brand">
+            <a href="index.html" class="sidebar-logo-link">
+                <img src="logo.jpg" alt="Give a Paw Logo" class="sidebar-logo">
+            </a>
+        </div>
+        <nav class="sidebar-nav">
+            <p class="sidebar-nav-title">Our Patients</p>
+            <ul>
+                <li><a href="max-case-study.html">Max</a></li>
+                <li><a href="billie-case-study.html">Billie</a></li>
+                <li><a href="yana-case-study.html">Yana</a></li>
+                <li><a href="ollie-case-study.html">Ollie</a></li>
+                <li><a href="kiki-case-study.html">Kiki</a></li>
+            </ul>
+            <p class="sidebar-nav-title">Earlier Projects</p>
+            <ul>
+                <li><a href="full-limb.html">Full Limb</a></li>
+                <li><a href="wheel-chair.html">Wheel Chair</a></li>
+            </ul>
+            <p class="sidebar-nav-title">How We Build</p>
+            <ul>
+                <li><a href="3d-scanning.html">3D Scanning</a></li>
+                <li><a href="preparing-ntop-input.html">Preparing nTop Input</a></li>
+                <li><a href="ntop-socket-creation.html">nTop Socket Creation</a></li>
+                <li class="active"><a href="implicit-viewer.html">Implicit Field Viewer</a></li>
+                <li><a href="materials.html">Materials</a></li>
+                <li><a href="3d-printing.html">3D Printing</a></li>
+            </ul>
+            <p class="sidebar-nav-title">Learn &amp; Try</p>
+            <ul>
+                <li><a href="anatomy-quiz.html">Canine Anatomy Quiz</a></li>
+                <li><a href="human-anatomy-quiz.html">Human Anatomy Quiz</a></li>
+                <li><a href="downloads.html">Downloads</a></li>
+            </ul>
+            <p class="sidebar-nav-title">About</p>
+            <ul>
+                <li><a href="meet-the-team.html">Meet the Team</a></li>
+                <li><a href="credits.html">Credits</a></li>
+            </ul>
+        </nav>
+    </aside>
+    <div class="page">
+        <div class="content">
+            <article>
+                <section id="implicit-viewer">
+                    <h1>Implicit Field Viewer<a class="headerlink" href="#implicit-viewer" title="Permalink to this heading">&para;</a></h1>
+                    <p>Every socket we design in nTop is an <em>implicit</em>: not a mesh, but a function that gives the signed distance to the surface at any point in space. The viewer below renders that function directly. Drag to orbit, scroll to zoom, and move the sliders: the wall offset, the section cut, and the lattice are all computed live in your browser, not swapped in from pre-made files.</p>
+
+                    <div class="quiz-tabs" role="group" aria-label="Field to view">
+                        <span class="quiz-bar-label">Field</span>
+                        <span id="sdf-models"></span>
+                    </div>
+
+                    <div class="sdf-app">
+                        <div class="sdf-stage">
+                            <sdf-viewer id="sdf" mode="surface" plane-axis="y" plane-offset="0.5" lattice="none" cell="18" strut="2.5" contour="2" auto-rotate></sdf-viewer>
+                        </div>
+                        <div class="sdf-panel">
+                            <p class="sdf-group-title">View</p>
+                            <div class="quiz-tabs sdf-modes" role="group" aria-label="View mode">
+                                <button type="button" class="quiz-tab active" data-mode="surface">Surface</button>
+                                <button type="button" class="quiz-tab" data-mode="section">Section</button>
+                                <button type="button" class="quiz-tab" data-mode="field">Field</button>
+                            </div>
+                            <p class="sdf-mode-help" id="sdf-mode-help">The iso-surface of the field. Offset it to thicken or thin the wall.</p>
+
+                            <label class="sdf-control">
+                                <span>Wall offset <output id="sdf-iso-out">0.0 mm</output></span>
+                                <input type="range" id="sdf-iso" min="-5" max="5" step="0.1" value="0">
+                            </label>
+
+                            <p class="sdf-group-title">Section plane</p>
+                            <div class="quiz-tabs sdf-axes" role="group" aria-label="Section axis">
+                                <button type="button" class="quiz-tab" data-axis="x">X</button>
+                                <button type="button" class="quiz-tab active" data-axis="y">Y</button>
+                                <button type="button" class="quiz-tab" data-axis="z">Z</button>
+                            </div>
+                            <label class="sdf-control">
+                                <span>Position <output id="sdf-plane-out">50%</output></span>
+                                <input type="range" id="sdf-plane" min="0" max="100" step="1" value="50">
+                            </label>
+                            <label class="sdf-check"><input type="checkbox" id="sdf-flip"> Keep the other side</label>
+                            <label class="sdf-control sdf-field-only">
+                                <span>Colour range <output id="sdf-range-out">auto</output></span>
+                                <input type="range" id="sdf-range" min="0.5" max="20" step="0.5" value="8">
+                            </label>
+                            <label class="sdf-control sdf-field-only">
+                                <span>Contour spacing <output id="sdf-contour-out">2.0 mm</output></span>
+                                <input type="range" id="sdf-contour" min="0.5" max="10" step="0.5" value="2">
+                            </label>
+
+                            <p class="sdf-group-title">Lattice</p>
+                            <div class="quiz-tabs sdf-lattice" role="group" aria-label="Lattice">
+                                <button type="button" class="quiz-tab active" data-lattice="none">None</button>
+                                <button type="button" class="quiz-tab" data-lattice="gyroid">Gyroid</button>
+                                <button type="button" class="quiz-tab" data-lattice="schwarz">Schwarz P</button>
+                            </div>
+                            <label class="sdf-control">
+                                <span>Cell size <output id="sdf-cell-out">18 mm</output></span>
+                                <input type="range" id="sdf-cell" min="6" max="40" step="1" value="18">
+                            </label>
+                            <label class="sdf-control">
+                                <span>Strut thickness <output id="sdf-strut-out">2.5 mm</output></span>
+                                <input type="range" id="sdf-strut" min="0.5" max="6" step="0.1" value="2.5">
+                            </label>
+
+                            <div class="sdf-actions">
+                                <label class="sdf-check"><input type="checkbox" id="sdf-spin" checked> Auto-rotate</label>
+                                <button type="button" class="quiz-next" id="sdf-reset">Reset view</button>
+                            </div>
+
+                            <div class="sdf-drop" id="sdf-drop">
+                                <strong>Drop a <code>.sdf</code> file here</strong> to view it, or
+                                <label class="sdf-file">browse<input type="file" id="sdf-file" accept=".sdf"></label>.
+                                Nothing is uploaded: the field is read in your browser.
+                            </div>
+                            <p class="sdf-info" id="sdf-info"></p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="make-a-field">
+                    <h2>Making a field from an nTop export<a class="headerlink" href="#make-a-field" title="Permalink to this heading">&para;</a></h2>
+                    <p>The viewer reads <code>.sdf</code> files: a sampled signed distance field, about half a megabyte per model. You make one from any watertight mesh export, which is what nTop already produces:</p>
+                    <ol>
+                        <li>In nTop, export the implicit body as a mesh: <strong>STL, OBJ, PLY or 3MF</strong> from the Export Mesh block. Any of the site's existing <code>.glb</code> models work too.</li>
+                        <li>Run the bake script, which samples the signed distance onto a grid:
+                            <pre><code>python tools/bake_sdf.py my-socket.stl --res 160 --name "My socket"</code></pre>
+                            <code>--res</code> is the number of voxels along the longest axis. 160 gives roughly 1.4 mm per voxel on a socket and a 0.5 MB file; 200 is finer and about twice the size.</li>
+                        <li>Drop the resulting <code>.sdf</code> onto the viewer above to check it, then commit it to the repository and add it to the model list in this page.</li>
+                    </ol>
+                    <p>A field captures one shape, so operations that change the shape itself (a different lattice point count, a new scan) need a new bake. Everything the sliders above do is computed from the field at render time.</p>
+                </section>
+            </article>
+            <footer>
+                <div class="footer-credits">
+                    <p>&copy; 2026 Give a Paw &middot; Bioprinting@Berkeley</p>
+                    <p>Animal prosthetics documentation and open design records.</p>
+                    <p class="footer-attrib">Canine reference meshes by kenchoo and Gert-Jan van den Boom, used under Creative Commons. <a href="credits.html">Full credits and licenses</a>.</p>
+                </div>
+            </footer>
+        </div>
+    </div>
+    <button class="mobile-toggle" id="mobile-toggle">
+        <span></span>
+        <span></span>
+        <span></span>
+    </button>
+    <script src="script.js?v=57"></script>
+    <script src="sdf-viewer.js?v=3"></script>
+    <script>
+    (() => {
+        // Fields available on the site. Each is HEAD-checked, so a listed
+        // file that is not committed yet simply does not get a button.
+        const MODELS = [
+            { label: 'Ollie socket', file: 'ollie-socket.sdf' },
+            { label: 'Billie prosthetic', file: 'billie-full-prosthetic.sdf' },
+        ];
+        const viewer = document.getElementById('sdf');
+        const strip = document.getElementById('sdf-models');
+        const info = document.getElementById('sdf-info');
+        const $ = id => document.getElementById(id);
+
+        const MODE_HELP = {
+            surface: 'The iso-surface of the field. Offset it to thicken or thin the wall.',
+            section: 'The surface cut by a plane. The cut face shows the true wall thickness.',
+            field: 'The distance field on the cut plane: red inside, blue outside, gold at the surface, with iso-contours every few millimetres.',
+        };
+
+        const exists = url => fetch(url, { method: 'HEAD' }).then(r => r.ok).catch(() => false);
+        Promise.all(MODELS.map(m => exists(m.file))).then(ok => {
+            const avail = MODELS.filter((m, i) => ok[i]);
+            avail.forEach((m, i) => {
+                const b = document.createElement('button');
+                b.type = 'button';
+                b.className = 'quiz-tab' + (i === 0 ? ' active' : '');
+                b.textContent = m.label;
+                b.addEventListener('click', () => {
+                    [...strip.children].forEach(x => x.classList.toggle('active', x === b));
+                    viewer.setAttribute('src', m.file);
+                });
+                strip.appendChild(b);
+            });
+            if (avail.length) viewer.setAttribute('src', avail[0].file);
+            else info.textContent = 'No fields are committed yet. Drop a .sdf file to view one.';
+        });
+
+        viewer.addEventListener('load', e => {
+            const h = e.detail;
+            const [lo, hi] = h.bounds;
+            const pitch = (hi[0] - lo[0]) / (h.dims[0] - 1);
+            info.textContent = (h.name || h.file) + ' · ' + h.dims.join('×') +
+                ' voxels · ' + pitch.toFixed(2) + ' mm per voxel · ' +
+                (h.bytes / 1048576).toFixed(1) + ' MB in memory';
+            // wall offset range follows the field's band
+            const lim = Math.max(1, Math.round(h.band * 0.45 * 10) / 10);
+            $('sdf-iso').min = -lim; $('sdf-iso').max = lim;
+            $('sdf-iso').value = 0; setIso();
+            // colour range starts at the part's own deepest interior point
+            const r = $('sdf-range');
+            r.max = Math.max(2, Math.round(h.band));
+            r.value = Math.round(h.inner * 2) / 2;
+            viewer.removeAttribute('field-range');
+            $('sdf-range-out').textContent = 'auto (' + h.inner.toFixed(1) + ' mm)';
+        });
+
+        // ---- controls ----
+        function tabs(container, attr, onchange) {
+            container.querySelectorAll('.quiz-tab').forEach(b => {
+                b.addEventListener('click', () => {
+                    container.querySelectorAll('.quiz-tab').forEach(x => x.classList.toggle('active', x === b));
+                    viewer.setAttribute(attr, b.dataset[attr === 'plane-axis' ? 'axis' : attr]);
+                    if (onchange) onchange(b.dataset[attr === 'plane-axis' ? 'axis' : attr]);
+                });
+            });
+        }
+        tabs(document.querySelector('.sdf-modes'), 'mode', m => {
+            $('sdf-mode-help').textContent = MODE_HELP[m];
+            document.body.classList.toggle('sdf-in-field', m === 'field');
+        });
+        tabs(document.querySelector('.sdf-axes'), 'plane-axis');
+        tabs(document.querySelector('.sdf-lattice'), 'lattice');
+
+        function setIso() {
+            const v = parseFloat($('sdf-iso').value);
+            viewer.setAttribute('iso', v);
+            $('sdf-iso-out').textContent = (v >= 0 ? '+' : '') + v.toFixed(1) + ' mm';
+        }
+        $('sdf-iso').addEventListener('input', setIso);
+        $('sdf-plane').addEventListener('input', () => {
+            viewer.setAttribute('plane-offset', $('sdf-plane').value / 100);
+            $('sdf-plane-out').textContent = $('sdf-plane').value + '%';
+        });
+        $('sdf-flip').addEventListener('change', () => viewer.toggleAttribute('plane-flip', $('sdf-flip').checked));
+        $('sdf-range').addEventListener('input', () => {
+            viewer.setAttribute('field-range', $('sdf-range').value);
+            $('sdf-range-out').textContent = parseFloat($('sdf-range').value).toFixed(1) + ' mm';
+        });
+        $('sdf-contour').addEventListener('input', () => {
+            viewer.setAttribute('contour', $('sdf-contour').value);
+            $('sdf-contour-out').textContent = parseFloat($('sdf-contour').value).toFixed(1) + ' mm';
+        });
+        $('sdf-cell').addEventListener('input', () => {
+            viewer.setAttribute('cell', $('sdf-cell').value);
+            $('sdf-cell-out').textContent = $('sdf-cell').value + ' mm';
+        });
+        $('sdf-strut').addEventListener('input', () => {
+            viewer.setAttribute('strut', $('sdf-strut').value);
+            $('sdf-strut-out').textContent = parseFloat($('sdf-strut').value).toFixed(1) + ' mm';
+        });
+        $('sdf-spin').addEventListener('change', () => viewer.toggleAttribute('auto-rotate', $('sdf-spin').checked));
+        $('sdf-reset').addEventListener('click', () => {
+            viewer._fitCamera && viewer.header && viewer._fitCamera();
+            viewer.setCamera({ theta: 0.6, phi: 1.15 });
+        });
+        // orbiting by hand should stop the spin, like model-viewer does
+        viewer.addEventListener('pointerdown', () => {
+            if ($('sdf-spin').checked) { $('sdf-spin').checked = false; viewer.removeAttribute('auto-rotate'); }
+        });
+
+        // ---- drag and drop ----
+        const drop = $('sdf-drop');
+        const openFile = f => {
+            if (!f) return;
+            [...strip.children].forEach(x => x.classList.remove('active'));
+            viewer.loadFile(f);
+        };
+        ['dragenter', 'dragover'].forEach(ev => drop.addEventListener(ev, e => {
+            e.preventDefault(); drop.classList.add('over');
+        }));
+        ['dragleave', 'drop'].forEach(ev => drop.addEventListener(ev, e => {
+            e.preventDefault(); drop.classList.remove('over');
+        }));
+        drop.addEventListener('drop', e => openFile(e.dataTransfer.files[0]));
+        $('sdf-file').addEventListener('change', e => openFile(e.target.files[0]));
+        // the whole stage accepts drops too
+        const stage = document.querySelector('.sdf-stage');
+        stage.addEventListener('dragover', e => e.preventDefault());
+        stage.addEventListener('drop', e => { e.preventDefault(); openFile(e.dataTransfer.files[0]); });
+    })();
+    </script>
+</body>
+</html>

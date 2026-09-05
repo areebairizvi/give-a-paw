@@ -4,8 +4,22 @@
     {
       "name": "give-a-paw",
       "runtimeExecutable": "python",
-      "runtimeArgs": ["-m", "http.server", "8123"],
-      "port": 8123
+      "runtimeArgs": [
+        "-c",
+        "import os;from http.server import ThreadingHTTPServer,SimpleHTTPRequestHandler;p=int(os.environ.get('PORT','8123'));print('serving on',p,flush=True);ThreadingHTTPServer(('',p),SimpleHTTPRequestHandler).serve_forever()"
+      ],
+      "port": 8123,
+      "autoPort": true
+    },
+    {
+      "name": "give-a-paw-sdf",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-c",
+        "import os;from http.server import ThreadingHTTPServer,SimpleHTTPRequestHandler;p=int(os.environ.get('PORT','8123'));print('serving on',p,flush=True);ThreadingHTTPServer(('',p),SimpleHTTPRequestHandler).serve_forever()"
+      ],
+      "port": 8124,
+      "autoPort": true
     }
   ]
 }

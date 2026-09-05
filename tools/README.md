@@ -145,3 +145,55 @@ user zooms. And the view is applied on a `setTimeout`, not a
 `requestAnimationFrame`, because rAF does not fire in a background tab -
 which would leave the hero on automatic framing for anyone opening the page
 in one.
+
+## Implicit field viewer (`bake_sdf.py`, `sdf-viewer.js`)
+
+`implicit-viewer.html` renders nTop designs as signed distance fields rather
+than meshes, so wall offset, section cuts, the distance-field view and a TPMS
+lattice are all computed live in the browser instead of swapped in from
+pre-baked files. This is the "Route A" implicit renderer: a sampled field
+ray-marched in WebGL2. It is a voxelised approximation, not the lossless
+function graph, and the site says so.
+
+**What you need to make one: any watertight mesh export.** STL, OBJ, PLY or
+3MF straight from nTop's Export Mesh block, or one of the site's existing
+`.glb` files (Draco GLBs are decoded through the gltf-transform toolchain).
+Then:
+
+```
+python tools/bake_sdf.py my-socket.stl --res 160 --name "My socket"
+```
+
+That writes `my-socket.sdf` next to the input. `--res` is voxels along the
+longest axis: 160 is about 1.4 mm per voxel on a socket and a 0.5 MB file;
+200 is finer and roughly twice the size. Add `--preview out.png` to get
+mid-plane slices for a sanity check before committing. Drop the `.sdf` on
+the viewer page to confirm it, commit it, and add it to the `MODELS` list at
+the bottom of `implicit-viewer.html` (entries are HEAD-checked, so an
+uncommitted file never shows a button).
+
+The `.sdf` format is one gzip stream: `SDF1`, a uint32 header length, a JSON
+header (`dims`, `bounds`, `band`, `encoding`, `name`, `source`), then uint8
+voxels with x fastest. Each voxel is signed distance clamped to `+-band` and
+mapped to 0..255, negative inside. Because every sample is a true distance
+bound, the renderer can sphere-trace - step by the sampled distance - which
+is what keeps a 160^3 field interactive.
+
+Two decisions in the bake that look odd and are deliberate. Distance comes
+from a KD-tree over a dense surface sample rather than trimesh's exact
+closest-point query, which is two orders of magnitude slower and gains
+nothing visible at this resolution. Sign comes from the sampled face normal
+near the surface (no staircase) and from a flood fill at twice the grid
+resolution away from it (stays right deep inside thin shells). A mesh with a
+few non-manifold edges bakes fine; one with open boundary edges will leak
+the flood fill, so check `is_watertight` / boundary-edge count first.
+
+In the viewer, the field-view colormap scales its inside colour to the
+part's real deepest interior distance (scanned from the voxels on load),
+not to the band - otherwise a 2 mm wall renders near-white against a 17 mm
+band and the field view says nothing about exactly the thin parts that
+matter.
+
+One field captures one shape. Anything that changes the shape itself (a new
+lattice point count, a new scan) is a new bake; everything the sliders do is
+evaluated from the field at render time.

@@ -29,6 +29,7 @@ NAV_GROUPS = [
         ("3d-scanning.html", "3D Scanning"),
         ("preparing-ntop-input.html", "Preparing nTop Input"),
         ("ntop-socket-creation.html", "nTop Socket Creation"),
+        ("implicit-viewer.html", "Implicit Field Viewer"),
         ("materials.html", "Materials"),
         ("3d-printing.html", "3D Printing"),
     ]),
@@ -102,6 +103,9 @@ META = {
     "ntop-socket-creation.html": (
         "nTop Socket Creation",
         "Interactive nTop socket design: 40+ live parameters across lattice, interface, attachment, and paw blocks, each driving a real 3D model in your browser."),
+    "implicit-viewer.html": (
+        "Implicit Field Viewer",
+        "Render nTop socket designs as signed distance fields in your browser: live wall offset, section cuts, a distance-field view, and in-shader lattices. No pre-baked mesh sweeps."),
     "materials.html": (
         "Materials",
         "Material selection for animal prosthetics: TPU, PETG, aluminum, and foam linings, and where each belongs in the device."),
